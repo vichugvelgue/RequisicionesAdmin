@@ -1,0 +1,26 @@
+---
+description: Flujo cuando el usuario pide crear algo (menú, formulario, tabla) sin especificar la ruta del prompt/spec
+alwaysApply: false
+---
+
+# Flujo: crear sin especificar prompt
+
+Cuando el usuario pida crear algo de forma genérica (**menú**, **formulario**, **tabla**, etc.) **sin** indicar la ruta del prompt ni del spec (ej. "vamos a hacer una opción del menú" o "quiero un formulario"):
+
+1. **Consultar** la carpeta `prompts/` y, si existe, `prompts/README.md`, para saber qué prompts hay para ese tipo de tarea.
+
+2. **Si hay un solo prompt "generar_desde_spec"** para ese dominio (menu, formularios, tablas):
+   - Usar ese prompt como referencia (leer su `prompt.md` y `spec.md`).
+   - Guiar al usuario con **preguntas** según el spec (kind, campos, validaciones, etc.) en lugar de pedirle un JSON completo.
+   - No exigir la ruta del spec; asumir `prompts/<dominio>/generar_desde_spec/` cuando el usuario diga "siguiendo el Spec" de ese dominio sin path.
+
+3. **Si hay varios prompts** para el mismo dominio (ej. menu: generar_desde_spec, crear_division, crear_hijo, …):
+   - Ofrecer al usuario: *"Puedo guiarte con: (A) **generar_desde_spec** – te pregunto paso a paso según el MenuSpec/FormSpec/TableSpec. (B) Un prompt concreto (crear_division, crear_hijo, …) con parámetros sueltos. ¿Cuál prefieres?"*
+   - O listar las opciones de `prompts/<dominio>/` según lo que el usuario quiera hacer.
+
+4. **Palabras clave** para detectar el dominio cuando no haya ruta:
+   - **Menú / opción del menú / sidebar / división / padre / hijo** → `prompts/menu/` (recomendado: `prompts/menu/generar_desde_spec/`).
+   - **Formulario / form / captura** → `prompts/formularios/` (recomendado: `prompts/formularios/generar_desde_spec/`).
+   - **Tabla / listado / grid / vista de tabla** → `prompts/tablas/` (recomendado: `prompts/tablas/generar_desde_spec/`).
+
+5. No inventar specs ni rutas; si no hay match claro, preguntar: *"¿Quieres que use el spec de menú, formularios o tablas? Tengo prompts en prompts/menu/, prompts/formularios/ y prompts/tablas/."*
