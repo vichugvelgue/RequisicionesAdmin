@@ -19,7 +19,7 @@ alwaysApply: true
 ## Componentes base
 - Usar componentes de `src/components/UI`: PageCard, ViewHeader, Button, Input, Label, FormSection, Select, SearchInput, SearchableSelect, SimpleTable, PaginationBar, InfiniteScrollTable, TableFilterBar, StatusBadge, ConfirmModal, Toast, EmptyState, etc.
 - Tablas con infinite scroll (búsqueda global, filtros inline, orden, acciones y pie "Mostrando X de Y"): usar **InfiniteScrollTable** para no duplicar lógica de scroll/sentinel; no montar a mano SimpleTable + InfiniteScrollSentinel.
-- Layout base de vistas: patrón Requisiciones (PageCard + ViewHeader con título y botón de acción + divisor `border-b border-slate-200` + contenido). Ver prompts `prompts/menu/crear_*_vista_base`.
+- Layout base de vistas: **PageCard + ViewHeader** (título, acción opcional, divisor). Referencia en código: `src/components/layout/TablePageLayout.jsx`, `src/modules/componentes/ComponentesView.tsx` o `src/modules/componentes/tables/ComponentesTablesView.tsx`. Ver prompts `prompts/menu/crear_*_vista_base`.
 - No duplicar componentes existentes; extender o componer.
 - **Default de ancho en barra de búsqueda (listados):** en `TableFilterBar` usar bloque `search` con `cols: 4` (de 12) como ancho por defecto en todos los listados. Solo cambiar este ancho si el usuario lo solicita explícitamente.
 
@@ -42,7 +42,7 @@ alwaysApply: true
 ### Texto en celdas (MAYÚSCULAS)
 - El **contenido textual** mostrado en celdas de tablas debe ir en **MAYÚSCULAS**: claves, descripciones, unidades de medida, estados de texto, etc. No aplica a valores puramente numéricos ni a fechas ya formateadas con un patrón fijo.
 - Alcance: listados con `SimpleTable`, `InfiniteScrollTable`, tablas inline y análogos. La regla aplica a los **datos** en celdas, no obliga a mayúsculas en encabezados de columna (muchas vistas ya usan `uppercase` solo en `<thead>`).
-- **UI**: preferir clase Tailwind `uppercase` en `cellClassName` de la columna o en el contenedor de la celda (ej. columna U.M. en `src/components/common/CapturaInsumos/CapturaInsumos.tsx`).
+- **UI**: preferir clase Tailwind `uppercase` en `cellClassName` de la columna o en el contenedor de la celda (ej. columna unidad en `src/modules/componentes/tables/ComponentesTablesView.tsx`).
 - **Texto editable** en celda: al guardar o en `onBlur`, normalizar el string a mayúsculas para alinear dato persistido y presentación.
 
 ### Cantidades (4 decimales)
@@ -52,9 +52,9 @@ alwaysApply: true
 - **Precio**, **costo unitario**, **importe**, **subtotal**, **total** y montos en moneda: `DecimalStringCellInput` con **`fractionDigits={2}`** (default del componente) o componentes/presentación monetaria que fijen **2 decimales** de forma consistente (p. ej. columnas `cellType: 'money'` donde corresponda).
 
 ### Referencia en código (patrón canónico)
-- Tabla **Captura de Insumos**: `src/components/common/CapturaInsumos/CapturaInsumos.tsx` — cantidad con `fractionDigits={4}`, costo unitario con `fractionDigits={2}`, importe derivado con presentación monetaria.
+- Demo **cantidad / precio** con `DecimalStringCellInput`: `src/modules/componentes/inputs/ComponentesInputsView.tsx` (`fractionDigits={4}` vs `{2}`).
+- Tabla de ejemplo con columnas monetarias y `uppercase` en unidad: `src/modules/componentes/tables/ComponentesTablesView.tsx`.
 - Componente base: `src/components/UI/DecimalStringCellInput/DecimalStringCellInput.tsx` — al blur normaliza con `toFixed(fractionDigits)`; no admite negativos.
-- Mismo criterio 4/2 en `src/modules/compras/cotizaciones/CotizacionItemsTable.tsx` y demo en `src/modules/componentes/inputs/ComponentesInputsView.tsx`.
 
 ### Fechas (DD-MMM-YYYY)
 - **Presentación estándar**: `DD-MMM-YYYY`, mes en **tres letras mayúsculas** en español (`ENE`…`DIC`), ej. `05-OCT-1997`.
@@ -64,4 +64,4 @@ alwaysApply: true
 - **`<input type="date">`** (solo donde siga usándose): el navegador define el aspecto; no fuerza DD-MMM-YYYY. Preferir `DatePicker` / `DateInputWithClear` para alinear con el estándar.
 
 ## Referencias
-- Menú: `src/data/menuData.jsx`, `src/components/layout/Sidebar.jsx`. Rutas: `src/App.jsx` (activeView). Layout referencia: `src/views/compras/RequisicionesView.jsx`.
+- Menú: `src/data/menuData.jsx`, `src/components/layout/Sidebar.jsx`. Rutas / vistas activas: `src/App.jsx`.
