@@ -1,0 +1,69 @@
+---
+description: Checklist de revision para catalogos inline generados desde spec
+alwaysApply: false
+---
+
+# Checklist de revision - Catalogo inline
+
+Usar este checklist cuando se cree o actualice un catalogo inline.
+
+## 1) Estructura base
+
+- Usa `InlineInsertInfiniteTable`.
+- Si es vista completa, usa `PageCard + ViewHeader`.
+- No crea estilos nuevos fuera de los componentes UI existentes.
+
+## 2) Funcionalidad minima
+
+- Alta inline funcional (`insertRow`) con Enter para guardar y Escape para cancelar.
+- Edicion inline funcional con estado draft.
+- Eliminacion funcional conectada al handler real de borrado.
+- Busqueda global funcional.
+- Filtros inline funcionales.
+- Ordenamiento funcional.
+
+## 3) Modal de eliminacion (obligatorio y estandar)
+
+Debe existir `ConfirmModal` y cumplir todo:
+- Se abre desde la accion de eliminar de la fila.
+- `title` consistente (ej. confirmacion de eliminacion).
+- `variant="danger"`.
+- Icono de eliminar visible (`Trash2`).
+- `confirmLabel="Eliminar"` y `cancelLabel="Cancelar"` (o equivalentes definidos en spec).
+- `onConfirm` ejecuta realmente la eliminacion.
+- `onClose` solo cierra modal y limpia estado pendiente.
+- Mensaje incluye identificador del registro objetivo.
+
+Si falla alguno de estos puntos: **No cumple**.
+
+## 4) Iconos de acciones (sin variaciones)
+
+Validar uso exacto:
+- Agregar -> `Plus`
+- Editar -> `Pencil`
+- Eliminar -> `Trash2`
+- Guardar -> `Check`
+- Cancelar edicion -> `X`
+
+No aceptar sustituciones (`Edit`, `Trash`, etc.) salvo requerimiento explicito del usuario.
+
+## 5) Convenciones de datos
+
+- Texto en celdas en mayusculas cuando aplique.
+- Texto editable normalizado a mayusculas al capturar/guardar.
+- Estados textuales en mayusculas (`ACTIVO` / `INACTIVO` u opciones del spec).
+
+## 6) Alcance de cambios
+
+- No tocar `src/data/menuData.jsx`.
+- No tocar `src/components/layout/Sidebar.jsx`.
+- No tocar `src/App.jsx`.
+- Limitar cambios al archivo objetivo y archivos de spec/prompt cuando aplique.
+
+## 7) Formato de salida del revisor
+
+Reportar siempre:
+
+1. **Resultado:** `Cumple` o `No cumple`.
+2. **Hallazgos:** lista corta de incumplimientos concretos.
+3. **Acciones requeridas:** pasos especificos para corregir.

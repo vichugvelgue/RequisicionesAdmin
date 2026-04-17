@@ -2,9 +2,9 @@ import React from 'react';
 
 /**
  * Ítem hijo dentro de un padre expandible (submenú).
- * @param {{ id: string, label: string, isActive: boolean, onClick: () => void }} props
+ * @param {{ label: string, isActive: boolean, onClick: () => void }} props
  */
-export function SidebarSubmenuItem({ id, label, isActive, onClick }) {
+export function SidebarSubmenuItem({ label, isActive, onClick }) {
   return (
     <button
       type="button"

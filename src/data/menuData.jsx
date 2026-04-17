@@ -11,3 +11,8 @@ export const COMPONENTES_SUBMENU = [
 	{ id: "ComponentesFeedback", label: "Feedback" },
 	{ id: "ComponentesFileUpload", label: "File Upload" },
 ];
+
+/** Submenú de Ejemplos: id = activeView, label = texto en menú */
+export const EJEMPLOS_SUBMENU = [
+	{ id: "EjemplosCatalogoInline", label: "Catalogo inline" },
+];

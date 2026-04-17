@@ -1,0 +1,1 @@
+export { CatalogoInlineView } from "./CatalogoInlineView";

@@ -7,7 +7,7 @@ import {
 	SidebarParentExpandable,
 	SidebarItem,
 } from "./sidebar/index.js";
-import { COMPONENTES_SUBMENU } from "../../data/menuData";
+import { COMPONENTES_SUBMENU, EJEMPLOS_SUBMENU } from "../../data/menuData";
 
 const COMPONENTES_PATH_MAP = {
 	ComponentesInputs: "/componentes/inputs",
@@ -22,14 +22,21 @@ const COMPONENTES_PATH_MAP = {
 	ComponentesFileUpload: "/componentes/file-upload",
 };
 
+const EJEMPLOS_PATH_MAP = {
+	EjemplosCatalogoInline: "/ejemplos/catalogo-inline",
+};
+
 export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const pathname = location.pathname;
 
 	const [isComponentesOpen, setIsComponentesOpen] = useState(false);
+	const [isEjemplosOpen, setIsEjemplosOpen] = useState(false);
 
 	const isComponentesActive = pathname.startsWith("/componentes");
+	const isEjemplosActive = pathname.startsWith("/ejemplos");
+	const showExamplesMenu = import.meta.env.VITE_SHOW_EXAMPLES === "true";
 
 	const handleNav = (path) => {
 		navigate(path);
@@ -99,6 +106,29 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
 							);
 						})}
 					</SidebarParentExpandable>
+
+					{showExamplesMenu ? (
+						<SidebarParentExpandable
+							icon={<LayoutDashboard className="w-4 h-4" />}
+							label="Ejemplos"
+							open={isEjemplosOpen}
+							onToggle={() => setIsEjemplosOpen(!isEjemplosOpen)}
+							isActive={isEjemplosActive}
+						>
+							{EJEMPLOS_SUBMENU.map((item) => {
+								const path = EJEMPLOS_PATH_MAP[item.id];
+								return (
+									<SidebarSubmenuItem
+										key={item.id}
+										id={item.id}
+										label={item.label}
+										isActive={pathname === path}
+										onClick={() => path && handleNav(path)}
+									/>
+								);
+							})}
+						</SidebarParentExpandable>
+					) : null}
 				</div>
 			</aside>
 		</>

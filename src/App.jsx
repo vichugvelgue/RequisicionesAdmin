@@ -14,6 +14,7 @@ import {
 	ComponentesTabsView,
 	ComponentesFileUploadView,
 } from "./modules/componentes";
+import { CatalogoInlineView } from "./modules/ejemplos";
 
 function App() {
 	return (
@@ -36,6 +37,7 @@ function App() {
 				<Route path="componentes/tabs" element={<ComponentesTabsView />} />
 				<Route path="componentes/feedback" element={<ComponentesFeedbackView />} />
 				<Route path="componentes/file-upload" element={<ComponentesFileUploadView />} />
+				<Route path="ejemplos/catalogo-inline" element={<CatalogoInlineView />} />
 			</Route>
 		</Routes>
 	);

@@ -1,6 +1,6 @@
 # Prompts reutilizables – Menú y sidebar
 
-Prompts para que el agente (o un desarrollador) añada opciones al menú del sidebar sin repetir lógica. Están organizados por función: **menu** (menú y sidebar). El sidebar usa componentes en `src/components/layout/sidebar/` y datos en `src/data/menuData.jsx`.
+Prompts reutilizables para generar funcionalidades sin repetir lógica. Están organizados por función: **menu** (menú y sidebar), **tablas**, **formularios** y **catalogos-inline**.
 
 ## Estructura
 
@@ -35,6 +35,20 @@ Los prompts se agrupan por función en subcarpetas de `prompts/`. Dentro de cada
 ## Prompts de tablas (`prompts/tablas/`)
 
 Para generar vistas con tablas desde JSON (TableSpec) o con parámetros sueltos, ver `prompts/tablas/generar_desde_spec/` y `prompts/tablas/crear_tabla/`. Las tablas con **infinite scroll** (búsqueda global, filtros por columna, orden, acciones y pie "Mostrando X de Y") se generan usando el componente **InfiniteScrollTable** de `src/components/UI`; ver las instrucciones en cada prompt.
+
+## Prompts de catálogos inline (`prompts/catalogos-inline/`)
+
+Para generar catálogos inline homogéneos (alta, edición, eliminación con modal, búsqueda, filtros inline y orden) usar:
+
+- [catalogos-inline/generar_desde_spec/](./catalogos-inline/generar_desde_spec/) — Prompt recomendado desde JSON (`CatalogoInlineSpec`).
+  - [prompt.md](./catalogos-inline/generar_desde_spec/prompt.md)
+  - [spec.md](./catalogos-inline/generar_desde_spec/spec.md)
+  - [ejemplos.md](./catalogos-inline/generar_desde_spec/ejemplos.md)
+
+Estándares obligatorios del dominio:
+- `InlineInsertInfiniteTable` como tabla base.
+- `ConfirmModal` para eliminar con `variant="danger"`.
+- Iconos fijos por acción: `Plus`, `Pencil`, `Trash2`, `Check`, `X`.
 
 ## Archivos del proyecto implicados
 
