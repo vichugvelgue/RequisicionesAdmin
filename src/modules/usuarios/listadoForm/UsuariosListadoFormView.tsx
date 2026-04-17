@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Check, Plus, Save, Trash2 } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Check, MailPlus, Plus, Save, Trash2 } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { useAuth } from "../../../auth";
 import {
 	BackLink,
 	Button,
@@ -14,9 +15,13 @@ import {
 	ViewHeader,
 } from "../../../components/UI";
 import type { OptionItem, SortConfig } from "../../../components/UI/types";
-import type { SimpleTableColumn } from "../../../components/UI/SimpleTable/SimpleTable";
+import type {
+	SimpleTableColumn,
+	SimpleTableCustomAction,
+} from "../../../components/UI/SimpleTable/SimpleTable";
 import { UsuarioFormSection } from "./UsuarioFormSection";
 import type {
+	InvitacionHistorialItem,
 	SearchCriteria,
 	UsuarioFormValues,
 	UsuarioRow,
@@ -30,6 +35,7 @@ const INITIAL_ROWS: UsuarioRow[] = [
 		nombre: "JUAN PEREZ LOPEZ",
 		correo: "juan.perez@nexerp.com",
 		tipoUsuario: "ADMINISTRADOR",
+		tipoPerfil: "ADMINISTRADOR GENERAL",
 		puesto: "JEFE DE AREA",
 		area: "SISTEMAS",
 	},
@@ -38,6 +44,7 @@ const INITIAL_ROWS: UsuarioRow[] = [
 		nombre: "MARIA GARCIA RAMOS",
 		correo: "maria.garcia@nexerp.com",
 		tipoUsuario: "OPERATIVO",
+		tipoPerfil: "SOLICITANTE",
 		puesto: "ANALISTA",
 		area: "FINANZAS",
 	},
@@ -48,6 +55,7 @@ const SEARCH_CRITERIA_OPTIONS: OptionItem[] = [
 	{ value: "Nombre", label: "Nombre" },
 	{ value: "Correo", label: "Correo" },
 	{ value: "Tipo usuario", label: "Tipo usuario" },
+	{ value: "Tipo perfil", label: "Tipo perfil" },
 	{ value: "Puesto", label: "Puesto" },
 	{ value: "Area", label: "Area" },
 ];
@@ -76,17 +84,24 @@ const TABLE_COLUMNS: SimpleTableColumn<UsuarioRow>[] = [
 		cellClassName: "uppercase",
 	},
 	{
+		key: "tipoPerfil",
+		label: "TIPO PERFIL",
+		sortable: true,
+		width: "w-[14%]",
+		cellClassName: "uppercase",
+	},
+	{
 		key: "puesto",
 		label: "PUESTO",
 		sortable: true,
-		width: "w-[16%]",
+		width: "w-[14%]",
 		cellClassName: "uppercase",
 	},
 	{
 		key: "area",
 		label: "AREA",
 		sortable: true,
-		width: "w-[14%]",
+		width: "w-[10%]",
 		cellClassName: "uppercase",
 	},
 ];
@@ -98,6 +113,8 @@ const EMPTY_VALUES: UsuarioFormValues = {
 	correo: "",
 	contrasena: "",
 	tipoUsuario: "",
+	tipoPerfil: "",
+	generarInvitacion: false,
 	puesto: "",
 	area: "",
 };
@@ -113,6 +130,14 @@ const usuarioSchema = yup.object({
 		otherwise: (schema) => schema.trim().required("*Requerido"),
 	}),
 	tipoUsuario: yup.string().trim().required("*Requerido"),
+	tipoPerfil: yup
+		.string()
+		.oneOf(
+			["SOLICITANTE", "REVISOR", "AUTORIZADOR", "ADMINISTRADOR GENERAL"],
+			"*Requerido"
+		)
+		.required("*Requerido"),
+	generarInvitacion: yup.boolean().default(false),
 	puesto: yup.string().trim().required("*Requerido"),
 	area: yup.string().trim().required("*Requerido"),
 });
@@ -132,6 +157,8 @@ function toFormValues(row?: UsuarioRow): UsuarioFormValues {
 		correo: row.correo,
 		contrasena: "",
 		tipoUsuario: row.tipoUsuario,
+		tipoPerfil: row.tipoPerfil,
+		generarInvitacion: false,
 		puesto: row.puesto,
 		area: row.area,
 	};
@@ -150,6 +177,7 @@ function matchesByCriteria(
 			row.nombre.toLowerCase().includes(term) ||
 			row.correo.toLowerCase().includes(term) ||
 			row.tipoUsuario.toLowerCase().includes(term) ||
+			row.tipoPerfil.toLowerCase().includes(term) ||
 			row.puesto.toLowerCase().includes(term) ||
 			row.area.toLowerCase().includes(term)
 		);
@@ -158,15 +186,44 @@ function matchesByCriteria(
 	if (criteria === "Correo") return row.correo.toLowerCase().includes(term);
 	if (criteria === "Tipo usuario")
 		return row.tipoUsuario.toLowerCase().includes(term);
+	if (criteria === "Tipo perfil")
+		return row.tipoPerfil.toLowerCase().includes(term);
 	if (criteria === "Puesto") return row.puesto.toLowerCase().includes(term);
 	return row.area.toLowerCase().includes(term);
 }
 
+const initialInvitacionesSeed = (): Record<string, InvitacionHistorialItem[]> => ({
+	"1": [
+		{
+			id: "seed-1",
+			fecha: new Date("2026-01-10T12:00:00").toISOString(),
+			estatus: "ENVIADA",
+			enviadaPor: "LUIS MENDOZA CASTRO",
+		},
+		{
+			id: "seed-exp",
+			fecha: new Date("2026-02-01T09:30:00").toISOString(),
+			estatus: "EXPIRADA",
+			enviadaPor: "ANA TORRES RUIZ",
+		},
+		{
+			id: "seed-acep",
+			fecha: new Date("2026-02-15T16:45:00").toISOString(),
+			estatus: "ACEPTADA",
+			enviadaPor: "CARLOS RAMIREZ NUÑEZ",
+		},
+	],
+});
+
 export function UsuariosListadoFormView() {
+	const { user } = useAuth();
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { id } = useParams();
 	const [rows, setRows] = useState<UsuarioRow[]>(INITIAL_ROWS);
+	const [invitacionesHistorial, setInvitacionesHistorial] = useState<
+		Record<string, InvitacionHistorialItem[]>
+	>(initialInvitacionesSeed);
 	const [sortConfig, setSortConfig] = useState<SortConfig>({
 		key: "id",
 		direction: "asc",
@@ -177,6 +234,7 @@ export function UsuariosListadoFormView() {
 		nombre: "",
 		correo: "",
 		tipoUsuario: "",
+		tipoPerfil: "",
 		puesto: "",
 		area: "",
 	});
@@ -227,6 +285,67 @@ export function UsuariosListadoFormView() {
 		defaultValues: EMPTY_VALUES,
 	});
 
+	const registrarInvitacion = useCallback(
+		(usuarioId: string) => {
+			const enviadaPor = (
+				user?.displayName?.trim() ||
+				user?.email?.trim() ||
+				"USUARIO SESIÓN"
+			).toUpperCase();
+			const item: InvitacionHistorialItem = {
+				id: `${usuarioId}-${Date.now()}`,
+				fecha: new Date().toISOString(),
+				estatus: "ENVIADA",
+				enviadaPor,
+			};
+			setInvitacionesHistorial((prev) => ({
+				...prev,
+				[usuarioId]: [...(prev[usuarioId] ?? []), item],
+			}));
+			setToastState({
+				visible: true,
+				title: "Invitación registrada (prototipo)",
+				variant: "success",
+			});
+		},
+		[user]
+	);
+
+	const handleEnviarInvitacionDesdeListado = useCallback(
+		(row: UsuarioRow) => {
+			registrarInvitacion(row.id);
+		},
+		[registrarInvitacion]
+	);
+
+	const listadoCustomActions: SimpleTableCustomAction<UsuarioRow>[] = useMemo(
+		() => [
+			{
+				icon: <MailPlus className="w-4 h-4" />,
+				title: "Enviar invitación",
+				onClick: handleEnviarInvitacionDesdeListado,
+			},
+		],
+		[handleEnviarInvitacionDesdeListado]
+	);
+
+	const handleEnviarInvitacionDesdeFormulario = useCallback(() => {
+		if (!id || mode !== "form-edicion") {
+			setToastState({
+				visible: true,
+				title: "Guarde el usuario primero",
+				variant: "error",
+			});
+			return;
+		}
+		registrarInvitacion(id);
+	}, [id, mode, registrarInvitacion]);
+
+	const historialFormulario = useMemo(() => {
+		if (mode !== "form-edicion" || !id) return [];
+		return invitacionesHistorial[id] ?? [];
+	}, [mode, id, invitacionesHistorial]);
+
 	const filteredAndSortedRows = useMemo(() => {
 		const filtered = rows.filter((row) => {
 			const matchesGlobal = matchesByCriteria(
@@ -242,6 +361,9 @@ export function UsuariosListadoFormView() {
 				row.tipoUsuario
 					.toLowerCase()
 					.includes(inlineFilters.tipoUsuario.toLowerCase()) &&
+				row.tipoPerfil
+					.toLowerCase()
+					.includes(inlineFilters.tipoPerfil.toLowerCase()) &&
 				row.puesto.toLowerCase().includes(inlineFilters.puesto.toLowerCase()) &&
 				row.area.toLowerCase().includes(inlineFilters.area.toLowerCase())
 			);
@@ -272,7 +394,13 @@ export function UsuariosListadoFormView() {
 
 	const handleDeleteConfirm = () => {
 		if (!pendingDeleteRow) return;
-		setRows((prev) => prev.filter((row) => row.id !== pendingDeleteRow.id));
+		const deletedId = pendingDeleteRow.id;
+		setRows((prev) => prev.filter((row) => row.id !== deletedId));
+		setInvitacionesHistorial((prev) => {
+			const next = { ...prev };
+			delete next[deletedId];
+			return next;
+		});
 		setPendingDeleteRow(null);
 		setToastState({
 			visible: true,
@@ -294,6 +422,7 @@ export function UsuariosListadoFormView() {
 			nombre: nombreCompleto,
 			correo: values.correo.trim().toLowerCase(),
 			tipoUsuario: normalizeText(values.tipoUsuario),
+			tipoPerfil: values.tipoPerfil,
 			puesto: normalizeText(values.puesto),
 			area: normalizeText(values.area),
 		};
@@ -368,15 +497,27 @@ export function UsuariosListadoFormView() {
 									Agregar
 								</Button>
 							) : (
-								<Button
-									type="button"
-									variant="success"
-									size="md"
-									leftIcon={<Save className="w-4 h-4" />}
-									onClick={handleSubmit(onSubmit, onInvalidSubmit)}
-								>
-									{mode === "form-edicion" ? "Guardar cambios" : "Guardar"}
-								</Button>
+								<div className="flex flex-wrap items-center gap-2 justify-end">
+									{mode === "form-edicion" ? (
+										<Button
+											type="button"
+											variant="outline"
+											size="md"
+											onClick={handleEnviarInvitacionDesdeFormulario}
+										>
+											Enviar invitación
+										</Button>
+									) : null}
+									<Button
+										type="button"
+										variant="success"
+										size="md"
+										leftIcon={<Save className="w-4 h-4" />}
+										onClick={handleSubmit(onSubmit, onInvalidSubmit)}
+									>
+										{mode === "form-edicion" ? "Guardar cambios" : "Guardar"}
+									</Button>
+								</div>
 							)
 						}
 					/>
@@ -403,6 +544,8 @@ export function UsuariosListadoFormView() {
 												: "asc",
 									}))
 								}
+								customActions={listadoCustomActions}
+								actionsColumnLabel=""
 								searchBar={{
 									searchCriteria,
 									onSearchCriteriaChange: (value) =>
@@ -430,6 +573,7 @@ export function UsuariosListadoFormView() {
 										nombre: "",
 										correo: "",
 										tipoUsuario: "",
+										tipoPerfil: "",
 										puesto: "",
 										area: "",
 									})
@@ -444,6 +588,8 @@ export function UsuariosListadoFormView() {
 							register={register}
 							errors={errors}
 							onSubmit={handleSubmit(onSubmit, onInvalidSubmit)}
+							historialInvitaciones={historialFormulario}
+							showGenerarInvitacion={mode === "form-alta"}
 						/>
 					)}
 				</PageCard>
