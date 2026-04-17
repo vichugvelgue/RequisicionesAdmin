@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { MainLayout } from "./components/layout/MainLayout";
 import { DashboardView } from "./views/DashboardView";
 import { LoginView } from "./views/LoginView";
+import { CambiarContrasenaView } from "./views/CambiarContrasenaView";
 import { RequireAuth } from "./auth";
 import {
 	ComponentesInputsView,
@@ -31,6 +32,7 @@ function App() {
 	return (
 		<Routes>
 			<Route path="/login" element={<LoginView />} />
+			<Route path="/cambiar-contrasena" element={<CambiarContrasenaView />} />
 			<Route element={<RequireAuth />}>
 				<Route path="/" element={<MainLayout />}>
 				<Route index element={<DashboardView />} />
