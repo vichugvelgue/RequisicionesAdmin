@@ -15,6 +15,14 @@ import {
 	ComponentesFileUploadView,
 } from "./modules/componentes";
 import { CatalogoInlineView } from "./modules/ejemplos";
+import {
+	ActividadView,
+	ClavePresupuestalObjetoGastoView,
+	OrigenRecursoView,
+	TipoProgramaView,
+	UnidadMedidaView,
+	UnidadSolicitanteView,
+} from "./modules/catalogos";
 
 function App() {
 	return (
@@ -38,6 +46,18 @@ function App() {
 				<Route path="componentes/feedback" element={<ComponentesFeedbackView />} />
 				<Route path="componentes/file-upload" element={<ComponentesFileUploadView />} />
 				<Route path="ejemplos/catalogo-inline" element={<CatalogoInlineView />} />
+				<Route path="catalogos/actividad" element={<ActividadView />} />
+				<Route
+					path="catalogos/clave-presupuestal-objeto-gasto"
+					element={<ClavePresupuestalObjetoGastoView />}
+				/>
+				<Route path="catalogos/origen-recurso" element={<OrigenRecursoView />} />
+				<Route path="catalogos/tipo-programa" element={<TipoProgramaView />} />
+				<Route path="catalogos/unidad-medida" element={<UnidadMedidaView />} />
+				<Route
+					path="catalogos/unidad-solicitante"
+					element={<UnidadSolicitanteView />}
+				/>
 			</Route>
 		</Routes>
 	);

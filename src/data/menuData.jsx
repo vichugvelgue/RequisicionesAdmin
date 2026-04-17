@@ -16,3 +16,16 @@ export const COMPONENTES_SUBMENU = [
 export const EJEMPLOS_SUBMENU = [
 	{ id: "EjemplosCatalogoInline", label: "Catalogo inline" },
 ];
+
+/** Submenú de Catálogos: id = activeView, label = texto en menú */
+export const CATALOGOS_SUBMENU = [
+	{ id: "CatalogosActividad", label: "Actividad" },
+	{
+		id: "CatalogosClavePresupuestalObjetoGasto",
+		label: "Clave presupuestal / objeto gasto",
+	},
+	{ id: "CatalogosOrigenRecurso", label: "Origen del recurso" },
+	{ id: "CatalogosTipoPrograma", label: "Tipo de programa" },
+	{ id: "CatalogosUnidadMedida", label: "Unidad de medida" },
+	{ id: "CatalogosUnidadSolicitante", label: "Unidad solicitante" },
+];

@@ -1,13 +1,17 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, X } from "lucide-react";
+import { LayoutDashboard, Package, X } from "lucide-react";
 
 import {
 	SidebarSubmenuItem,
 	SidebarParentExpandable,
 	SidebarItem,
 } from "./sidebar/index.js";
-import { COMPONENTES_SUBMENU, EJEMPLOS_SUBMENU } from "../../data/menuData";
+import {
+	CATALOGOS_SUBMENU,
+	COMPONENTES_SUBMENU,
+	EJEMPLOS_SUBMENU,
+} from "../../data/menuData";
 
 const COMPONENTES_PATH_MAP = {
 	ComponentesInputs: "/componentes/inputs",
@@ -26,6 +30,15 @@ const EJEMPLOS_PATH_MAP = {
 	EjemplosCatalogoInline: "/ejemplos/catalogo-inline",
 };
 
+const CATALOGOS_PATH_MAP = {
+	CatalogosActividad: "/catalogos/actividad",
+	CatalogosClavePresupuestalObjetoGasto: "/catalogos/clave-presupuestal-objeto-gasto",
+	CatalogosOrigenRecurso: "/catalogos/origen-recurso",
+	CatalogosTipoPrograma: "/catalogos/tipo-programa",
+	CatalogosUnidadMedida: "/catalogos/unidad-medida",
+	CatalogosUnidadSolicitante: "/catalogos/unidad-solicitante",
+};
+
 export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -33,9 +46,11 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
 
 	const [isComponentesOpen, setIsComponentesOpen] = useState(false);
 	const [isEjemplosOpen, setIsEjemplosOpen] = useState(false);
+	const [isCatalogosOpen, setIsCatalogosOpen] = useState(false);
 
 	const isComponentesActive = pathname.startsWith("/componentes");
 	const isEjemplosActive = pathname.startsWith("/ejemplos");
+	const isCatalogosActive = pathname.startsWith("/catalogos");
 	const showExamplesMenu = import.meta.env.VITE_SHOW_EXAMPLES === "true";
 
 	const handleNav = (path) => {
@@ -129,6 +144,26 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
 							})}
 						</SidebarParentExpandable>
 					) : null}
+					<SidebarParentExpandable
+						icon={<Package className="w-4 h-4" />}
+						label="Catálogos"
+						open={isCatalogosOpen}
+						onToggle={() => setIsCatalogosOpen(!isCatalogosOpen)}
+						isActive={isCatalogosActive}
+					>
+						{CATALOGOS_SUBMENU.map((item) => {
+							const path = CATALOGOS_PATH_MAP[item.id];
+							return (
+								<SidebarSubmenuItem
+									key={item.id}
+									id={item.id}
+									label={item.label}
+									isActive={pathname === path}
+									onClick={() => path && handleNav(path)}
+								/>
+							);
+						})}
+					</SidebarParentExpandable>
 				</div>
 			</aside>
 		</>
