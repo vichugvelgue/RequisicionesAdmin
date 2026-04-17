@@ -14,6 +14,7 @@ export interface SortConfig {
 
 export type ButtonVariant =
   | 'primary'
+  | 'primarySm'
   | 'secondary'
   | 'outline'
   | 'outlinePage'

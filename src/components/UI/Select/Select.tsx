@@ -27,10 +27,10 @@ export function Select({
   ...rest
 }: SelectProps) {
   const baseClass =
-    'w-full appearance-none bg-white border border-slate-300 text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-shadow';
+    'w-full appearance-none bg-brand-white border border-brand-neutral/30 text-brand-neutral outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-shadow';
   const sizeClass =
     size === 'compact'
-      ? 'focus:ring-1 focus:ring-blue-500 ' + SIZE_CLASS.compact
+      ? 'focus:ring-1 focus:ring-brand-primary ' + SIZE_CLASS.compact
       : size === 'lg'
         ? SIZE_CLASS.lg
         : SIZE_CLASS.default;
@@ -53,7 +53,7 @@ export function Select({
         {children}
       </select>
       <ChevronDown
-        className={`absolute ${iconRight} top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none`}
+        className={`absolute ${iconRight} top-1/2 -translate-y-1/2 text-brand-neutral/60 pointer-events-none`}
       />
     </div>
   );

@@ -65,36 +65,36 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
 		<>
 			{isSidebarOpen && (
 				<div
-					className="fixed inset-0 bg-slate-800/40 backdrop-blur-sm z-40 lg:hidden"
+					className="fixed inset-0 bg-brand-neutral/40 backdrop-blur-sm z-40 lg:hidden"
 					onClick={() => setIsSidebarOpen(false)}
 				/>
 			)}
 
 			<aside
 				data-sidebar
-				className={`fixed inset-y-0 left-0 z-50 w-60 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 ease-in-out shadow-lg lg:shadow-none ${
+				className={`fixed inset-y-0 left-0 z-50 w-60 bg-brand-white border-r border-brand-neutral/20 flex flex-col transition-transform duration-300 ease-in-out shadow-lg lg:shadow-none ${
 					isSidebarOpen ? "translate-x-0" : "-translate-x-full"
 				}`}
 			>
-				<div className="h-14 flex items-center px-5 border-b border-slate-200 bg-slate-50/50">
-					<div className="flex items-center gap-2.5 text-blue-600">
-						<div className="bg-blue-600 text-white p-1 rounded">
+				<div className="h-14 flex items-center px-5 border-b border-brand-neutral/20 bg-brand-secondary/15">
+					<div className="flex items-center gap-2.5 text-brand-primary">
+						<div className="bg-brand-primary text-brand-white p-1 rounded">
 							<LayoutDashboard className="w-4 h-4" />
 						</div>
-						<span className="font-bold text-lg text-slate-800 tracking-tight">
+						<span className="font-bold text-lg text-brand-neutral tracking-tight">
 							NexERP
 						</span>
 					</div>
 					<button
 						type="button"
 						onClick={() => setIsSidebarOpen(false)}
-						className="ml-auto text-slate-400 hover:text-slate-600 lg:hidden p-1"
+						className="ml-auto text-brand-neutral/60 hover:text-brand-neutral lg:hidden p-1"
 					>
 						<X className="w-4 h-4" />
 					</button>
 				</div>
 
-				<div className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-0.5 custom-scrollbar bg-slate-50/20">
+				<div className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-0.5 custom-scrollbar bg-brand-secondary/10">
 					<SidebarItem
 						icon={<LayoutDashboard className="w-4 h-4" />}
 						label="Dashboard"

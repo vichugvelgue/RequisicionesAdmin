@@ -20,17 +20,17 @@ export function SidebarParentExpandable({ icon, label, open, onToggle, isActive,
         type="button"
         onClick={onToggle}
         className={`flex items-center gap-2.5 px-3 py-2 rounded font-medium transition-colors text-sm ${
-          isExpanded ? 'bg-slate-100 text-slate-800' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+          isExpanded ? 'bg-brand-secondary/30 text-brand-neutral' : 'text-brand-neutral/80 hover:bg-brand-secondary/20 hover:text-brand-neutral'
         }`}
       >
-        <div className={isExpanded ? 'text-blue-600' : 'text-slate-400'}>
+        <div className={isExpanded ? 'text-brand-primary' : 'text-brand-neutral/60'}>
           {icon}
         </div>
         <span className="flex-1 text-left">{label}</span>
         {isExpanded ? (
-          <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+          <ChevronDown className="w-3.5 h-3.5 text-brand-neutral/60" />
         ) : (
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+          <ChevronRight className="w-3.5 h-3.5 text-brand-neutral/60" />
         )}
       </button>
       <div
@@ -38,7 +38,7 @@ export function SidebarParentExpandable({ icon, label, open, onToggle, isActive,
           isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="ml-5 pl-3 border-l-2 border-slate-200 flex flex-col gap-0.5 py-1">
+        <div className="ml-5 pl-3 border-l-2 border-brand-secondary/60 flex flex-col gap-0.5 py-1">
           {children}
         </div>
       </div>

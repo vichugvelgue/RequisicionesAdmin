@@ -35,7 +35,7 @@ export interface TabsListProps {
 export function TabsList({ children, className = '' }: TabsListProps) {
   return (
     <div
-      className={`flex items-center gap-4  border-b border-slate-200 px-4 py-2 overflow-x-auto scrollbar-thin ${className}`.trim()}
+      className={`flex items-center gap-4  border-b border-brand-neutral/20 px-4 py-2 overflow-x-auto scrollbar-thin ${className}`.trim()}
     >
       {children}
     </div>
@@ -68,13 +68,13 @@ export function TabsTab({ value, label, badge, className = '' }: TabsTabProps) {
       type="button"
       onClick={handleClick}
       className={`flex items-center gap-2 pb-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${isActive
-        ? 'border-blue-600 text-blue-700'
-        : 'border-transparent text-slate-500 hover:text-slate-700'
+        ? 'border-brand-primary text-brand-primary'
+        : 'border-transparent text-brand-neutral/70 hover:text-brand-neutral'
         } ${className}`.trim()}
     >
       <span>{label}</span>
       {badge && (
-        <span className="bg-blue-100 text-blue-700 py-0.5 px-2 rounded-full text-[10px]">
+        <span className="bg-brand-secondary/30 text-brand-primary py-0.5 px-2 rounded-full text-[10px]">
           {badge}
         </span>
       )}

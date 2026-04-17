@@ -2,23 +2,23 @@ import React, { useState, useCallback, useEffect } from 'react';
 import type { InputVariant } from '../types';
 
 const DISABLED_BASE =
-  'w-full bg-slate-100 border border-slate-200 text-slate-500 rounded font-medium outline-none text-xs cursor-not-allowed';
+  'w-full bg-brand-secondary/15 border border-brand-neutral/15 text-brand-neutral/60 rounded font-medium outline-none text-xs cursor-not-allowed';
 
 const VARIANTS: Record<InputVariant, string> = {
   default:
-    'w-full bg-white border border-slate-300 text-slate-700 py-1.5 px-2.5 rounded font-medium outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-shadow text-xs',
+    'w-full bg-brand-white border border-brand-neutral/30 text-brand-neutral py-1.5 px-2.5 rounded font-medium outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-shadow text-xs',
   search:
-    'w-full bg-white border border-slate-300 text-slate-700 py-1.5 pl-8 pr-2.5 rounded outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-shadow text-xs',
+    'w-full bg-brand-white border border-brand-neutral/30 text-brand-neutral py-1.5 pl-8 pr-2.5 rounded outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-shadow text-xs',
   filter:
-    'w-full px-1.5 py-1 text-[10px] rounded border border-slate-200 outline-none focus:border-blue-400 bg-white',
+    'w-full px-1.5 py-1 text-[10px] rounded border border-brand-neutral/20 outline-none focus:border-brand-primary bg-brand-white',
   disabled: `${DISABLED_BASE} py-1.5 px-2.5`,
   numberCell:
-    'w-full px-2 py-1 text-xs font-semibold text-slate-800 bg-white border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded shadow-sm outline-none transition-all text-right',
+    'w-full px-2 py-1 text-xs font-semibold text-brand-neutral bg-brand-white border border-brand-neutral/30 focus:border-brand-primary focus:ring-1 focus:ring-brand-primary rounded shadow-sm outline-none transition-all text-right',
   quantity:
-    'w-full bg-white border border-slate-300 text-slate-700 py-1.5 px-2.5 rounded font-medium outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-shadow text-xs text-right tabular-nums',
+    'w-full bg-brand-white border border-brand-neutral/30 text-brand-neutral py-1.5 px-2.5 rounded font-medium outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-shadow text-xs text-right tabular-nums',
   searchLarge:
-    'w-full pl-10 pr-4 py-2 bg-white border border-slate-300 text-slate-800 rounded placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-medium',
-  gridFilter: 'flex-1 text-xs border-none outline-none text-slate-700 placeholder:text-slate-400',
+    'w-full pl-10 pr-4 py-2 bg-brand-white border border-brand-neutral/30 text-brand-neutral rounded placeholder:text-brand-neutral/55 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition-all text-sm font-medium',
+  gridFilter: 'flex-1 text-xs border-none outline-none text-brand-neutral placeholder:text-brand-neutral/55',
 };
 
 export interface InputProps
