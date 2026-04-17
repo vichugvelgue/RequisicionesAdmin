@@ -1,0 +1,1 @@
+export { ComponentesDisplayLabelView } from './ComponentesDisplayLabelView';

@@ -1,0 +1,1 @@
+export { ComponentesFeedbackView } from './ComponentesFeedbackView';

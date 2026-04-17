@@ -1,0 +1,1 @@
+export { ComponentesLayoutView } from './ComponentesLayoutView';

@@ -1,0 +1,1 @@
+export { ComponentesInputsView } from './ComponentesInputsView';

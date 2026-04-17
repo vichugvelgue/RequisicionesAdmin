@@ -1,0 +1,79 @@
+/* Redimensiona el calendario y quita espacio entre días.
+   Las variables por defecto están en .rdp-root; aquí las forzamos en nuestro popover. */
+
+.date-range-picker-popover .rdp-root {
+  --rdp-accent-color: #2563eb;
+  --rdp-accent-background-color: #dbeafe;
+  --rdp-day-height: 24px;
+  --rdp-day-width: 24px;
+  --rdp-day_button-height: 22px;
+  --rdp-day_button-width: 22px;
+  --rdp-day_button-border-radius: 0;
+  --rdp-nav-height: 1.8rem;
+  --rdp-nav_button-height: 1.5rem;
+  --rdp-nav_button-width: 1.5rem;
+  --rdp-months-gap: 0.9rem;
+  --rdp-weekday-padding: 0.125rem 0;
+}
+
+/* Celdas sin padding extra; el día ocupa todo el espacio */
+.date-range-picker-popover .rdp-day {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+}
+
+.date-range-picker-popover .rdp-day_button {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+/* Tabla/grid del mes sin espaciado extra */
+.date-range-picker-popover .rdp-month_grid {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.date-range-picker-popover .rdp-month_grid td,
+.date-range-picker-popover .rdp-month_grid th {
+  padding: 0;
+  margin: 0;
+  vertical-align: middle;
+  text-align: center;
+  line-height: 1;
+}
+
+.date-range-picker-popover .rdp-weeks {
+  padding: 0;
+  margin: 0;
+}
+
+.date-range-picker-popover .rdp-week {
+  padding: 0;
+  margin: 0;
+}
+
+/* Caption y navegación más compactos */
+.date-range-picker-popover .rdp-month_caption {
+  height: 1.8rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.date-range-picker-popover .rdp-caption_label {
+  font-size: 0.8125rem;
+}
+
+.date-range-picker-popover .rdp-weekday {
+  font-size: 0.6875rem;
+  padding: 0.125rem 0;
+}
+
+.date-range-picker-popover .rdp-selected {
+  font-size: inherit;
+}

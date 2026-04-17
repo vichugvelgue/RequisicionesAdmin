@@ -1,0 +1,1 @@
+export { ComponentesFileUploadView } from './ComponentesFileUploadView';

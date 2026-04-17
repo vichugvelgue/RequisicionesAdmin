@@ -1,0 +1,1 @@
+export { ComponentesSearchableSelectView } from './ComponentesSearchableSelectView';
