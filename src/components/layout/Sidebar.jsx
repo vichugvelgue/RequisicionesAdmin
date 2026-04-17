@@ -28,6 +28,7 @@ const COMPONENTES_PATH_MAP = {
 
 const EJEMPLOS_PATH_MAP = {
 	EjemplosCatalogoInline: "/ejemplos/catalogo-inline",
+	EjemplosListadoForm: "/ejemplos/listado-form",
 };
 
 const CATALOGOS_PATH_MAP = {

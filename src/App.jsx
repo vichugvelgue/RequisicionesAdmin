@@ -14,7 +14,7 @@ import {
 	ComponentesTabsView,
 	ComponentesFileUploadView,
 } from "./modules/componentes";
-import { CatalogoInlineView } from "./modules/ejemplos";
+import { CatalogoInlineView, EjemplosListadoFormView } from "./modules/ejemplos";
 import {
 	ActividadView,
 	ClavePresupuestalObjetoGastoView,
@@ -46,6 +46,9 @@ function App() {
 				<Route path="componentes/feedback" element={<ComponentesFeedbackView />} />
 				<Route path="componentes/file-upload" element={<ComponentesFileUploadView />} />
 				<Route path="ejemplos/catalogo-inline" element={<CatalogoInlineView />} />
+				<Route path="ejemplos/listado-form" element={<EjemplosListadoFormView />} />
+				<Route path="ejemplos/listado-form/nuevo" element={<EjemplosListadoFormView />} />
+				<Route path="ejemplos/listado-form/:id" element={<EjemplosListadoFormView />} />
 				<Route path="catalogos/actividad" element={<ActividadView />} />
 				<Route
 					path="catalogos/clave-presupuestal-objeto-gasto"

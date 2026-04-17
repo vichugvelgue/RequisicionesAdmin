@@ -15,6 +15,7 @@ export const COMPONENTES_SUBMENU = [
 /** Submenú de Ejemplos: id = activeView, label = texto en menú */
 export const EJEMPLOS_SUBMENU = [
 	{ id: "EjemplosCatalogoInline", label: "Catalogo inline" },
+	{ id: "EjemplosListadoForm", label: "Listado + Form" },
 ];
 
 /** Submenú de Catálogos: id = activeView, label = texto en menú */

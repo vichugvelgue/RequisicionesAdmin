@@ -33,8 +33,8 @@ export interface InputProps
   className?: string;
   disabled?: boolean;
   id?: string;
-  min?: number;
-  max?: number;
+  min?: number | string;
+  max?: number | string;
   step?: string;
   maxLength?: number;
 }
@@ -64,6 +64,7 @@ export function Input({
     isEditingNumber
       ? numberEditValue
       : (value === undefined || value === null ? '' : String(value));
+  const hasExternalValue = value !== undefined && value !== null;
 
   useEffect(() => {
     if (type !== 'number') {
@@ -121,7 +122,7 @@ export function Input({
       {...rest}
       id={id}
       type={type}
-      value={displayValue}
+      {...(isEditingNumber || hasExternalValue ? { value: displayValue } : {})}
       onChange={handleChange}
       onFocus={handleFocus}
       onKeyDown={onKeyDown}
