@@ -1,0 +1,99 @@
+---
+description: Checklist de revision para modulos listado + formulario en rutas (pagina dedicada)
+alwaysApply: false
+---
+
+# Checklist de revision - Listado + formulario (pagina dedicada)
+
+Usar este checklist cuando se cree o actualice un modulo con **listado (InfiniteScrollTable)** y **formulario de alta/edicion** en **rutas separadas** (no edicion inline en la tabla), homogeneo al patron de referencia.
+
+## Referencia canonica en el repo
+
+- Vista contenedora: `src/modules/ejemplos/listadoForm/EjemplosListadoFormView.tsx`
+- Seccion de formulario: `src/modules/ejemplos/listadoForm/UsuarioFormSection.tsx`
+- Tipos: `src/modules/ejemplos/listadoForm/types.ts`
+- Rutas de ejemplo: `src/App.jsx` (`.../listado-form`, `.../nuevo`, `.../:id`)
+
+## 1) Layout ERP
+
+- Vista completa: `PageCard` + `ViewHeader`.
+- Contenedor de pagina: `flex flex-col h-full min-h-0` (y patron de padding/overflow acorde a vistas existentes, ej. `bg-slate-50`, sin scroll horizontal innecesario).
+- No crear estilos nuevos (CSS o Tailwind ad hoc) fuera de componentes UI existentes; seguir `.cursor/rules/erp-convenciones.mdc`.
+
+## 2) Listado (InfiniteScrollTable)
+
+- Usar **`InfiniteScrollTable`**; no armar a mano `SimpleTable` + sentinel de infinite scroll.
+- `searchBar` con criterios y **busqueda aplicada** al listar (patron `appliedSearch` + `onSearch`, o equivalente documentado en el modulo).
+- Filtros inline con toggle y limpieza; orden por columna (`sortConfig` / `onSort`).
+- `resetKey` que cambie cuando cambien busqueda aplicada, filtros u orden (para reiniciar el slice visible).
+- `showResultsInfo` activo (pie "Mostrando X de Y").
+- `pageSize` explicito y razonable.
+- Orden estable (ej. `localeCompare(..., "es", { numeric: true })`).
+
+## 3) Busqueda global (ancho)
+
+- Si la busqueda va en **`GlobalSearchBar`** (via `InfiniteScrollTable`), el bloque de criterio + texto debe ocupar **4 de 12 columnas** en grid (patron `sm:col-span-4` como en `src/components/UI/GlobalSearchBar/GlobalSearchBar.tsx`).
+- Si la busqueda va en **`TableFilterBar`**, el bloque `search` debe usar por defecto **`cols: 4`** (de 12), salvo requisito explicito en contrario (convencion ERP).
+
+## 4) Navegacion y modos
+
+- Rutas separadas: listado, ruta de **alta** (ej. `.../nuevo`) y ruta de **edicion** (ej. `.../:id`), o patron equivalente descrito en spec.
+- Desde el formulario: **`BackLink`** (o equivalente) para volver al listado y limpiar estado de formulario si aplica.
+- Si el **ID de edicion no existe**, redirigir al listado con `navigate(..., { replace: true })` (patron `useEffect` como en la vista de referencia).
+
+## 5) Acciones de cabecera (ViewHeader)
+
+- **Listado:** `Button` `variant="primary"` + icono **`Plus`**, etiqueta tipo "Agregar"; navega a la ruta de alta.
+- **Formulario:** `Button` `variant="success"` + icono **`Save`** para guardar (alineado al tono emerald del sistema en `Button`).
+- Si el boton de guardar esta **fuera** del `<form>` (cabecera), usar `type="button"` y `onClick={handleSubmit(onSubmit, onInvalid)}` (no depender de submit nativo del form remoto).
+
+## 6) Modal de eliminacion (obligatorio y estandar)
+
+Igual que catalogo inline: debe existir `ConfirmModal` y cumplir:
+
+- Se abre desde la accion eliminar de la fila.
+- `title` consistente (ej. confirmacion de eliminacion).
+- `variant="danger"`.
+- Icono **`Trash2`** visible en el modal.
+- `confirmLabel="Eliminar"` y `cancelLabel="Cancelar"` (o equivalentes definidos en spec).
+- `onConfirm` ejecuta la eliminacion real.
+- `onClose` solo cierra y limpia estado pendiente.
+- Mensaje con **identificador** del registro (nombre, clave, etc.).
+
+Si falla alguno de estos puntos: **No cumple**.
+
+## 7) Formulario y validacion
+
+- Validacion con el stack del proyecto (en referencia: **`react-hook-form`** + **`yup`** + **`yupResolver`**).
+- Submit invalido: feedback global con **`Toast`** `variant="error"` (ej. campos faltantes).
+- Campos de texto de dominio en **MAYUSCULAS**: clase `uppercase` en `Input` donde aplique y **normalizacion al persistir** (`trim` / `toUpperCase` segun reglas del modulo).
+- Errores por campo bajo el input, estilo acorde al ejemplo (ej. `text-[11px] mt-1 text-red-600`).
+- **`FormSection`**: si el diseno incluye bloque titulado, pasar `title` descriptivo; no es obligatorio copiar el ejemplo si el spec pide otra jerarquia.
+
+## 8) Datos en tabla
+
+- Contenido textual en celdas en **MAYUSCULAS** donde aplique (`cellClassName: "uppercase"` en columnas o equivalente).
+
+## 9) Iconos (Lucide, sin variaciones arbitrarias)
+
+- Solo **`lucide-react`**.
+- Cabecera listado: **`Plus`** (Agregar).
+- Cabecera formulario guardar: **`Save`**.
+- Acciones de fila (tabla): **`Pencil`** (editar), **`Trash2`** (eliminar) — provienen de `SimpleTable` / `InfiniteScrollTable`; no sustituir por `Edit`, `Trash`, etc., salvo requerimiento explicito del usuario.
+- Toast de exito en referencia: **`Check`** en el icono del toast.
+
+## 10) Toast y guardado exitoso
+
+- Tras guardar o eliminar con exito, **`Toast`** `variant="success"` con mensaje claro; auto-ocultar con timeout si se sigue el patron de la vista de referencia.
+
+## 11) Alcance de cambios (revisiones de solo vista)
+
+- En revisiones que solo homogeneicen la vista del modulo: no exigir cambios en `menuData`, `Sidebar` ni `App.jsx` **salvo** que el ticket o spec incluya entrada de menu o rutas nuevas.
+
+## 12) Formato de salida del revisor
+
+Reportar siempre:
+
+1. **Resultado:** `Cumple` o `No cumple`.
+2. **Hallazgos:** lista corta de incumplimientos concretos.
+3. **Acciones requeridas:** pasos especificos para corregir.

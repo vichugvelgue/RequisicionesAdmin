@@ -21,7 +21,7 @@ const VARIANT_BASE: Record<ButtonVariant, string> = {
   danger:
     'bg-red-600 hover:bg-red-700 disabled:hover:bg-red-600 text-white transition-colors shadow-sm disabled:opacity-50',
   success:
-    'bg-green-500 hover:bg-green-600 disabled:hover:bg-green-500 text-white transition-colors shadow-sm disabled:opacity-50',
+    'bg-emerald-600 hover:bg-emerald-700 disabled:hover:bg-emerald-600 text-white transition-colors shadow-sm shadow-emerald-600/30 disabled:opacity-50',
   icon:
     'text-brand-neutral/60 hover:text-brand-primary hover:bg-brand-secondary/20 p-1.5 rounded transition-colors',
   iconAmber:
@@ -29,7 +29,7 @@ const VARIANT_BASE: Record<ButtonVariant, string> = {
   iconRed:
     'text-slate-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded transition-colors',
   iconSuccess:
-    'text-slate-400 hover:text-green-600 hover:bg-green-50 p-1.5 rounded transition-colors',
+    'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 p-1.5 rounded transition-colors',
   filterToggle: 'p-1 rounded transition-colors',
 };
 

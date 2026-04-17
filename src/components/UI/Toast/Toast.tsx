@@ -22,8 +22,8 @@ export function Toast({
 }: ToastProps) {
   if (!visible) return null;
 
-  const bgClass = variant === 'error' ? 'bg-red-600' : 'bg-green-600';
-   const widthClass = size === 'long' ? 'max-w-lg' : 'max-w-sm';
+  const bgClass = variant === 'error' ? 'bg-red-600' : 'bg-emerald-600';
+  const widthClass = size === 'long' ? 'max-w-lg' : 'max-w-sm';
   const content = (
     <div
       className={`fixed top-6 right-6 ${bgClass} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-slide-up z-50 ${widthClass}`}
