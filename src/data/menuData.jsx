@@ -18,6 +18,9 @@ export const EJEMPLOS_SUBMENU = [
 	{ id: "EjemplosListadoForm", label: "Listado + Form" },
 ];
 
+/** Submenú de Usuarios: id = activeView, label = texto en menú */
+export const USUARIOS_SUBMENU = [{ id: "UsuariosListado", label: "Usuarios" }];
+
 /** Submenú de Catálogos: id = activeView, label = texto en menú */
 export const CATALOGOS_SUBMENU = [
 	{ id: "CatalogosActividad", label: "Actividad" },

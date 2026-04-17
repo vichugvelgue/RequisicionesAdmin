@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, X } from "lucide-react";
+import { LayoutDashboard, Package, Users, X } from "lucide-react";
 
 import {
 	SidebarSubmenuItem,
@@ -11,6 +11,7 @@ import {
 	CATALOGOS_SUBMENU,
 	COMPONENTES_SUBMENU,
 	EJEMPLOS_SUBMENU,
+	USUARIOS_SUBMENU,
 } from "../../data/menuData";
 
 const COMPONENTES_PATH_MAP = {
@@ -31,6 +32,10 @@ const EJEMPLOS_PATH_MAP = {
 	EjemplosListadoForm: "/ejemplos/listado-form",
 };
 
+const USUARIOS_PATH_MAP = {
+	UsuariosListado: "/usuarios",
+};
+
 const CATALOGOS_PATH_MAP = {
 	CatalogosActividad: "/catalogos/actividad",
 	CatalogosClavePresupuestalObjetoGasto: "/catalogos/clave-presupuestal-objeto-gasto",
@@ -48,9 +53,11 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
 	const [isComponentesOpen, setIsComponentesOpen] = useState(false);
 	const [isEjemplosOpen, setIsEjemplosOpen] = useState(false);
 	const [isCatalogosOpen, setIsCatalogosOpen] = useState(false);
+	const [isUsuariosOpen, setIsUsuariosOpen] = useState(false);
 
 	const isComponentesActive = pathname.startsWith("/componentes");
 	const isEjemplosActive = pathname.startsWith("/ejemplos");
+	const isUsuariosActive = pathname.startsWith("/usuarios");
 	const isCatalogosActive = pathname.startsWith("/catalogos");
 	const showExamplesMenu = import.meta.env.VITE_SHOW_EXAMPLES === "true";
 
@@ -154,6 +161,26 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
 					>
 						{CATALOGOS_SUBMENU.map((item) => {
 							const path = CATALOGOS_PATH_MAP[item.id];
+							return (
+								<SidebarSubmenuItem
+									key={item.id}
+									id={item.id}
+									label={item.label}
+									isActive={pathname === path}
+									onClick={() => path && handleNav(path)}
+								/>
+							);
+						})}
+					</SidebarParentExpandable>
+					<SidebarParentExpandable
+						icon={<Users className="w-4 h-4" />}
+						label="Usuarios"
+						open={isUsuariosOpen}
+						onToggle={() => setIsUsuariosOpen(!isUsuariosOpen)}
+						isActive={isUsuariosActive}
+					>
+						{USUARIOS_SUBMENU.map((item) => {
+							const path = USUARIOS_PATH_MAP[item.id];
 							return (
 								<SidebarSubmenuItem
 									key={item.id}
