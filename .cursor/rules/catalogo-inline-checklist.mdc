@@ -16,6 +16,7 @@ Usar este checklist cuando se cree o actualice un catalogo inline.
 ## 2) Funcionalidad minima
 
 - Alta inline funcional (`insertRow`) con Enter para guardar y Escape para cancelar.
+- Al crear una nueva fila con `Agregar`, el foco inicial se posiciona en el primer input editable.
 - Edicion inline funcional con estado draft.
 - Eliminacion funcional conectada al handler real de borrado.
 - Busqueda global funcional.

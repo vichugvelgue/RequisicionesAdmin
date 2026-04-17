@@ -221,6 +221,7 @@ export function OrigenRecursoView() {
 										</td>
 										<td className="px-2 py-2 border-r border-slate-100/70">
 											<Input
+												autoFocus
 												value={draftDescripcion}
 												onKeyDown={handleInsertRowKeyDown}
 												onChange={(e) => setDraftDescripcion(e.target.value.toUpperCase())}
