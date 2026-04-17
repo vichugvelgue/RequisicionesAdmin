@@ -59,6 +59,18 @@ Si hay errores: NO generar código. Responder con lista de errores y corrección
 
 ---
 
+# Regla de orden para hijos
+
+Para los kinds que crean o agregan hijos (**parent_con_submenu**, **parent_con_submenu_y_vistas**, **hijo**, **hijo_con_vista**):
+
+- Insertar el/los hijos definidos en el JSON.
+- Dejar el array final del submenú en `menuData` ordenado por `label` ascendente (A-Z), sin distinguir mayúsculas/minúsculas.
+- El criterio de orden aplica al resultado final del submenú, no a la posición de inserción manual.
+
+No reordenar opciones padre ni divisiones del sidebar: ese orden se mantiene manual por decisión del desarrollador.
+
+---
+
 # Estrategia de generación
 
 Según el valor de **kind**, aplicar **únicamente** las instrucciones del archivo indicado:
