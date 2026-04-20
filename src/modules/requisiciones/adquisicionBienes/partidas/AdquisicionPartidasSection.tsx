@@ -48,22 +48,19 @@ export function AdquisicionPartidasSection({
 	const [editingId, setEditingId] = useState<string | null>(null);
 
 	const nextNumeroPartida = useMemo(() => {
-		if (tipoCompra !== 'MAYOR') return null;
-		const typed = partidas as AdquisicionPartidaMayor[];
-		const max = typed.reduce((acc, item) => Math.max(acc, item.numeroPartida), 0);
+		const max = partidas.reduce((acc, item) => Math.max(acc, item.numeroPartida), 0);
 		return max + 1;
-	}, [partidas, tipoCompra]);
+	}, [partidas]);
 
 	const columns: SimpleTableColumn<PartidaRow>[] = useMemo(() => {
-		const baseColumns: SimpleTableColumn<PartidaRow>[] = [];
-		if (tipoCompra === 'MAYOR') {
-			baseColumns.push({
+		const baseColumns: SimpleTableColumn<PartidaRow>[] = [
+			{
 				key: 'numeroPartida',
 				label: 'No. partida',
 				width: 'w-28 min-w-28',
 				cellClassName: 'uppercase text-center font-semibold',
-			});
-		}
+			},
+		];
 
 		baseColumns.push(
 			{
@@ -87,7 +84,7 @@ export function AdquisicionPartidasSection({
 			}
 		);
 		return baseColumns;
-	}, [tipoCompra]);
+	}, []);
 
 	const errors = {
 		cantidad: showErrors && !draft.cantidad.trim(),
@@ -128,14 +125,18 @@ export function AdquisicionPartidasSection({
 				{
 					...basePartida,
 					id: crypto.randomUUID(),
-					numeroPartida: nextNumeroPartida ?? 1,
+					numeroPartida: nextNumeroPartida,
 				},
 			];
 			onChange(next);
 		} else {
 			const next = [
 				...(partidas as AdquisicionPartidaMenor[]),
-				{ ...basePartida, id: crypto.randomUUID() },
+				{
+					...basePartida,
+					id: crypto.randomUUID(),
+					numeroPartida: nextNumeroPartida,
+				},
 			];
 			onChange(next);
 		}
@@ -174,18 +175,12 @@ export function AdquisicionPartidasSection({
 			<FormSection title={tipoCompra === 'MAYOR' ? 'Partidas mayor' : 'Partidas menor'}>
 				<div className="space-y-4">
 					<div className="grid grid-cols-12 gap-4">
-						{tipoCompra === 'MAYOR' ? (
-							<div className="col-span-12 lg:col-span-2">
-								<FieldRoleLabel>Numero de partida</FieldRoleLabel>
-								<div className="h-[30px] px-2.5 border border-slate-300 rounded bg-slate-100 text-xs font-semibold text-slate-600 flex items-center">
-									{String(
-										editingRow && 'numeroPartida' in editingRow
-											? editingRow.numeroPartida
-											: (nextNumeroPartida ?? 1)
-									)}
-								</div>
+						<div className="col-span-12 lg:col-span-2">
+							<FieldRoleLabel>Numero de partida</FieldRoleLabel>
+							<div className="h-[30px] px-2.5 border border-slate-300 rounded bg-slate-100 text-xs font-semibold text-slate-600 flex items-center">
+								{String(editingRow ? editingRow.numeroPartida : nextNumeroPartida)}
 							</div>
-						) : null}
+						</div>
 						<div className="col-span-12 lg:col-span-2">
 							<FieldRoleLabel>Cantidad</FieldRoleLabel>
 							<DecimalStringCellInput

@@ -77,7 +77,9 @@ export interface AdquisicionPartidaMayor extends AdquisicionPartidaBase {
 	numeroPartida: number;
 }
 
-export type AdquisicionPartidaMenor = AdquisicionPartidaBase;
+export interface AdquisicionPartidaMenor extends AdquisicionPartidaBase {
+	numeroPartida: number;
+}
 
 export interface AdquisicionDraft {
 	monto?: string;

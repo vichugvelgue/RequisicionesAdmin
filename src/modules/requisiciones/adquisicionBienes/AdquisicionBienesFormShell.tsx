@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Tabs, TabsList, TabsTab, TabsPanel } from '../../../components/UI';
 import { StepperTabLabel } from './stepperTabLabel';
 import type { AdquisicionDraft, TipoCompra } from './types';
@@ -9,11 +9,17 @@ import { MayorPartidasTab } from './tabs/mayor/MayorPartidasTab';
 import { MayorDatosAdministrativosTab } from './tabs/mayor/MayorDatosAdministrativosTab';
 import { MayorRepresentantesTab } from './tabs/mayor/MayorRepresentantesTab';
 import { MayorAdministradorContratoTab } from './tabs/mayor/MayorAdministradorContratoTab';
+import { MayorDocumentoTab } from './tabs/mayor/MayorDocumentoTab';
 import { MenorDatosGeneralesTab } from './tabs/menor/MenorDatosGeneralesTab';
 import { MenorDatosRequisicionTab } from './tabs/menor/MenorDatosRequisicionTab';
 import { MenorPartidasTab } from './tabs/menor/MenorPartidasTab';
 import { MenorDocumentoTab } from './tabs/menor/MenorDocumentoTab';
 import type { RequisicionRow } from './types';
+
+/** Id de la pestaña "Documento" (última) en el flujo MAYOR. */
+export const ADQUISICION_BIENES_TAB_DOCUMENTO_MAYOR = 'g8';
+/** Id de la pestaña "Documento" (última) en el flujo MENOR. */
+export const ADQUISICION_BIENES_TAB_DOCUMENTO_MENOR = 'm4';
 
 export function AdquisicionBienesFormShell({
 	tipoCompra,
@@ -23,6 +29,7 @@ export function AdquisicionBienesFormShell({
 	editingRow,
 	onPatchRow,
 	isNewRecord,
+	onActiveTabChange,
 }: {
 	tipoCompra: TipoCompra;
 	hideRevisorFields: boolean;
@@ -31,8 +38,13 @@ export function AdquisicionBienesFormShell({
 	editingRow: RequisicionRow;
 	onPatchRow: (patch: Partial<RequisicionRow>) => void;
 	isNewRecord: boolean;
+	onActiveTabChange?: (tabId: string) => void;
 }) {
 	const [tab, setTab] = useState(() => (tipoCompra === 'MAYOR' ? 'g1' : 'm1'));
+
+	useEffect(() => {
+		onActiveTabChange?.(tab);
+	}, [tab, onActiveTabChange]);
 	const AUTO_ADVANCE_DELAY_MS = 900;
 	const goToNextTab = (currentTabId: string, orderedTabIds: string[]) => {
 		if (!isNewRecord) return;
@@ -172,6 +184,18 @@ export function AdquisicionBienesFormShell({
 						}}
 					/>
 				),
+			},
+			{
+				id: 'g8',
+				label: <StepperTabLabel step={++step} title="Documento" />,
+				panel: (
+					<MayorDocumentoTab
+						draft={draft}
+						numeroLabel={numeroLabel}
+						solicitanteLabel={solicitantePreview}
+						hideRevisorFields={hideRevisorFields}
+					/>
+				),
 			}
 		);
 		const orderedTabIds = tabsList.map((t) => t.id);
@@ -269,7 +293,7 @@ export function AdquisicionBienesFormShell({
 					))}
 				</TabsList>
 				{tabsList.map((t) => (
-					<TabsPanel key={t.id} value={t.id} className="flex-1 min-h-0 overflow-hidden bg-slate-50">
+					<TabsPanel key={t.id} value={t.id} className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 						{t.panel}
 					</TabsPanel>
 				))}
@@ -373,7 +397,7 @@ export function AdquisicionBienesFormShell({
 				))}
 			</TabsList>
 			{menorTabs.map((t) => (
-				<TabsPanel key={t.id} value={t.id} className="flex-1 min-h-0 overflow-hidden bg-slate-50">
+				<TabsPanel key={t.id} value={t.id} className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 					{t.panel}
 				</TabsPanel>
 			))}

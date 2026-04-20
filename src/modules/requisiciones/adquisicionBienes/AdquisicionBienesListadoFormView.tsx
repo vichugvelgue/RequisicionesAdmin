@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Check, Plus, Trash2 } from 'lucide-react';
+import { Check, Plus, Save, Trash2 } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../../auth';
 import {
@@ -17,7 +17,11 @@ import {
 import type { OptionItem, SortConfig } from '../../../components/UI/types';
 import type { SimpleTableColumn } from '../../../components/UI/SimpleTable/SimpleTable';
 import { MontoInicialStep } from './MontoInicialStep';
-import { AdquisicionBienesFormShell } from './AdquisicionBienesFormShell';
+import {
+	AdquisicionBienesFormShell,
+	ADQUISICION_BIENES_TAB_DOCUMENTO_MAYOR,
+	ADQUISICION_BIENES_TAB_DOCUMENTO_MENOR,
+} from './AdquisicionBienesFormShell';
 import {
 	createEmptyDraft,
 	userHidesRevisorFields,
@@ -168,6 +172,7 @@ export function AdquisicionBienesListadoFormView() {
 
 	const [pendingDeleteRow, setPendingDeleteRow] = useState<RequisicionRow | null>(null);
 	const [newlyCreatedIds, setNewlyCreatedIds] = useState<string[]>([]);
+	const [activeFormTabId, setActiveFormTabId] = useState('');
 	const [toastState, setToastState] = useState<{
 		visible: boolean;
 		title: string;
@@ -270,6 +275,33 @@ export function AdquisicionBienesListadoFormView() {
 		navigate(BASE_PATH);
 	};
 
+	const handleGuardarRequisicion = () => {
+		if (!editingRow) return;
+		const d = draftById[editingRow.id];
+		if (d?.monto?.trim()) {
+			const n = parseFloat(d.monto);
+			if (!Number.isNaN(n)) patchRow(editingRow.id, { monto: n });
+		}
+		setNewlyCreatedIds((prev) => prev.filter((x) => x !== editingRow.id));
+		resetToListado();
+		setToastState({
+			visible: true,
+			title: 'Requisición guardada correctamente.',
+			variant: 'success',
+		});
+	};
+
+	const isDocumentoTab =
+		editingRow &&
+		((editingRow.tipoCompra === 'MAYOR' && activeFormTabId === ADQUISICION_BIENES_TAB_DOCUMENTO_MAYOR) ||
+			(editingRow.tipoCompra === 'MENOR' && activeFormTabId === ADQUISICION_BIENES_TAB_DOCUMENTO_MENOR));
+
+	const showGuardarRequisicionEnHeader =
+		mode === 'form-edicion' &&
+		editingRow &&
+		newlyCreatedIds.includes(editingRow.id) &&
+		Boolean(isDocumentoTab);
+
 	const handleAddClick = () => {
 		navigate(`${BASE_PATH}/nuevo`);
 	};
@@ -352,6 +384,12 @@ export function AdquisicionBienesListadoFormView() {
 		: createEmptyDraft();
 
 	useEffect(() => {
+		if (mode !== 'form-edicion') {
+			setActiveFormTabId('');
+		}
+	}, [mode]);
+
+	useEffect(() => {
 		if (mode !== 'form-edicion' || !editingRow) return;
 		setDraftById((prev) => {
 			if (prev[editingRow.id]) return prev;
@@ -402,6 +440,16 @@ export function AdquisicionBienesListadoFormView() {
 									onClick={handleAddClick}
 								>
 									Agregar
+								</Button>
+							) : showGuardarRequisicionEnHeader ? (
+								<Button
+									type="button"
+									variant="success"
+									size="md"
+									leftIcon={<Save className="w-4 h-4" />}
+									onClick={handleGuardarRequisicion}
+								>
+									Guardar
 								</Button>
 							) : null
 						}
@@ -471,6 +519,7 @@ export function AdquisicionBienesListadoFormView() {
 								editingRow={editingRow}
 								onPatchRow={(patch) => patchRow(editingRow.id, patch)}
 								isNewRecord={newlyCreatedIds.includes(editingRow.id)}
+								onActiveTabChange={setActiveFormTabId}
 							/>
 						</div>
 					) : null}

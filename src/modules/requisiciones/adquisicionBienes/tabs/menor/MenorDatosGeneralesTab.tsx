@@ -13,6 +13,7 @@ import {
 } from '../../../../../components/UI';
 import { MOCK_UNIDAD_SOLICITANTE } from '../../catalogMockOptions';
 import { FieldRoleLabel } from '../../fieldRoleLabel';
+import { dateToInputValue } from '../../../../../utils/dateFormat';
 
 export interface MenorDatosGeneralesForm {
 	unidadSolicitanteId: string;
@@ -35,6 +36,17 @@ const empty: MenorDatosGeneralesForm = {
 	fechaSolicitud: '',
 };
 
+function withDefaultFecha(initialValues: Partial<MenorDatosGeneralesForm>): MenorDatosGeneralesForm {
+	const todayIso = dateToInputValue(new Date());
+	return {
+		...empty,
+		...initialValues,
+		fechaSolicitud: initialValues.fechaSolicitud?.trim()
+			? initialValues.fechaSolicitud
+			: todayIso,
+	};
+}
+
 export function MenorDatosGeneralesTab({
 	initialValues,
 	onSave,
@@ -56,11 +68,11 @@ export function MenorDatosGeneralesTab({
 		formState: { errors },
 	} = useForm<MenorDatosGeneralesForm>({
 		resolver: yupResolver(schema),
-		defaultValues: { ...empty, ...initialValues },
+		defaultValues: withDefaultFecha(initialValues),
 	});
 
 	useEffect(() => {
-		reset({ ...empty, ...initialValues });
+		reset(withDefaultFecha(initialValues));
 	}, [initialValues, reset]);
 
 	useEffect(() => {
@@ -97,7 +109,7 @@ export function MenorDatosGeneralesTab({
 					noValidate
 				>
 					<div className="grid grid-cols-12 gap-4">
-						<div className="col-span-12 lg:col-span-6">
+						<div className="col-span-12 lg:col-span-3">
 							<FieldRoleLabel>Unidad solicitante</FieldRoleLabel>
 							<Controller
 								name="unidadSolicitanteId"
@@ -117,7 +129,7 @@ export function MenorDatosGeneralesTab({
 								</p>
 							) : null}
 						</div>
-						<div className="col-span-12 lg:col-span-6">
+						<div className="col-span-12 lg:col-span-3">
 							<FieldRoleLabel htmlFor="menor-nom">
 								Nombre del solicitante
 							</FieldRoleLabel>
@@ -126,7 +138,7 @@ export function MenorDatosGeneralesTab({
 								<p className="text-[11px] mt-1 text-red-600">{errors.nombreSolicitante.message}</p>
 							) : null}
 						</div>
-						<div className="col-span-12 lg:col-span-4">
+						<div className="col-span-12 lg:col-span-3">
 							<FieldRoleLabel htmlFor="menor-car">
 								Cargo
 							</FieldRoleLabel>
@@ -135,7 +147,7 @@ export function MenorDatosGeneralesTab({
 								<p className="text-[11px] mt-1 text-red-600">{errors.cargo.message}</p>
 							) : null}
 						</div>
-						<div className="col-span-12 lg:col-span-4">
+						<div className="col-span-12 lg:col-span-3">
 							<FieldRoleLabel>Fecha de solicitud</FieldRoleLabel>
 							<Controller
 								name="fechaSolicitud"
