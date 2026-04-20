@@ -1,4 +1,10 @@
-import type { AuthResult, LoginCredentials, AuthSession, AuthUser } from './types';
+import type {
+	AuthResult,
+	LoginCredentials,
+	AuthSession,
+	AuthUser,
+	TipoPerfilUsuario,
+} from './types';
 
 /**
  * Credenciales mock: por defecto demo@cuautlancingo.gob.mx / demo123.
@@ -9,6 +15,24 @@ const MOCK_EMAIL =
 const MOCK_PASSWORD = import.meta.env.VITE_AUTH_MOCK_PASSWORD ?? 'demo123';
 
 const MOCK_LATENCY_MS = 450;
+
+const MOCK_TIPO_PERFIL_RAW = import.meta.env.VITE_AUTH_MOCK_TIPO_PERFIL as
+	| string
+	| undefined;
+const VALID_PERFILES: TipoPerfilUsuario[] = [
+	'SOLICITANTE',
+	'REVISOR',
+	'AUTORIZADOR',
+	'ADMINISTRADOR GENERAL',
+];
+
+function resolveMockTipoPerfil(): TipoPerfilUsuario {
+	const u = MOCK_TIPO_PERFIL_RAW?.trim().toUpperCase();
+	if (u && VALID_PERFILES.includes(u as TipoPerfilUsuario)) {
+		return u as TipoPerfilUsuario;
+	}
+	return 'SOLICITANTE';
+}
 
 function buildSession(user: AuthUser): AuthSession {
 	return {
@@ -38,6 +62,7 @@ export async function signInWithMock(
 		id: 'mock-user-1',
 		email: MOCK_EMAIL,
 		displayName: 'USUARIO DEMO',
+		tipoPerfil: resolveMockTipoPerfil(),
 	};
 
 	return {

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, Users, X } from "lucide-react";
+import { ClipboardList, LayoutDashboard, Package, Users, X } from "lucide-react";
 
 import {
 	SidebarSubmenuItem,
@@ -12,6 +12,7 @@ import {
 	COMPONENTES_SUBMENU,
 	EJEMPLOS_SUBMENU,
 	USUARIOS_SUBMENU,
+	REQUISICIONES_SUBMENU,
 } from "../../data/menuData";
 
 const COMPONENTES_PATH_MAP = {
@@ -36,6 +37,10 @@ const USUARIOS_PATH_MAP = {
 	UsuariosListado: "/usuarios",
 };
 
+const REQUISICIONES_PATH_MAP = {
+	RequisicionesAdquisicionBienes: "/requisiciones/adquisicion-bienes",
+};
+
 const CATALOGOS_PATH_MAP = {
 	CatalogosActividad: "/catalogos/actividad",
 	CatalogosClavePresupuestalObjetoGasto: "/catalogos/clave-presupuestal-objeto-gasto",
@@ -54,11 +59,14 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
 	const [isEjemplosOpen, setIsEjemplosOpen] = useState(false);
 	const [isCatalogosOpen, setIsCatalogosOpen] = useState(false);
 	const [isUsuariosOpen, setIsUsuariosOpen] = useState(false);
+	const [isRequisicionesOpen, setIsRequisicionesOpen] = useState(false);
 
 	const isComponentesActive = pathname.startsWith("/componentes");
 	const isEjemplosActive = pathname.startsWith("/ejemplos");
 	const isUsuariosActive = pathname.startsWith("/usuarios");
+	const isRequisicionesActive = pathname.startsWith("/requisiciones");
 	const isCatalogosActive = pathname.startsWith("/catalogos");
+	const showComponentesMenu = import.meta.env.VITE_SHOW_COMPONENTES === "true";
 	const showExamplesMenu = import.meta.env.VITE_SHOW_EXAMPLES === "true";
 
 	const handleNav = (path) => {
@@ -109,26 +117,28 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
 						isActive={pathname === "/"}
 					/>
 
-					<SidebarParentExpandable
-						icon={<LayoutDashboard className="w-4 h-4" />}
-						label="Componentes"
-						open={isComponentesOpen}
-						onToggle={() => setIsComponentesOpen(!isComponentesOpen)}
-						isActive={isComponentesActive}
-					>
-						{COMPONENTES_SUBMENU.map((item) => {
-							const path = COMPONENTES_PATH_MAP[item.id];
-							return (
-								<SidebarSubmenuItem
-									key={item.id}
-									id={item.id}
-									label={item.label}
-									isActive={pathname === path}
-									onClick={() => path && handleNav(path)}
-								/>
-							);
-						})}
-					</SidebarParentExpandable>
+					{showComponentesMenu ? (
+						<SidebarParentExpandable
+							icon={<LayoutDashboard className="w-4 h-4" />}
+							label="Componentes"
+							open={isComponentesOpen}
+							onToggle={() => setIsComponentesOpen(!isComponentesOpen)}
+							isActive={isComponentesActive}
+						>
+							{COMPONENTES_SUBMENU.map((item) => {
+								const path = COMPONENTES_PATH_MAP[item.id];
+								return (
+									<SidebarSubmenuItem
+										key={item.id}
+										id={item.id}
+										label={item.label}
+										isActive={pathname === path}
+										onClick={() => path && handleNav(path)}
+									/>
+								);
+							})}
+						</SidebarParentExpandable>
+					) : null}
 
 					{showExamplesMenu ? (
 						<SidebarParentExpandable
@@ -152,6 +162,26 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
 							})}
 						</SidebarParentExpandable>
 					) : null}
+					<SidebarParentExpandable
+						icon={<ClipboardList className="w-4 h-4" />}
+						label="Requisiciones"
+						open={isRequisicionesOpen}
+						onToggle={() => setIsRequisicionesOpen(!isRequisicionesOpen)}
+						isActive={isRequisicionesActive}
+					>
+						{REQUISICIONES_SUBMENU.map((item) => {
+							const path = REQUISICIONES_PATH_MAP[item.id];
+							return (
+								<SidebarSubmenuItem
+									key={item.id}
+									id={item.id}
+									label={item.label}
+									isActive={pathname === path || pathname.startsWith(`${path}/`)}
+									onClick={() => path && handleNav(path)}
+								/>
+							);
+						})}
+					</SidebarParentExpandable>
 					<SidebarParentExpandable
 						icon={<Package className="w-4 h-4" />}
 						label="Catálogos"

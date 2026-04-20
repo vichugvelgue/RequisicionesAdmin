@@ -7,6 +7,7 @@ export {
 	clearStoredSession,
 	AUTH_STORAGE_KEY,
 } from './sessionStorage';
+export type { TipoPerfilUsuario } from './types';
 export type {
 	AuthUser,
 	AuthSession,

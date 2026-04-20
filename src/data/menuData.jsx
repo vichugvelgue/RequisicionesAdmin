@@ -21,6 +21,11 @@ export const EJEMPLOS_SUBMENU = [
 /** Submenú de Usuarios: id = activeView, label = texto en menú */
 export const USUARIOS_SUBMENU = [{ id: "UsuariosListado", label: "Usuarios" }];
 
+/** Submenú de Requisiciones */
+export const REQUISICIONES_SUBMENU = [
+	{ id: "RequisicionesAdquisicionBienes", label: "Adquisición de bienes" },
+];
+
 /** Submenú de Catálogos: id = activeView, label = texto en menú */
 export const CATALOGOS_SUBMENU = [
 	{ id: "CatalogosActividad", label: "Actividad" },

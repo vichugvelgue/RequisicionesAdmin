@@ -62,7 +62,10 @@ export type StatusBadgeVariant =
   | 'Borrador'
   | 'Transito'
   | 'Recibido'
-  | 'Solicitado';
+  | 'Solicitado'
+  | 'Pendiente'
+  | 'Aprobada'
+  | 'Rechazada';
 
 export type ActionButtonVariant =
   | 'icon'
