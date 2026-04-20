@@ -65,6 +65,20 @@ export interface PersonaContactoValues {
 	telefono: string;
 }
 
+export interface AdquisicionPartidaBase {
+	id: string;
+	cantidad: string;
+	unidadMedidaId: string;
+	unidadMedidaLabel: string;
+	descripcion: string;
+}
+
+export interface AdquisicionPartidaMayor extends AdquisicionPartidaBase {
+	numeroPartida: number;
+}
+
+export type AdquisicionPartidaMenor = AdquisicionPartidaBase;
+
 export interface AdquisicionDraft {
 	monto?: string;
 	tipoCompra?: TipoCompra;
@@ -81,6 +95,8 @@ export interface AdquisicionDraft {
 		fechaSolicitud: string;
 	}>;
 	menorDatosRequisicion: Partial<{ justificacionGasto: string }>;
+	mayorPartidas: AdquisicionPartidaMayor[];
+	menorPartidas: AdquisicionPartidaMenor[];
 }
 
 export function createEmptyDraft(): AdquisicionDraft {
@@ -93,6 +109,8 @@ export function createEmptyDraft(): AdquisicionDraft {
 		mayorAdministradorContrato: {},
 		menorDatosGenerales: {},
 		menorDatosRequisicion: {},
+		mayorPartidas: [],
+		menorPartidas: [],
 	};
 }
 

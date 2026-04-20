@@ -95,7 +95,18 @@ export function AdquisicionBienesFormShell({
 			{
 				id: 'g4',
 				label: <StepperTabLabel step={++step} title="Partidas" />,
-				panel: <MayorPartidasTab />,
+				panel: (
+					<MayorPartidasTab
+						partidas={draft.mayorPartidas}
+						canEditSolicitanteFields={hideRevisorFields}
+						onChange={(partidas) => {
+							onDraftChange({
+								...draft,
+								mayorPartidas: partidas,
+							});
+						}}
+					/>
+				),
 			},
 		];
 
@@ -202,7 +213,18 @@ export function AdquisicionBienesFormShell({
 		{
 			id: 'm3',
 			label: <StepperTabLabel step={3} title="Partidas" />,
-			panel: <MenorPartidasTab />,
+			panel: (
+				<MenorPartidasTab
+					partidas={draft.menorPartidas}
+					canEditSolicitanteFields={hideRevisorFields}
+					onChange={(partidas) => {
+						onDraftChange({
+							...draft,
+							menorPartidas: partidas,
+						});
+					}}
+				/>
+			),
 		},
 		{
 			id: 'm4',
