@@ -83,7 +83,7 @@ export function MayorAdministradorContratoTab({
 					noValidate
 				>
 					<div className="grid grid-cols-12 gap-4">
-						<div className="col-span-12 lg:col-span-6">
+						<div className="col-span-12 lg:col-span-3">
 							<FieldRoleLabel htmlFor="admct-nom">
 								Nombre
 							</FieldRoleLabel>
@@ -92,7 +92,7 @@ export function MayorAdministradorContratoTab({
 								<p className="text-[11px] mt-1 text-red-600">{errors.nombre.message}</p>
 							) : null}
 						</div>
-						<div className="col-span-12 lg:col-span-6">
+						<div className="col-span-12 lg:col-span-3">
 							<FieldRoleLabel htmlFor="admct-car">
 								Cargo
 							</FieldRoleLabel>
@@ -101,7 +101,7 @@ export function MayorAdministradorContratoTab({
 								<p className="text-[11px] mt-1 text-red-600">{errors.cargo.message}</p>
 							) : null}
 						</div>
-						<div className="col-span-12 lg:col-span-6">
+						<div className="col-span-12 lg:col-span-3">
 							<FieldRoleLabel htmlFor="admct-mail">
 								Correo electrónico
 							</FieldRoleLabel>
@@ -110,7 +110,7 @@ export function MayorAdministradorContratoTab({
 								<p className="text-[11px] mt-1 text-red-600">{errors.correo.message}</p>
 							) : null}
 						</div>
-						<div className="col-span-12 lg:col-span-6">
+						<div className="col-span-12 lg:col-span-3">
 							<FieldRoleLabel htmlFor="admct-tel">
 								Teléfono
 							</FieldRoleLabel>

@@ -80,6 +80,15 @@ export function MayorDatosRequisicionTab({
 					noValidate
 				>
 					<div className="grid grid-cols-12 gap-4">
+						<div className="col-span-12 lg:col-span-4">
+							<FieldRoleLabel htmlFor="mayor-gar">
+								Periodo de garantía
+							</FieldRoleLabel>
+							<Input id="mayor-gar" {...register('periodoGarantia')} className="uppercase" />
+							{errors.periodoGarantia?.message ? (
+								<p className="text-[11px] mt-1 text-red-600">{errors.periodoGarantia.message}</p>
+							) : null}
+						</div>
 						<div className="col-span-12">
 							<FieldRoleLabel htmlFor="mayor-desc">
 								Descripción general
@@ -96,15 +105,6 @@ export function MayorDatosRequisicionTab({
 							<TextArea id="mayor-just" rows={4} {...register('justificacionGasto')} className="uppercase" />
 							{errors.justificacionGasto?.message ? (
 								<p className="text-[11px] mt-1 text-red-600">{errors.justificacionGasto.message}</p>
-							) : null}
-						</div>
-						<div className="col-span-12 lg:col-span-4">
-							<FieldRoleLabel htmlFor="mayor-gar">
-								Periodo de garantía
-							</FieldRoleLabel>
-							<Input id="mayor-gar" {...register('periodoGarantia')} className="uppercase" />
-							{errors.periodoGarantia?.message ? (
-								<p className="text-[11px] mt-1 text-red-600">{errors.periodoGarantia.message}</p>
 							) : null}
 						</div>
 					</div>

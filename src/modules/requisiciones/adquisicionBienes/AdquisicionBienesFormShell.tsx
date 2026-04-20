@@ -22,6 +22,7 @@ export function AdquisicionBienesFormShell({
 	onDraftChange,
 	editingRow,
 	onPatchRow,
+	isNewRecord,
 }: {
 	tipoCompra: TipoCompra;
 	hideRevisorFields: boolean;
@@ -29,8 +30,21 @@ export function AdquisicionBienesFormShell({
 	onDraftChange: (next: AdquisicionDraft) => void;
 	editingRow: RequisicionRow;
 	onPatchRow: (patch: Partial<RequisicionRow>) => void;
+	isNewRecord: boolean;
 }) {
 	const [tab, setTab] = useState(() => (tipoCompra === 'MAYOR' ? 'g1' : 'm1'));
+	const AUTO_ADVANCE_DELAY_MS = 900;
+	const goToNextTab = (currentTabId: string, orderedTabIds: string[]) => {
+		if (!isNewRecord) return;
+		const currentIndex = orderedTabIds.indexOf(currentTabId);
+		if (currentIndex < 0) return;
+		const nextTabId = orderedTabIds[currentIndex + 1];
+		if (nextTabId) {
+			window.setTimeout(() => {
+				setTab(nextTabId);
+			}, AUTO_ADVANCE_DELAY_MS);
+		}
+	};
 
 	const numeroLabel = useMemo(
 		() => String(editingRow.numero).padStart(7, '0'),
@@ -160,6 +174,92 @@ export function AdquisicionBienesFormShell({
 				),
 			}
 		);
+		const orderedTabIds = tabsList.map((t) => t.id);
+		tabsList[0].panel = (
+			<MayorDatosGeneralesTab
+				hideRevisorFields={hideRevisorFields}
+				initialValues={draft.mayorDatosGenerales}
+				onSave={(data) => {
+					onDraftChange({
+						...draft,
+						mayorDatosGenerales: { ...draft.mayorDatosGenerales, ...data },
+					});
+					onPatchRow({ solicitante: data.nombreTitular });
+					goToNextTab('g1', orderedTabIds);
+				}}
+			/>
+		);
+		tabsList[1].panel = (
+			<MayorDatosPresupuestalesTab
+				initialValues={draft.mayorDatosPresupuestales}
+				onSave={(data) => {
+					onDraftChange({
+						...draft,
+						mayorDatosPresupuestales: { ...draft.mayorDatosPresupuestales, ...data },
+					});
+					goToNextTab('g2', orderedTabIds);
+				}}
+			/>
+		);
+		tabsList[2].panel = (
+			<MayorDatosRequisicionTab
+				initialValues={draft.mayorDatosRequisicion}
+				onSave={(data) => {
+					onDraftChange({
+						...draft,
+						mayorDatosRequisicion: { ...draft.mayorDatosRequisicion, ...data },
+					});
+					goToNextTab('g3', orderedTabIds);
+				}}
+			/>
+		);
+		if (!hideRevisorFields) {
+			const administrativosIdx = orderedTabIds.indexOf('g5');
+			if (administrativosIdx >= 0) {
+				tabsList[administrativosIdx].panel = (
+					<MayorDatosAdministrativosTab
+						initialValues={draft.mayorDatosAdministrativos}
+						onSave={(data) => {
+							onDraftChange({
+								...draft,
+								mayorDatosAdministrativos: { ...draft.mayorDatosAdministrativos, ...data },
+							});
+							goToNextTab('g5', orderedTabIds);
+						}}
+					/>
+				);
+			}
+		}
+		const representantesIdx = orderedTabIds.indexOf('g6');
+		if (representantesIdx >= 0) {
+			tabsList[representantesIdx].panel = (
+				<MayorRepresentantesTab
+					initialValues={draft.mayorRepresentantes}
+					onSave={(data) => {
+						onDraftChange({
+							...draft,
+							mayorRepresentantes: { ...draft.mayorRepresentantes, ...data },
+						});
+						goToNextTab('g6', orderedTabIds);
+					}}
+				/>
+			);
+		}
+		const administradorIdx = orderedTabIds.indexOf('g7');
+		if (administradorIdx >= 0) {
+			tabsList[administradorIdx].panel = (
+				<MayorAdministradorContratoTab
+					initialValues={draft.mayorAdministradorContrato}
+					onSave={(data) => {
+						onDraftChange({
+							...draft,
+							mayorAdministradorContrato: { ...draft.mayorAdministradorContrato, ...data },
+						});
+						goToNextTab('g7', orderedTabIds);
+					}}
+				/>
+			);
+		}
 
 		return (
 			<Tabs value={tab} onChange={setTab} className="flex flex-col flex-1 min-h-0">
@@ -238,6 +338,32 @@ export function AdquisicionBienesFormShell({
 			),
 		},
 	];
+	const menorTabIds = menorTabs.map((t) => t.id);
+	menorTabs[0].panel = (
+		<MenorDatosGeneralesTab
+			initialValues={draft.menorDatosGenerales}
+			onSave={(data) => {
+				onDraftChange({
+					...draft,
+					menorDatosGenerales: { ...draft.menorDatosGenerales, ...data },
+				});
+				onPatchRow({ solicitante: data.nombreSolicitante });
+				goToNextTab('m1', menorTabIds);
+			}}
+		/>
+	);
+	menorTabs[1].panel = (
+		<MenorDatosRequisicionTab
+			initialValues={draft.menorDatosRequisicion}
+			onSave={(data) => {
+				onDraftChange({
+					...draft,
+					menorDatosRequisicion: { ...draft.menorDatosRequisicion, ...data },
+				});
+				goToNextTab('m2', menorTabIds);
+			}}
+		/>
+	);
 
 	return (
 		<Tabs value={tab} onChange={setTab} className="flex flex-col flex-1 min-h-0">

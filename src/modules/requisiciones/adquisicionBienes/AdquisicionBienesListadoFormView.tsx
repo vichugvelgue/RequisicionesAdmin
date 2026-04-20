@@ -167,6 +167,7 @@ export function AdquisicionBienesListadoFormView() {
 	const [appliedEstatus, setAppliedEstatus] = useState('');
 
 	const [pendingDeleteRow, setPendingDeleteRow] = useState<RequisicionRow | null>(null);
+	const [newlyCreatedIds, setNewlyCreatedIds] = useState<string[]>([]);
 	const [toastState, setToastState] = useState<{
 		visible: boolean;
 		title: string;
@@ -313,6 +314,7 @@ export function AdquisicionBienesListadoFormView() {
 				tipoCompra,
 			},
 		}));
+		setNewlyCreatedIds((prev) => (prev.includes(newId) ? prev : [...prev, newId]));
 		navigate(`${BASE_PATH}/${newId}`, { replace: true });
 		setToastState({
 			visible: true,
@@ -468,6 +470,7 @@ export function AdquisicionBienesListadoFormView() {
 								onDraftChange={(next) => setDraftForId(editingRow.id, next)}
 								editingRow={editingRow}
 								onPatchRow={(patch) => patchRow(editingRow.id, patch)}
+								isNewRecord={newlyCreatedIds.includes(editingRow.id)}
 							/>
 						</div>
 					) : null}

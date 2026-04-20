@@ -101,15 +101,13 @@ export function MayorDatosPresupuestalesTab({
 								name="presupuestoAutorizado"
 								control={control}
 								render={({ field }) => (
-									<div className="max-w-xs">
-										<DecimalStringCellInput
-											value={field.value}
-											onChange={field.onChange}
-											onBlur={field.onBlur}
-											fractionDigits={2}
-											className="!text-sm !py-2 !px-3 w-full"
-										/>
-									</div>
+									<DecimalStringCellInput
+										value={field.value}
+										onChange={field.onChange}
+										onBlur={field.onBlur}
+										fractionDigits={2}
+										className="!py-1.5 !px-2.5 w-full"
+									/>
 								)}
 							/>
 							{errors.presupuestoAutorizado?.message ? (

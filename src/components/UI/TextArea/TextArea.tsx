@@ -28,11 +28,13 @@ export function TextArea({
 	rows = 4,
 	...rest
 }: TextAreaProps) {
+	const controlled = value !== undefined;
+
 	return (
 		<textarea
 			{...rest}
 			id={id}
-			value={value ?? ""}
+			{...(controlled ? { value } : {})}
 			onChange={onChange}
 			disabled={disabled}
 			rows={rows}

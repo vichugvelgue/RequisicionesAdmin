@@ -15,6 +15,7 @@ import {
 import { MOCK_UNIDAD_SOLICITANTE } from '../../catalogMockOptions';
 import { FieldRoleLabel } from '../../fieldRoleLabel';
 import type { MayorDatosGeneralesValues } from '../../types';
+import { dateToInputValue } from '../../../../../utils/dateFormat';
 
 const schemaSolicitante = yup.object({
 	unidadSolicitanteId: yup.string().required('*Requerido'),
@@ -34,11 +35,20 @@ const empty: MayorDatosGeneralesValues = {
 	unidadSolicitanteId: '',
 	nombreTitular: '',
 	cargoSolicitante: '',
-	fechaSolicitud: '',
+	fechaSolicitud: dateToInputValue(new Date()),
 	caracterProcedimiento: 'NACIONAL',
 	modalidadContratacion: 'FIJA',
 	tipoProcedimiento: '',
 };
+
+function withDefaultFecha(initialValues: Partial<MayorDatosGeneralesValues>): MayorDatosGeneralesValues {
+	const todayIso = dateToInputValue(new Date());
+	return {
+		...empty,
+		...initialValues,
+		fechaSolicitud: initialValues.fechaSolicitud?.trim() ? initialValues.fechaSolicitud : todayIso,
+	};
+}
 
 export function MayorDatosGeneralesTab({
 	initialValues,
@@ -66,11 +76,11 @@ export function MayorDatosGeneralesTab({
 	} = useForm<MayorDatosGeneralesValues>({
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		resolver: resolver as any,
-		defaultValues: { ...empty, ...initialValues },
+		defaultValues: withDefaultFecha(initialValues),
 	});
 
 	useEffect(() => {
-		reset({ ...empty, ...initialValues });
+		reset(withDefaultFecha(initialValues));
 	}, [initialValues, reset]);
 
 	const onSubmit = (data: MayorDatosGeneralesValues) => {
@@ -110,54 +120,67 @@ export function MayorDatosGeneralesTab({
 					noValidate
 				>
 					<div className="grid grid-cols-12 gap-4">
-						<div className="col-span-12 lg:col-span-6">
-							<FieldRoleLabel>Unidad solicitante</FieldRoleLabel>
-							<Controller
-								name="unidadSolicitanteId"
-								control={control}
-								render={({ field }) => (
-									<SearchableSelect
-										options={MOCK_UNIDAD_SOLICITANTE}
-										value={field.value}
-										onChange={field.onChange}
-										placeholder="Buscar unidad…"
-									/>
-								)}
-							/>
-							{errors.unidadSolicitanteId?.message ? (
-								<p className="text-[11px] mt-1 text-red-600">
-									{errors.unidadSolicitanteId.message}
-								</p>
-							) : null}
+						<div className="col-span-12 lg:col-span-6 space-y-4">
+							<div>
+								<FieldRoleLabel>Unidad solicitante</FieldRoleLabel>
+								<Controller
+									name="unidadSolicitanteId"
+									control={control}
+									render={({ field }) => (
+										<SearchableSelect
+											options={MOCK_UNIDAD_SOLICITANTE}
+											value={field.value}
+											onChange={field.onChange}
+											placeholder="Buscar unidad…"
+										/>
+									)}
+								/>
+								{errors.unidadSolicitanteId?.message ? (
+									<p className="text-[11px] mt-1 text-red-600">
+										{errors.unidadSolicitanteId.message}
+									</p>
+								) : null}
+							</div>
+							<div>
+								<FieldRoleLabel htmlFor="mayor-nombre-titular">
+									Nombre titular
+								</FieldRoleLabel>
+								<Input
+									id="mayor-nombre-titular"
+									{...register('nombreTitular')}
+									className="uppercase"
+								/>
+								{errors.nombreTitular?.message ? (
+									<p className="text-[11px] mt-1 text-red-600">
+										{errors.nombreTitular.message}
+									</p>
+								) : null}
+							</div>
+							<div>
+								<FieldRoleLabel htmlFor="mayor-cargo">
+									Cargo del solicitante
+								</FieldRoleLabel>
+								<Input id="mayor-cargo" {...register('cargoSolicitante')} className="uppercase" />
+								{errors.cargoSolicitante?.message ? (
+									<p className="text-[11px] mt-1 text-red-600">
+										{errors.cargoSolicitante.message}
+									</p>
+								) : null}
+							</div>
+							<div>
+								<FieldRoleLabel htmlFor="mayor-tipo-proc">
+									Tipo de procedimiento
+								</FieldRoleLabel>
+								<Input id="mayor-tipo-proc" {...register('tipoProcedimiento')} className="uppercase" />
+								{errors.tipoProcedimiento?.message ? (
+									<p className="text-[11px] mt-1 text-red-600">
+										{errors.tipoProcedimiento.message}
+									</p>
+								) : null}
+							</div>
 						</div>
-						<div className="col-span-12 lg:col-span-6">
-							<FieldRoleLabel htmlFor="mayor-nombre-titular">
-								Nombre del titular / solicitante
-							</FieldRoleLabel>
-							<Input
-								id="mayor-nombre-titular"
-								{...register('nombreTitular')}
-								className="uppercase"
-							/>
-							{errors.nombreTitular?.message ? (
-								<p className="text-[11px] mt-1 text-red-600">
-									{errors.nombreTitular.message}
-								</p>
-							) : null}
-						</div>
-						<div className="col-span-12 lg:col-span-4">
-							<FieldRoleLabel htmlFor="mayor-cargo">
-								Cargo del solicitante
-							</FieldRoleLabel>
-							<Input id="mayor-cargo" {...register('cargoSolicitante')} className="uppercase" />
-							{errors.cargoSolicitante?.message ? (
-								<p className="text-[11px] mt-1 text-red-600">
-									{errors.cargoSolicitante.message}
-								</p>
-							) : null}
-						</div>
-						{hideRevisorFields ? null : (
-							<div className="col-span-12 lg:col-span-4">
+						<div className="col-span-12 lg:col-span-6 space-y-4">
+							<div>
 								<FieldRoleLabel>Fecha de solicitud</FieldRoleLabel>
 								<Controller
 									name="fechaSolicitud"
@@ -175,10 +198,6 @@ export function MayorDatosGeneralesTab({
 									</p>
 								) : null}
 							</div>
-						)}
-					</div>
-					<div className="grid grid-cols-12 gap-4">
-						<div className="col-span-12 lg:col-span-6">
 							<Controller
 								name="caracterProcedimiento"
 								control={control}
@@ -195,8 +214,6 @@ export function MayorDatosGeneralesTab({
 									/>
 								)}
 							/>
-						</div>
-						<div className="col-span-12 lg:col-span-6">
 							<Controller
 								name="modalidadContratacion"
 								control={control}
@@ -213,17 +230,6 @@ export function MayorDatosGeneralesTab({
 									/>
 								)}
 							/>
-						</div>
-						<div className="col-span-12 lg:col-span-6">
-							<FieldRoleLabel htmlFor="mayor-tipo-proc">
-								Tipo de procedimiento
-							</FieldRoleLabel>
-							<Input id="mayor-tipo-proc" {...register('tipoProcedimiento')} className="uppercase" />
-							{errors.tipoProcedimiento?.message ? (
-								<p className="text-[11px] mt-1 text-red-600">
-									{errors.tipoProcedimiento.message}
-								</p>
-							) : null}
 						</div>
 					</div>
 					<div className="flex justify-end pt-2">
