@@ -58,7 +58,7 @@ export function MenorDetalleServicioTab({
 
 	return (
 		<div className="p-4 flex-1 min-h-0 overflow-auto">
-			<FormSection title="Detalle del servicio">
+			<FormSection>
 				<form
 					className="space-y-4"
 					onSubmit={handleSubmit(
@@ -90,7 +90,7 @@ export function MenorDetalleServicioTab({
 					<div className="grid grid-cols-12 gap-4">
 						<div className="col-span-12">
 							<FieldRoleLabel htmlFor="cs-det-desc">Descripción general</FieldRoleLabel>
-							<TextArea id="cs-det-desc" rows={3} {...register('descripcionGeneral')} className="uppercase" />
+							<TextArea id="cs-det-desc" rows={2} {...register('descripcionGeneral')} className="uppercase" />
 							{errors.descripcionGeneral?.message ? (
 								<p className="text-[11px] mt-1 text-red-600">{errors.descripcionGeneral.message}</p>
 							) : null}
@@ -99,7 +99,7 @@ export function MenorDetalleServicioTab({
 							<FieldRoleLabel htmlFor="cs-det-desc2">Descripción específica</FieldRoleLabel>
 							<TextArea
 								id="cs-det-desc2"
-								rows={3}
+								rows={2}
 								{...register('descripcionEspecifica')}
 								className="uppercase"
 							/>
@@ -111,7 +111,7 @@ export function MenorDetalleServicioTab({
 							<FieldRoleLabel htmlFor="cs-det-lugar">Lugar de ejecución del servicio</FieldRoleLabel>
 							<TextArea
 								id="cs-det-lugar"
-								rows={3}
+								rows={2}
 								{...register('lugarEjecucionServicio')}
 								className="uppercase"
 							/>

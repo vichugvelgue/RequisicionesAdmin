@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Pencil, Plus, Trash2, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Plus, Trash2, X } from 'lucide-react';
 import {
 	Button,
 	DateInputWithClear,
@@ -7,14 +7,12 @@ import {
 	FormSection,
 	Input,
 	SearchableSelect,
-	SimpleTable,
 	Tabs,
 	TabsList,
 	TabsPanel,
 	TabsTab,
 	TextArea,
 } from '../../../../components/UI';
-import type { SimpleTableColumn } from '../../../../components/UI/SimpleTable/SimpleTable';
 import { MOCK_UNIDAD_MEDIDA } from '../catalogMockOptions';
 import { FieldRoleLabel } from '../fieldRoleLabel';
 import {
@@ -75,47 +73,12 @@ export function ServiciosMayorPartidasSection({
 	const [modalDraft, setModalDraft] = useState<ServiciosPartidaMayor | null>(null);
 	const [modalError, setModalError] = useState('');
 	const [modalTab, setModalTab] = useState('base');
+	const [expandedById, setExpandedById] = useState<Record<string, boolean>>({});
 
 	const nextNumeroPartida = useMemo(() => {
 		const max = partidas.reduce((acc, item) => Math.max(acc, item.numeroPartida), 0);
 		return max + 1;
 	}, [partidas]);
-
-	const columns: SimpleTableColumn<ServiciosPartidaMayor>[] = useMemo(
-		() => [
-			{
-				key: 'numeroPartida',
-				label: 'No. partida',
-				width: 'w-24 min-w-24',
-				cellClassName: 'uppercase text-center font-semibold',
-			},
-			{
-				key: 'cantidad',
-				label: 'Cantidad',
-				width: 'w-28 min-w-28',
-				cellClassName: 'text-right tabular-nums font-semibold',
-			},
-			{
-				key: 'unidadMedidaLabel',
-				label: 'Unidad de medida',
-				width: 'w-40 min-w-40',
-				cellClassName: 'uppercase',
-			},
-			{
-				key: 'defDescripcionGeneral',
-				label: 'Descripción general',
-				width: 'min-w-[14rem]',
-				cellClassName: 'uppercase whitespace-normal break-words leading-5 align-top py-3',
-			},
-			{
-				key: 'defDescripcionEspecifica',
-				label: 'Descripción específica',
-				width: 'min-w-[14rem]',
-				cellClassName: 'uppercase whitespace-normal break-words leading-5 align-top py-3',
-			},
-		],
-		[]
-	);
 
 	function openNew() {
 		const id = crypto.randomUUID();
@@ -183,6 +146,25 @@ export function ServiciosMayorPartidasSection({
 	}
 
 	const canEditRows = canEditSolicitanteFields || !hideRevisorFields;
+	const sortedPartidas = useMemo(
+		() => [...partidas].sort((a, b) => a.numeroPartida - b.numeroPartida),
+		[partidas]
+	);
+
+	function toggleExpanded(id: string) {
+		setExpandedById((prev) => ({ ...prev, [id]: !prev[id] }));
+	}
+
+	function DetailItem({ label, value }: { label: string; value: string }) {
+		return (
+			<div className="rounded-md border border-slate-200 bg-white px-3 py-2">
+				<p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{label}</p>
+				<p className="mt-1 text-sm leading-5 text-slate-700 uppercase whitespace-pre-wrap break-words">
+					{value || '-'}
+				</p>
+			</div>
+		);
+	}
 
 	return (
 		<div className="p-4 flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -199,32 +181,202 @@ export function ServiciosMayorPartidasSection({
 				</Button>
 			</div>
 			<div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto">
-				<SimpleTable
-					columns={columns}
-					data={partidas}
-					actionsColumnLabel="Acciones"
-					emptyTitle="No hay partidas agregadas"
-					emptyDescription="Agregue partidas de servicio desde el modal de captura."
-					customActions={
-						canEditRows
-							? [
-									{
-										icon: <Pencil className="w-4 h-4" />,
-										title: 'Editar',
-										variant: 'iconAmber',
-										onClick: (row) => openEdit(row),
-									},
-									{
-										icon: <Trash2 className="w-4 h-4" />,
-										title: 'Eliminar',
-										variant: 'iconRed',
-										onClick: (row) => handleDelete(row),
-									},
-							  ]
-							: []
-					}
-					wrapperClassName="min-h-[240px] max-h-[50vh]"
-				/>
+				{sortedPartidas.length === 0 ? (
+					<div className="flex min-h-[240px] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 text-center">
+						<div>
+							<p className="text-sm font-semibold text-slate-700 uppercase">
+								No hay partidas agregadas
+							</p>
+							<p className="mt-1 text-sm text-slate-500 uppercase">
+								Agregue partidas de servicio desde el modal de captura.
+							</p>
+						</div>
+					</div>
+				) : (
+					<div className="min-h-[240px] max-h-[50vh] overflow-y-auto rounded-lg border border-slate-200 bg-white">
+						{sortedPartidas.map((row, idx) => {
+							const isExpanded = expandedById[row.id] ?? false;
+							return (
+								<div
+									key={row.id}
+									className={idx > 0 ? 'border-t border-slate-200' : undefined}
+								>
+									<div className="flex flex-wrap items-center gap-2 px-4 py-3">
+										<button
+											type="button"
+											onClick={() => toggleExpanded(row.id)}
+											className="flex min-w-0 flex-1 items-center gap-3 text-left"
+										>
+											<span className="inline-flex h-7 min-w-20 items-center justify-center rounded-md bg-slate-100 px-2 text-xs font-semibold uppercase text-slate-700">
+												Partida {row.numeroPartida}
+											</span>
+											<div className="min-w-[9rem] text-sm">
+												<span className="text-slate-500 uppercase">Cantidad:</span>{' '}
+												<span className="font-semibold tabular-nums">{row.cantidad || '-'}</span>
+											</div>
+											<div className="min-w-[12rem] text-sm uppercase text-slate-700">
+												<span className="text-slate-500">Unidad:</span>{' '}
+												{row.unidadMedidaLabel || '-'}
+											</div>
+											<div className="hidden min-w-0 flex-1 text-sm text-slate-700 md:block">
+												<span className="text-slate-500 uppercase">Descripción:</span>{' '}
+												<span className="uppercase">
+													{row.defDescripcionGeneral || row.defDescripcionEspecifica || '-'}
+												</span>
+											</div>
+											{isExpanded ? (
+												<ChevronUp className="h-4 w-4 shrink-0 text-slate-500" />
+											) : (
+												<ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+											)}
+										</button>
+										{canEditRows ? (
+											<div className="ml-auto flex shrink-0 items-center gap-1">
+												<Button
+													type="button"
+													size="sm"
+													variant="iconAmber"
+													title="Editar"
+													onClick={() => openEdit(row)}
+												>
+													<Pencil className="w-4 h-4" />
+												</Button>
+												<Button
+													type="button"
+													size="sm"
+													variant="iconRed"
+													title="Eliminar"
+													onClick={() => handleDelete(row)}
+												>
+													<Trash2 className="w-4 h-4" />
+												</Button>
+											</div>
+										) : null}
+									</div>
+									{isExpanded ? (
+										<div className="border-t border-slate-100 bg-slate-50/60 px-4 py-4">
+											<div className="grid grid-cols-12 gap-4">
+												<div className="col-span-12">
+													<p className="mb-2 text-xs font-semibold text-slate-600 uppercase">
+														Definición del servicio
+													</p>
+													<div className="grid grid-cols-12 gap-2">
+														<div className="col-span-12 lg:col-span-6">
+															<DetailItem
+																label="Descripción general"
+																value={row.defDescripcionGeneral}
+															/>
+														</div>
+														<div className="col-span-12 lg:col-span-6">
+															<DetailItem
+																label="Descripción específica"
+																value={row.defDescripcionEspecifica}
+															/>
+														</div>
+														<div className="col-span-12">
+															<DetailItem
+																label="Lugar y periodo de ejecución del servicio"
+																value={row.defLugarPeriodoEjecucion}
+															/>
+														</div>
+														<div className="col-span-12 lg:col-span-6">
+															<DetailItem
+																label="Personal requerido"
+																value={row.defPersonalRequerido}
+															/>
+														</div>
+														<div className="col-span-12 lg:col-span-6">
+															<DetailItem
+																label="Entregables para acreditar ejecución"
+																value={row.defEntregablesAcreditacion}
+															/>
+														</div>
+														<div className="col-span-12">
+															<DetailItem
+																label="Condiciones generales de contratación"
+																value={row.defCondicionesGeneralesContratacion}
+															/>
+														</div>
+													</div>
+												</div>
+												<div className="col-span-12 lg:col-span-6">
+													<p className="mb-2 text-xs font-semibold text-slate-600 uppercase">
+														Ejecución
+													</p>
+													<div className="space-y-2">
+														{!hideRevisorFields ? (
+															<>
+																<DetailItem
+																	label="Experiencia del licitante"
+																	value={row.execExperienciaLicitante}
+																/>
+																<DetailItem
+																	label="Dirección"
+																	value={
+																		[row.execCalle, row.execColonia, row.execCp, row.execCiudad]
+																			.filter(Boolean)
+																			.join(', ') || '-'
+																	}
+																/>
+															</>
+														) : null}
+														<div className="grid grid-cols-12 gap-2">
+															<div className="col-span-12 sm:col-span-4">
+																<DetailItem label="Periodo inicio" value={row.execPeriodoInicio} />
+															</div>
+															<div className="col-span-12 sm:col-span-4">
+																<DetailItem label="Periodo fin" value={row.execPeriodoFin} />
+															</div>
+															<div className="col-span-12 sm:col-span-4">
+																<DetailItem label="Periodo (texto)" value={row.execPeriodoTexto} />
+															</div>
+															<div className="col-span-12">
+																<DetailItem label="Horario" value={row.execHorario} />
+															</div>
+														</div>
+													</div>
+												</div>
+												<div className="col-span-12 lg:col-span-6">
+													<p className="mb-2 text-xs font-semibold text-slate-600 uppercase">
+														Recursos y entregables
+													</p>
+													<div className="space-y-2">
+														<DetailItem
+															label="Personal requerido"
+															value={row.recPersonalRequerido}
+														/>
+														<DetailItem label="Entregables" value={row.entEntregables} />
+													</div>
+													<p className="mb-2 mt-4 text-xs font-semibold text-slate-600 uppercase">
+														Condiciones
+													</p>
+													<div className="space-y-2">
+														{!hideRevisorFields ? (
+															<DetailItem
+																label="Días de entrega"
+																value={row.condDiasEntrega}
+															/>
+														) : null}
+														<DetailItem
+															label="Condiciones generales de contratación"
+															value={row.condCondicionesGeneralesContratacion}
+														/>
+														{!hideRevisorFields ? (
+															<DetailItem
+																label="Los pagos se realizarán"
+																value={row.condPagosSeRealizaran}
+															/>
+														) : null}
+													</div>
+												</div>
+											</div>
+										</div>
+									) : null}
+								</div>
+							);
+						})}
+					</div>
+				)}
 			</div>
 
 			{modalOpen && modalDraft ? (
