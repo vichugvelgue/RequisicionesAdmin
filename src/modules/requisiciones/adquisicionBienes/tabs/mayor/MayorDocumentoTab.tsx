@@ -62,9 +62,7 @@ export function MayorDocumentoTab({
 						) : null}
 						<PreviewField label="Tipo de procedimiento" value={g?.tipoProcedimiento ?? ''} />
 						<PreviewField label="Carácter del procedimiento" value={g?.caracterProcedimiento ?? ''} />
-						{!hideRevisorFields ? (
-							<PreviewField label="Modalidad de contratación" value={g?.modalidadContratacion ?? ''} />
-						) : null}
+						<PreviewField label="Modalidad de contratación" value={g?.modalidadContratacion ?? ''} />
 					</PreviewFieldsGrid>
 				</PreviewSection>
 
@@ -147,27 +145,23 @@ export function MayorDocumentoTab({
 					</>
 				) : null}
 
-				{!hideRevisorFields ? (
-					<>
-						<PreviewSection title="Representantes">
-							<PreviewFieldsGrid>
-								<PreviewField label="Nombre" value={rep?.nombre ?? ''} />
-								<PreviewField label="Cargo" value={rep?.cargo ?? ''} />
-								<PreviewField label="Correo electrónico" value={rep?.correo ?? ''} preserveCase />
-								<PreviewField label="Teléfono" value={rep?.telefono ?? ''} preserveCase />
-							</PreviewFieldsGrid>
-						</PreviewSection>
+				<PreviewSection title="Representantes">
+					<PreviewFieldsGrid>
+						<PreviewField label="Nombre" value={rep?.nombre ?? ''} />
+						<PreviewField label="Cargo" value={rep?.cargo ?? ''} />
+						<PreviewField label="Correo electrónico" value={rep?.correo ?? ''} preserveCase />
+						<PreviewField label="Teléfono" value={rep?.telefono ?? ''} preserveCase />
+					</PreviewFieldsGrid>
+				</PreviewSection>
 
-						<PreviewSection title="Administrador del contrato">
-							<PreviewFieldsGrid>
-								<PreviewField label="Nombre" value={adm?.nombre ?? ''} />
-								<PreviewField label="Cargo" value={adm?.cargo ?? ''} />
-								<PreviewField label="Correo electrónico" value={adm?.correo ?? ''} preserveCase />
-								<PreviewField label="Teléfono" value={adm?.telefono ?? ''} preserveCase />
-							</PreviewFieldsGrid>
-						</PreviewSection>
-					</>
-				) : null}
+				<PreviewSection title="Administrador del contrato">
+					<PreviewFieldsGrid>
+						<PreviewField label="Nombre" value={adm?.nombre ?? ''} />
+						<PreviewField label="Cargo" value={adm?.cargo ?? ''} />
+						<PreviewField label="Correo electrónico" value={adm?.correo ?? ''} preserveCase />
+						<PreviewField label="Teléfono" value={adm?.telefono ?? ''} preserveCase />
+					</PreviewFieldsGrid>
+				</PreviewSection>
 			</div>
 		</DocumentoTabChrome>
 	);

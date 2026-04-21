@@ -30,6 +30,7 @@ import {
 	type ContratacionServiciosSearchCriteria,
 	type TipoCompraServicios,
 } from './types';
+import { createSeedDraftFromContratacionRow } from './seedDraftFromContratacionRow';
 
 const BASE_PATH = '/requisiciones/contratacion-servicios';
 
@@ -395,11 +396,7 @@ export function ContratacionServiciosListadoFormView() {
 			if (prev[editingRow.id]) return prev;
 			return {
 				...prev,
-				[editingRow.id]: {
-					...createEmptyDraft(),
-					monto: editingRow.monto.toFixed(2),
-					tipoCompra: editingRow.tipoCompra,
-				},
+				[editingRow.id]: createSeedDraftFromContratacionRow(editingRow),
 			};
 		});
 	}, [mode, editingRow]);

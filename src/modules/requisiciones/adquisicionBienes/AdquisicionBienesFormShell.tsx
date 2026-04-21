@@ -156,6 +156,36 @@ export function AdquisicionBienesFormShell({
 
 		tabsList.push(
 			{
+				id: 'g6',
+				label: <StepperTabLabel step={++step} title="Representantes" />,
+				panel: (
+					<MayorRepresentantesTab
+						initialValues={draft.mayorRepresentantes}
+						onSave={(data) => {
+							onDraftChange({
+								...draft,
+								mayorRepresentantes: { ...draft.mayorRepresentantes, ...data },
+							});
+						}}
+					/>
+				),
+			},
+			{
+				id: 'g7',
+				label: <StepperTabLabel step={++step} title="Administrador contrato" />,
+				panel: (
+					<MayorAdministradorContratoTab
+						initialValues={draft.mayorAdministradorContrato}
+						onSave={(data) => {
+							onDraftChange({
+								...draft,
+								mayorAdministradorContrato: { ...draft.mayorAdministradorContrato, ...data },
+							});
+						}}
+					/>
+				),
+			},
+			{
 				id: 'g8',
 				label: <StepperTabLabel step={++step} title="Documento" />,
 				panel: (
@@ -168,42 +198,6 @@ export function AdquisicionBienesFormShell({
 				),
 			}
 		);
-		if (!hideRevisorFields) {
-			tabsList.splice(
-				tabsList.length - 1,
-				0,
-				{
-					id: 'g6',
-					label: <StepperTabLabel step={++step} title="Representantes" />,
-					panel: (
-						<MayorRepresentantesTab
-							initialValues={draft.mayorRepresentantes}
-							onSave={(data) => {
-								onDraftChange({
-									...draft,
-									mayorRepresentantes: { ...draft.mayorRepresentantes, ...data },
-								});
-							}}
-						/>
-					),
-				},
-				{
-					id: 'g7',
-					label: <StepperTabLabel step={++step} title="Administrador contrato" />,
-					panel: (
-						<MayorAdministradorContratoTab
-							initialValues={draft.mayorAdministradorContrato}
-							onSave={(data) => {
-								onDraftChange({
-									...draft,
-									mayorAdministradorContrato: { ...draft.mayorAdministradorContrato, ...data },
-								});
-							}}
-						/>
-					),
-				}
-			);
-		}
 		const orderedTabIds = tabsList.map((t) => t.id);
 		tabsList[0].panel = (
 			<MayorDatosGeneralesTab
@@ -314,7 +308,6 @@ export function AdquisicionBienesFormShell({
 			label: <StepperTabLabel step={1} title="Datos generales" />,
 			panel: (
 				<MenorDatosGeneralesTab
-					hideRevisorFields={hideRevisorFields}
 					initialValues={draft.menorDatosGenerales}
 					onSave={(data) => {
 						onDraftChange({
@@ -361,19 +354,13 @@ export function AdquisicionBienesFormShell({
 			id: 'm4',
 			label: <StepperTabLabel step={4} title="Documento" />,
 			panel: (
-				<MenorDocumentoTab
-					draft={draft}
-					numeroLabel={numeroLabel}
-					solicitanteLabel={solicitantePreview}
-					hideRevisorFields={hideRevisorFields}
-				/>
+				<MenorDocumentoTab draft={draft} numeroLabel={numeroLabel} solicitanteLabel={solicitantePreview} />
 			),
 		},
 	];
 	const menorTabIds = menorTabs.map((t) => t.id);
 	menorTabs[0].panel = (
 		<MenorDatosGeneralesTab
-			hideRevisorFields={hideRevisorFields}
 			initialValues={draft.menorDatosGenerales}
 			onSave={(data) => {
 				onDraftChange({

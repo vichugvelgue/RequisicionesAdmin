@@ -12,7 +12,7 @@ export function MontoInicialStep({
 	const [monto, setMonto] = useState('');
 
 	const parsed = parseFloat(monto.replace(/,/g, '.')) || 0;
-	const tipoCompra: TipoCompra = parsed >= UMBRAL ? 'MAYOR' : 'MENOR';
+	const tipoCompra: TipoCompra = parsed > UMBRAL ? 'MAYOR' : 'MENOR';
 
 	const handleContinue = () => {
 		if (!monto.trim() || parsed <= 0) return;
@@ -47,8 +47,8 @@ export function MontoInicialStep({
 				{monto.trim() && parsed > 0 ? (
 					<p className="mt-4 text-sm font-bold text-brand-primary">
 						{tipoCompra === 'MAYOR'
-							? 'Compra de bienes mayor (≥ $56,000.00)'
-							: 'Compra de bienes menor (< $56,000.00)'}
+							? 'Compra de bienes mayor (> $56,000.00)'
+							: 'Compra de bienes menor (≤ $56,000.00)'}
 					</p>
 				) : null}
 			</FormSection>

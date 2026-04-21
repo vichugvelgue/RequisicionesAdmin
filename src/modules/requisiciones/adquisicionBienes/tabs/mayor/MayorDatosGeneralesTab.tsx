@@ -84,8 +84,12 @@ export function MayorDatosGeneralesTab({
 	}, [initialValues, reset]);
 
 	const onSubmit = (data: MayorDatosGeneralesValues) => {
+		const fechaSolicitud = hideRevisorFields
+			? (initialValues.fechaSolicitud ?? '').trim()
+			: (data.fechaSolicitud ?? '').trim();
 		onSave({
 			...data,
+			fechaSolicitud,
 			nombreTitular: data.nombreTitular.trim().toUpperCase(),
 			cargoSolicitante: data.cargoSolicitante.trim().toUpperCase(),
 			tipoProcedimiento: data.tipoProcedimiento.trim().toUpperCase(),
@@ -180,24 +184,26 @@ export function MayorDatosGeneralesTab({
 							</div>
 						</div>
 						<div className="col-span-12 lg:col-span-6 space-y-4">
-							<div>
-								<FieldRoleLabel>Fecha de solicitud</FieldRoleLabel>
-								<Controller
-									name="fechaSolicitud"
-									control={control}
-									render={({ field }) => (
-										<DateInputWithClear
-											value={field.value ?? ''}
-											onChange={field.onChange}
-										/>
-									)}
-								/>
-								{errors.fechaSolicitud?.message ? (
-									<p className="text-[11px] mt-1 text-red-600">
-										{errors.fechaSolicitud.message}
-									</p>
-								) : null}
-							</div>
+							{!hideRevisorFields ? (
+								<div>
+									<FieldRoleLabel>Fecha de solicitud</FieldRoleLabel>
+									<Controller
+										name="fechaSolicitud"
+										control={control}
+										render={({ field }) => (
+											<DateInputWithClear
+												value={field.value ?? ''}
+												onChange={field.onChange}
+											/>
+										)}
+									/>
+									{errors.fechaSolicitud?.message ? (
+										<p className="text-[11px] mt-1 text-red-600">
+											{errors.fechaSolicitud.message}
+										</p>
+									) : null}
+								</div>
+							) : null}
 							<Controller
 								name="caracterProcedimiento"
 								control={control}
