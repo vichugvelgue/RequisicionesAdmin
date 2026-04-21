@@ -24,6 +24,7 @@ export const USUARIOS_SUBMENU = [{ id: "UsuariosListado", label: "Usuarios" }];
 /** Submenú de Requisiciones */
 export const REQUISICIONES_SUBMENU = [
 	{ id: "RequisicionesAdquisicionBienes", label: "Adquisición de bienes" },
+	{ id: "RequisicionesContratacionServicios", label: "Contratación de servicios" },
 ];
 
 /** Submenú de Catálogos: id = activeView, label = texto en menú */

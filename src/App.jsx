@@ -20,7 +20,10 @@ import {
 } from "./modules/componentes";
 import { CatalogoInlineView, EjemplosListadoFormView } from "./modules/ejemplos";
 import { UsuariosListadoFormView } from "./modules/usuarios";
-import { AdquisicionBienesListadoFormView } from "./modules/requisiciones";
+import {
+	AdquisicionBienesListadoFormView,
+	ContratacionServiciosListadoFormView,
+} from "./modules/requisiciones";
 import {
 	ActividadView,
 	ClavePresupuestalObjetoGastoView,
@@ -73,6 +76,18 @@ function App() {
 				<Route
 					path="requisiciones/adquisicion-bienes/:id"
 					element={<AdquisicionBienesListadoFormView />}
+				/>
+				<Route
+					path="requisiciones/contratacion-servicios"
+					element={<ContratacionServiciosListadoFormView />}
+				/>
+				<Route
+					path="requisiciones/contratacion-servicios/nuevo"
+					element={<ContratacionServiciosListadoFormView />}
+				/>
+				<Route
+					path="requisiciones/contratacion-servicios/:id"
+					element={<ContratacionServiciosListadoFormView />}
 				/>
 				<Route path="catalogos/actividad" element={<ActividadView />} />
 				<Route

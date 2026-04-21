@@ -39,6 +39,7 @@ const USUARIOS_PATH_MAP = {
 
 const REQUISICIONES_PATH_MAP = {
 	RequisicionesAdquisicionBienes: "/requisiciones/adquisicion-bienes",
+	RequisicionesContratacionServicios: "/requisiciones/contratacion-servicios",
 };
 
 const CATALOGOS_PATH_MAP = {
