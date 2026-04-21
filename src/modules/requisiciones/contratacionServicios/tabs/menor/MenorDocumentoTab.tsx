@@ -20,10 +20,12 @@ export function MenorDocumentoTab({
 	draft,
 	numeroLabel,
 	solicitanteLabel,
+	hideRevisorFields,
 }: {
 	draft: ContratacionServiciosDraft;
 	numeroLabel: string;
 	solicitanteLabel: string;
+	hideRevisorFields: boolean;
 }) {
 	const g = draft.menorDatosGenerales;
 	const r = draft.menorDatosRequisicion;
@@ -48,11 +50,13 @@ export function MenorDocumentoTab({
 						<PreviewField label="Unidad solicitante (ID)" value={g?.unidadSolicitanteId ?? ''} />
 						<PreviewField label="Nombre del solicitante" value={g?.nombreSolicitante ?? ''} />
 						<PreviewField label="Cargo" value={g?.cargo ?? ''} />
-						<PreviewField
-							label="Fecha"
-							value={g?.fechaSolicitud ? formatDateToDDMMMYYYY(g.fechaSolicitud) : ''}
-							preserveCase
-						/>
+						{!hideRevisorFields ? (
+							<PreviewField
+								label="Fecha"
+								value={g?.fechaSolicitud ? formatDateToDDMMMYYYY(g.fechaSolicitud) : ''}
+								preserveCase
+							/>
+						) : null}
 					</PreviewFieldsGrid>
 				</PreviewSection>
 

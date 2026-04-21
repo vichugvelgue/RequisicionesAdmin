@@ -53,14 +53,18 @@ export function MayorDocumentoTab({
 						<PreviewField label="Unidad solicitante (ID)" value={g?.unidadSolicitanteId ?? ''} />
 						<PreviewField label="Nombre titular" value={g?.nombreTitular ?? ''} />
 						<PreviewField label="Cargo del solicitante" value={g?.cargoSolicitante ?? ''} />
-						<PreviewField
-							label="Fecha de solicitud"
-							value={g?.fechaSolicitud ? formatDateToDDMMMYYYY(g.fechaSolicitud) : ''}
-							preserveCase
-						/>
+						{!hideRevisorFields ? (
+							<PreviewField
+								label="Fecha de solicitud"
+								value={g?.fechaSolicitud ? formatDateToDDMMMYYYY(g.fechaSolicitud) : ''}
+								preserveCase
+							/>
+						) : null}
 						<PreviewField label="Tipo de procedimiento" value={g?.tipoProcedimiento ?? ''} />
 						<PreviewField label="Carácter del procedimiento" value={g?.caracterProcedimiento ?? ''} />
-						<PreviewField label="Modalidad de contratación" value={g?.modalidadContratacion ?? ''} />
+						{!hideRevisorFields ? (
+							<PreviewField label="Modalidad de contratación" value={g?.modalidadContratacion ?? ''} />
+						) : null}
 					</PreviewFieldsGrid>
 				</PreviewSection>
 
@@ -143,23 +147,27 @@ export function MayorDocumentoTab({
 					</>
 				) : null}
 
-				<PreviewSection title="Representantes">
-					<PreviewFieldsGrid>
-						<PreviewField label="Nombre" value={rep?.nombre ?? ''} />
-						<PreviewField label="Cargo" value={rep?.cargo ?? ''} />
-						<PreviewField label="Correo electrónico" value={rep?.correo ?? ''} preserveCase />
-						<PreviewField label="Teléfono" value={rep?.telefono ?? ''} preserveCase />
-					</PreviewFieldsGrid>
-				</PreviewSection>
+				{!hideRevisorFields ? (
+					<>
+						<PreviewSection title="Representantes">
+							<PreviewFieldsGrid>
+								<PreviewField label="Nombre" value={rep?.nombre ?? ''} />
+								<PreviewField label="Cargo" value={rep?.cargo ?? ''} />
+								<PreviewField label="Correo electrónico" value={rep?.correo ?? ''} preserveCase />
+								<PreviewField label="Teléfono" value={rep?.telefono ?? ''} preserveCase />
+							</PreviewFieldsGrid>
+						</PreviewSection>
 
-				<PreviewSection title="Administrador del contrato">
-					<PreviewFieldsGrid>
-						<PreviewField label="Nombre" value={adm?.nombre ?? ''} />
-						<PreviewField label="Cargo" value={adm?.cargo ?? ''} />
-						<PreviewField label="Correo electrónico" value={adm?.correo ?? ''} preserveCase />
-						<PreviewField label="Teléfono" value={adm?.telefono ?? ''} preserveCase />
-					</PreviewFieldsGrid>
-				</PreviewSection>
+						<PreviewSection title="Administrador del contrato">
+							<PreviewFieldsGrid>
+								<PreviewField label="Nombre" value={adm?.nombre ?? ''} />
+								<PreviewField label="Cargo" value={adm?.cargo ?? ''} />
+								<PreviewField label="Correo electrónico" value={adm?.correo ?? ''} preserveCase />
+								<PreviewField label="Teléfono" value={adm?.telefono ?? ''} preserveCase />
+							</PreviewFieldsGrid>
+						</PreviewSection>
+					</>
+				) : null}
 			</div>
 		</DocumentoTabChrome>
 	);

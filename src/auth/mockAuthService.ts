@@ -6,33 +6,27 @@ import type {
 	TipoPerfilUsuario,
 } from './types';
 
-/**
- * Credenciales mock: por defecto demo@cuautlancingo.gob.mx / demo123.
- * Opcional: VITE_AUTH_MOCK_EMAIL y VITE_AUTH_MOCK_PASSWORD en .env
- */
-const MOCK_EMAIL =
-	import.meta.env.VITE_AUTH_MOCK_EMAIL ?? 'demo@cuautlancingo.gob.mx';
-const MOCK_PASSWORD = import.meta.env.VITE_AUTH_MOCK_PASSWORD ?? 'demo123';
+const SOLICITANTE_EMAIL =
+	import.meta.env.VITE_AUTH_MOCK_SOLICITANTE_EMAIL ??
+	import.meta.env.VITE_AUTH_MOCK_EMAIL ??
+	'solicitante@cuautlancingo.gob.mx';
+const REVISOR_EMAIL =
+	import.meta.env.VITE_AUTH_MOCK_REVISOR_EMAIL ?? 'revisor@cuautlancingo.gob.mx';
 
 const MOCK_LATENCY_MS = 450;
 
-const MOCK_TIPO_PERFIL_RAW = import.meta.env.VITE_AUTH_MOCK_TIPO_PERFIL as
-	| string
-	| undefined;
-const VALID_PERFILES: TipoPerfilUsuario[] = [
-	'SOLICITANTE',
-	'REVISOR',
-	'AUTORIZADOR',
-	'ADMINISTRADOR GENERAL',
-];
-
-function resolveMockTipoPerfil(): TipoPerfilUsuario {
-	const u = MOCK_TIPO_PERFIL_RAW?.trim().toUpperCase();
-	if (u && VALID_PERFILES.includes(u as TipoPerfilUsuario)) {
-		return u as TipoPerfilUsuario;
-	}
-	return 'SOLICITANTE';
-}
+const ALLOWED_USERS: Record<string, { id: string; displayName: string; tipoPerfil: TipoPerfilUsuario }> = {
+	[SOLICITANTE_EMAIL.trim().toLowerCase()]: {
+		id: 'mock-solicitante-1',
+		displayName: 'USUARIO SOLICITANTE',
+		tipoPerfil: 'SOLICITANTE',
+	},
+	[REVISOR_EMAIL.trim().toLowerCase()]: {
+		id: 'mock-revisor-1',
+		displayName: 'USUARIO REVISOR',
+		tipoPerfil: 'REVISOR',
+	},
+};
 
 function buildSession(user: AuthUser): AuthSession {
 	return {
@@ -48,21 +42,20 @@ export async function signInWithMock(
 	await new Promise((r) => setTimeout(r, MOCK_LATENCY_MS));
 
 	const email = credentials.email.trim().toLowerCase();
-	const password = credentials.password;
-
-	if (email !== MOCK_EMAIL.toLowerCase() || password !== MOCK_PASSWORD) {
+	const allowedUser = ALLOWED_USERS[email];
+	if (!allowedUser) {
 		return {
 			ok: false,
 			code: 'INVALID_CREDENTIALS',
-			message: 'Correo o contraseña incorrectos.',
+			message: 'Correo no autorizado para esta demo.',
 		};
 	}
 
 	const user: AuthUser = {
-		id: 'mock-user-1',
-		email: MOCK_EMAIL,
-		displayName: 'USUARIO DEMO',
-		tipoPerfil: resolveMockTipoPerfil(),
+		id: allowedUser.id,
+		email,
+		displayName: allowedUser.displayName,
+		tipoPerfil: allowedUser.tipoPerfil,
 	};
 
 	return {

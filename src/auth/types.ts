@@ -20,7 +20,7 @@ export interface AuthSession {
 
 export interface LoginCredentials {
 	email: string;
-	password: string;
+	password?: string;
 }
 
 export type AuthErrorCode = 'INVALID_CREDENTIALS' | 'NETWORK' | 'UNKNOWN';

@@ -14,6 +14,7 @@ function initialsFromDisplayName(displayName) {
 export function Topbar({ isSidebarOpen, setIsSidebarOpen }) {
 	const { user, logout } = useAuth();
 	const navigate = useNavigate();
+	const activeProfileLabel = user?.tipoPerfil ?? "SIN PERFIL";
 
 	const avatarInitials = useMemo(
 		() => initialsFromDisplayName(user?.displayName ?? user?.email ?? ""),
@@ -39,7 +40,7 @@ export function Topbar({ isSidebarOpen, setIsSidebarOpen }) {
 				<div className="h-4 w-px bg-brand-neutral/20 hidden sm:block"></div>
 				<div className="flex items-center gap-1.5 px-2.5 py-1 bg-brand-secondary/25 text-brand-neutral rounded text-[11px] font-bold border border-brand-secondary/50 uppercase tracking-wider hidden md:flex">
 					<CheckCircle2 className="w-3.5 h-3.5" />
-					Administrador
+					{activeProfileLabel}
 				</div>
 			</div>
 

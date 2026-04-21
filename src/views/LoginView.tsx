@@ -33,7 +33,6 @@ export function LoginView() {
 	const location = useLocation();
 
 	const [email, setEmail] = useState('');
-	const [password, setPassword] = useState('');
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -56,7 +55,7 @@ export function LoginView() {
 		setErrorMessage(null);
 		setIsSubmitting(true);
 		try {
-			const result = await login({ email, password });
+			const result = await login({ email });
 			if (!result.ok) {
 				setErrorMessage(result.message);
 				setIsSubmitting(false);
@@ -93,7 +92,7 @@ export function LoginView() {
 							Acceso
 						</h1>
 						<p className="text-[11px] text-brand-neutral/70 font-medium">
-							Ingresa con tu correo y contraseña
+							Ingresa con tu correo autorizado
 						</p>
 					</div>
 
@@ -117,22 +116,6 @@ export function LoginView() {
 							value={email}
 							onChange={(e) => setEmail(e.target.value)}
 							placeholder="correo@ejemplo.gob.mx"
-							disabled={isSubmitting}
-							required
-						/>
-					</div>
-
-					<div>
-						<Label htmlFor="login-password" required>
-							Contraseña
-						</Label>
-						<Input
-							id="login-password"
-							type="password"
-							autoComplete="current-password"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							placeholder="••••••••"
 							disabled={isSubmitting}
 							required
 						/>

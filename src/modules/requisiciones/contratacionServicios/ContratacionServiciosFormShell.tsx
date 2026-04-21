@@ -83,10 +83,11 @@ export function ContratacionServiciosFormShell({
 			'cs-g6',
 			'cs-g7',
 			'cs-g8',
-			'cs-g9',
-			'cs-g10',
 			'cs-g11',
 		];
+		if (!hideRevisorFields) {
+			orderedTabIds.splice(8, 0, 'cs-g9', 'cs-g10');
+		}
 
 		return (
 			<Tabs value={tab} onChange={setTab} className="flex flex-col flex-1 min-h-0">
@@ -99,8 +100,12 @@ export function ContratacionServiciosFormShell({
 					<TabsTab value="cs-g6" label={<StepperTabLabel step={++step} title="Recursos" />} />
 					<TabsTab value="cs-g7" label={<StepperTabLabel step={++step} title="Entregables" />} />
 					<TabsTab value="cs-g8" label={<StepperTabLabel step={++step} title="Condiciones" />} />
-					<TabsTab value="cs-g9" label={<StepperTabLabel step={++step} title="Representantes" />} />
-					<TabsTab value="cs-g10" label={<StepperTabLabel step={++step} title="Administrador contrato" />} />
+					{!hideRevisorFields ? (
+						<>
+							<TabsTab value="cs-g9" label={<StepperTabLabel step={++step} title="Representantes" />} />
+							<TabsTab value="cs-g10" label={<StepperTabLabel step={++step} title="Administrador contrato" />} />
+						</>
+					) : null}
 					<TabsTab value="cs-g11" label={<StepperTabLabel step={++step} title="Documento" />} />
 				</TabsList>
 				<TabsPanel value="cs-g1" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
@@ -201,30 +206,34 @@ export function ContratacionServiciosFormShell({
 						}}
 					/>
 				</TabsPanel>
-				<TabsPanel value="cs-g9" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<MayorRepresentantesTab
-						initialValues={draft.mayorRepresentantes}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorRepresentantes: { ...draft.mayorRepresentantes, ...data },
-							});
-							goToNextTab('cs-g9', orderedTabIds);
-						}}
-					/>
-				</TabsPanel>
-				<TabsPanel value="cs-g10" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<MayorAdministradorContratoTab
-						initialValues={draft.mayorAdministradorContrato}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorAdministradorContrato: { ...draft.mayorAdministradorContrato, ...data },
-							});
-							goToNextTab('cs-g10', orderedTabIds);
-						}}
-					/>
-				</TabsPanel>
+				{!hideRevisorFields ? (
+					<>
+						<TabsPanel value="cs-g9" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
+							<MayorRepresentantesTab
+								initialValues={draft.mayorRepresentantes}
+								onSave={(data) => {
+									onDraftChange({
+										...draft,
+										mayorRepresentantes: { ...draft.mayorRepresentantes, ...data },
+									});
+									goToNextTab('cs-g9', orderedTabIds);
+								}}
+							/>
+						</TabsPanel>
+						<TabsPanel value="cs-g10" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
+							<MayorAdministradorContratoTab
+								initialValues={draft.mayorAdministradorContrato}
+								onSave={(data) => {
+									onDraftChange({
+										...draft,
+										mayorAdministradorContrato: { ...draft.mayorAdministradorContrato, ...data },
+									});
+									goToNextTab('cs-g10', orderedTabIds);
+								}}
+							/>
+						</TabsPanel>
+					</>
+				) : null}
 				<TabsPanel value="cs-g11" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 					<MayorDocumentoTab
 						draft={draft}
@@ -251,6 +260,7 @@ export function ContratacionServiciosFormShell({
 			</TabsList>
 			<TabsPanel value="cs-m1" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 				<MenorDatosGeneralesTab
+					hideRevisorFields={hideRevisorFields}
 					initialValues={draft.menorDatosGenerales}
 					onSave={(data) => {
 						onDraftChange({
@@ -300,6 +310,7 @@ export function ContratacionServiciosFormShell({
 					draft={draft}
 					numeroLabel={numeroLabel}
 					solicitanteLabel={solicitantePreview}
+					hideRevisorFields={hideRevisorFields}
 				/>
 			</TabsPanel>
 		</Tabs>
