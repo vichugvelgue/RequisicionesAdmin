@@ -26,7 +26,7 @@ const schema = yup.object({
 	unidadSolicitanteId: yup.string().required('*Requerido'),
 	nombreSolicitante: yup.string().trim().required('*Requerido'),
 	cargo: yup.string().trim().required('*Requerido'),
-	fechaSolicitud: yup.string().trim(),
+	fechaSolicitud: yup.string().trim().required('*Requerido'),
 });
 
 const empty: MenorServiciosDatosGeneralesForm = {
@@ -51,11 +51,9 @@ function withDefaultFecha(
 
 export function MenorDatosGeneralesTab({
 	initialValues,
-	hideRevisorFields,
 	onSave,
 }: {
 	initialValues: Partial<MenorServiciosDatosGeneralesForm>;
-	hideRevisorFields: boolean;
 	onSave: (data: MenorServiciosDatosGeneralesForm) => void;
 }) {
 	const [toast, setToast] = useState({
@@ -147,21 +145,19 @@ export function MenorDatosGeneralesTab({
 								<p className="text-[11px] mt-1 text-red-600">{errors.cargo.message}</p>
 							) : null}
 						</div>
-						{!hideRevisorFields ? (
-							<div className="col-span-12 lg:col-span-3">
-								<FieldRoleLabel>Fecha</FieldRoleLabel>
-								<Controller
-									name="fechaSolicitud"
-									control={control}
-									render={({ field }) => (
-										<DateInputWithClear value={field.value ?? ''} onChange={field.onChange} />
-									)}
-								/>
-								{errors.fechaSolicitud?.message ? (
-									<p className="text-[11px] mt-1 text-red-600">{errors.fechaSolicitud.message}</p>
-								) : null}
-							</div>
-						) : null}
+						<div className="col-span-12 lg:col-span-3">
+							<FieldRoleLabel>Fecha</FieldRoleLabel>
+							<Controller
+								name="fechaSolicitud"
+								control={control}
+								render={({ field }) => (
+									<DateInputWithClear value={field.value ?? ''} onChange={field.onChange} />
+								)}
+							/>
+							{errors.fechaSolicitud?.message ? (
+								<p className="text-[11px] mt-1 text-red-600">{errors.fechaSolicitud.message}</p>
+							) : null}
+						</div>
 					</div>
 					<div className="flex justify-end pt-2">
 						<Button type="submit" variant="success" size="md" leftIcon={<Save className="w-4 h-4" />}>

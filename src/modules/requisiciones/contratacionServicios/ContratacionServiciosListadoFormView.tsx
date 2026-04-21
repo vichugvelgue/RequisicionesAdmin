@@ -148,8 +148,6 @@ export function ContratacionServiciosListadoFormView() {
 	const location = useLocation();
 	const { id } = useParams();
 
-	const hideRevisorFields = userHidesRevisorFields(user);
-
 	const [rows, setRows] = useState<ContratacionServiciosRow[]>(INITIAL_ROWS);
 	const [draftById, setDraftById] = useState<Record<string, ContratacionServiciosDraft>>({});
 	const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'numero', direction: 'desc' });
@@ -192,6 +190,21 @@ export function ContratacionServiciosListadoFormView() {
 		: isEditRoute
 			? 'form-edicion'
 			: 'listado';
+
+	const isNewRecord = Boolean(editingRow && newlyCreatedIds.includes(editingRow.id));
+	const isRevisorProfile = user?.tipoPerfil === 'REVISOR';
+	/** Solo el solicitante oculta bloques de revisor; `isNewRecord` no debe acortar el formulario al revisor al consultar. */
+	const hideRevisorFields = userHidesRevisorFields(user) || (isNewRecord && !isRevisorProfile);
+
+	useEffect(() => {
+		if (!isCreateMode || !isRevisorProfile) return;
+		navigate(BASE_PATH, { replace: true });
+		setToastState({
+			visible: true,
+			title: 'Los revisores no crean requisiciones nuevas.',
+			variant: 'error',
+		});
+	}, [isCreateMode, isRevisorProfile, navigate]);
 
 	useEffect(() => {
 		if (mode !== 'form-edicion') return;
@@ -435,6 +448,12 @@ export function ContratacionServiciosListadoFormView() {
 									size="md"
 									leftIcon={<Plus className="w-4 h-4" />}
 									onClick={handleAddClick}
+									disabled={isRevisorProfile}
+									title={
+										isRevisorProfile
+											? 'Los revisores no crean requisiciones nuevas.'
+											: undefined
+									}
 								>
 									Agregar
 								</Button>
@@ -515,7 +534,7 @@ export function ContratacionServiciosListadoFormView() {
 								onDraftChange={(next) => setDraftForId(editingRow.id, next)}
 								editingRow={editingRow}
 								onPatchRow={(patch) => patchRow(editingRow.id, patch)}
-								isNewRecord={newlyCreatedIds.includes(editingRow.id)}
+								isNewRecord={isNewRecord}
 								onActiveTabChange={setActiveFormTabId}
 							/>
 						</div>

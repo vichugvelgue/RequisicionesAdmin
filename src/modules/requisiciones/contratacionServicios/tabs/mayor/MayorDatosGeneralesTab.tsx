@@ -92,8 +92,20 @@ export function MayorDatosGeneralesTab({
 	}, [initialValues, reset]);
 
 	const onSubmit = (data: ServiciosMayorDatosGeneralesValues) => {
+		const fechaSolicitud = hideRevisorFields
+			? (initialValues.fechaSolicitud ?? '').trim()
+			: (data.fechaSolicitud ?? '').trim();
+		const modalidadContratacion = hideRevisorFields
+			? (initialValues.modalidadContratacion ?? data.modalidadContratacion)
+			: data.modalidadContratacion;
+		const articuloConformidad = hideRevisorFields
+			? (initialValues.articuloConformidad ?? data.articuloConformidad)
+			: data.articuloConformidad;
 		onSave({
 			...data,
+			fechaSolicitud,
+			modalidadContratacion,
+			articuloConformidad,
 			nombreTitular: data.nombreTitular.trim().toUpperCase(),
 			cargoSolicitante: data.cargoSolicitante.trim().toUpperCase(),
 			tipoProcedimiento: data.tipoProcedimiento.trim().toUpperCase(),
