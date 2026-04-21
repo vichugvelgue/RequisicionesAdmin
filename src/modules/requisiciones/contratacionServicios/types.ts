@@ -46,6 +46,32 @@ export interface ServiciosMayorDatosRequisicionValues {
 	periodoGarantia: string;
 }
 
+export interface ServiciosMayorEjecucionValues {
+	experienciaLicitante: string;
+	calle: string;
+	colonia: string;
+	cp: string;
+	ciudad: string;
+	periodoInicio: string;
+	periodoFin: string;
+	periodoTexto: string;
+	horario: string;
+}
+
+export interface ServiciosMayorRecursosValues {
+	personalRequerido: string;
+}
+
+export interface ServiciosMayorEntregablesValues {
+	entregables: string;
+}
+
+export interface ServiciosMayorCondicionesValues {
+	diasEntrega: string;
+	condicionesGeneralesContratacion: string;
+	pagosSeRealizaran: string;
+}
+
 export interface ServiciosPersonaContactoValues {
 	nombre: string;
 	cargo: string;
@@ -66,20 +92,6 @@ export interface ServiciosPartidaMayor {
 	defPersonalRequerido: string;
 	defEntregablesAcreditacion: string;
 	defCondicionesGeneralesContratacion: string;
-	execExperienciaLicitante: string;
-	execCalle: string;
-	execColonia: string;
-	execCp: string;
-	execCiudad: string;
-	execPeriodoInicio: string;
-	execPeriodoFin: string;
-	execPeriodoTexto: string;
-	execHorario: string;
-	recPersonalRequerido: string;
-	entEntregables: string;
-	condDiasEntrega: string;
-	condCondicionesGeneralesContratacion: string;
-	condPagosSeRealizaran: string;
 }
 
 export interface ServiciosPartidaMenor {
@@ -103,6 +115,10 @@ export interface ContratacionServiciosDraft {
 	mayorDatosGenerales: Partial<ServiciosMayorDatosGeneralesValues>;
 	mayorDatosPresupuestales: Partial<ServiciosMayorDatosPresupuestalesValues>;
 	mayorDatosRequisicion: Partial<ServiciosMayorDatosRequisicionValues>;
+	mayorEjecucion: Partial<ServiciosMayorEjecucionValues>;
+	mayorRecursos: Partial<ServiciosMayorRecursosValues>;
+	mayorEntregables: Partial<ServiciosMayorEntregablesValues>;
+	mayorCondiciones: Partial<ServiciosMayorCondicionesValues>;
 	mayorRepresentantes: Partial<ServiciosPersonaContactoValues>;
 	mayorAdministradorContrato: Partial<ServiciosPersonaContactoValues>;
 	menorDatosGenerales: Partial<{
@@ -122,6 +138,10 @@ export function createEmptyDraft(): ContratacionServiciosDraft {
 		mayorDatosGenerales: {},
 		mayorDatosPresupuestales: {},
 		mayorDatosRequisicion: {},
+		mayorEjecucion: {},
+		mayorRecursos: {},
+		mayorEntregables: {},
+		mayorCondiciones: {},
 		mayorRepresentantes: {},
 		mayorAdministradorContrato: {},
 		menorDatosGenerales: {},
@@ -153,19 +173,5 @@ export function createEmptyServiciosPartidaMayor(
 		defPersonalRequerido: '',
 		defEntregablesAcreditacion: '',
 		defCondicionesGeneralesContratacion: '',
-		execExperienciaLicitante: '',
-		execCalle: '',
-		execColonia: '',
-		execCp: '',
-		execCiudad: '',
-		execPeriodoInicio: '',
-		execPeriodoFin: '',
-		execPeriodoTexto: '',
-		execHorario: '',
-		recPersonalRequerido: '',
-		entEntregables: '',
-		condDiasEntrega: '',
-		condCondicionesGeneralesContratacion: '',
-		condPagosSeRealizaran: '',
 	};
 }

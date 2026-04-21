@@ -6,6 +6,10 @@ import { MayorDatosGeneralesTab } from './tabs/mayor/MayorDatosGeneralesTab';
 import { MayorDatosPresupuestalesTab } from './tabs/mayor/MayorDatosPresupuestalesTab';
 import { MayorDatosRequisicionTab } from './tabs/mayor/MayorDatosRequisicionTab';
 import { MayorPartidasTab } from './tabs/mayor/MayorPartidasTab';
+import { MayorEjecucionTab } from './tabs/mayor/MayorEjecucionTab';
+import { MayorRecursosTab } from './tabs/mayor/MayorRecursosTab';
+import { MayorEntregablesTab } from './tabs/mayor/MayorEntregablesTab';
+import { MayorCondicionesTab } from './tabs/mayor/MayorCondicionesTab';
 import { MayorRepresentantesTab } from './tabs/mayor/MayorRepresentantesTab';
 import { MayorAdministradorContratoTab } from './tabs/mayor/MayorAdministradorContratoTab';
 import { MayorDocumentoTab } from './tabs/mayor/MayorDocumentoTab';
@@ -15,7 +19,7 @@ import { MenorDetalleServicioTab } from './tabs/menor/MenorDetalleServicioTab';
 import { MenorPartidasTab } from './tabs/menor/MenorPartidasTab';
 import { MenorDocumentoTab } from './tabs/menor/MenorDocumentoTab';
 
-export const CONTRATACION_SERVICIOS_TAB_DOCUMENTO_MAYOR = 'cs-g7';
+export const CONTRATACION_SERVICIOS_TAB_DOCUMENTO_MAYOR = 'cs-g11';
 export const CONTRATACION_SERVICIOS_TAB_DOCUMENTO_MENOR = 'cs-m5';
 
 export function ContratacionServiciosFormShell({
@@ -78,6 +82,10 @@ export function ContratacionServiciosFormShell({
 			'cs-g5',
 			'cs-g6',
 			'cs-g7',
+			'cs-g8',
+			'cs-g9',
+			'cs-g10',
+			'cs-g11',
 		];
 
 		return (
@@ -87,9 +95,13 @@ export function ContratacionServiciosFormShell({
 					<TabsTab value="cs-g2" label={<StepperTabLabel step={++step} title="Datos presupuestales" />} />
 					<TabsTab value="cs-g3" label={<StepperTabLabel step={++step} title="Datos requisición" />} />
 					<TabsTab value="cs-g4" label={<StepperTabLabel step={++step} title="Partidas de servicio" />} />
-					<TabsTab value="cs-g5" label={<StepperTabLabel step={++step} title="Representantes" />} />
-					<TabsTab value="cs-g6" label={<StepperTabLabel step={++step} title="Administrador contrato" />} />
-					<TabsTab value="cs-g7" label={<StepperTabLabel step={++step} title="Documento" />} />
+					<TabsTab value="cs-g5" label={<StepperTabLabel step={++step} title="Ejecución" />} />
+					<TabsTab value="cs-g6" label={<StepperTabLabel step={++step} title="Recursos" />} />
+					<TabsTab value="cs-g7" label={<StepperTabLabel step={++step} title="Entregables" />} />
+					<TabsTab value="cs-g8" label={<StepperTabLabel step={++step} title="Condiciones" />} />
+					<TabsTab value="cs-g9" label={<StepperTabLabel step={++step} title="Representantes" />} />
+					<TabsTab value="cs-g10" label={<StepperTabLabel step={++step} title="Administrador contrato" />} />
+					<TabsTab value="cs-g11" label={<StepperTabLabel step={++step} title="Documento" />} />
 				</TabsList>
 				<TabsPanel value="cs-g1" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 					<MayorDatosGeneralesTab
@@ -140,6 +152,56 @@ export function ContratacionServiciosFormShell({
 					/>
 				</TabsPanel>
 				<TabsPanel value="cs-g5" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
+					<MayorEjecucionTab
+						hideRevisorFields={hideRevisorFields}
+						initialValues={draft.mayorEjecucion}
+						onSave={(data) => {
+							onDraftChange({
+								...draft,
+								mayorEjecucion: { ...draft.mayorEjecucion, ...data },
+							});
+							goToNextTab('cs-g5', orderedTabIds);
+						}}
+					/>
+				</TabsPanel>
+				<TabsPanel value="cs-g6" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
+					<MayorRecursosTab
+						initialValues={draft.mayorRecursos}
+						onSave={(data) => {
+							onDraftChange({
+								...draft,
+								mayorRecursos: { ...draft.mayorRecursos, ...data },
+							});
+							goToNextTab('cs-g6', orderedTabIds);
+						}}
+					/>
+				</TabsPanel>
+				<TabsPanel value="cs-g7" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
+					<MayorEntregablesTab
+						initialValues={draft.mayorEntregables}
+						onSave={(data) => {
+							onDraftChange({
+								...draft,
+								mayorEntregables: { ...draft.mayorEntregables, ...data },
+							});
+							goToNextTab('cs-g7', orderedTabIds);
+						}}
+					/>
+				</TabsPanel>
+				<TabsPanel value="cs-g8" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
+					<MayorCondicionesTab
+						hideRevisorFields={hideRevisorFields}
+						initialValues={draft.mayorCondiciones}
+						onSave={(data) => {
+							onDraftChange({
+								...draft,
+								mayorCondiciones: { ...draft.mayorCondiciones, ...data },
+							});
+							goToNextTab('cs-g8', orderedTabIds);
+						}}
+					/>
+				</TabsPanel>
+				<TabsPanel value="cs-g9" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 					<MayorRepresentantesTab
 						initialValues={draft.mayorRepresentantes}
 						onSave={(data) => {
@@ -147,11 +209,11 @@ export function ContratacionServiciosFormShell({
 								...draft,
 								mayorRepresentantes: { ...draft.mayorRepresentantes, ...data },
 							});
-							goToNextTab('cs-g5', orderedTabIds);
+							goToNextTab('cs-g9', orderedTabIds);
 						}}
 					/>
 				</TabsPanel>
-				<TabsPanel value="cs-g6" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
+				<TabsPanel value="cs-g10" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 					<MayorAdministradorContratoTab
 						initialValues={draft.mayorAdministradorContrato}
 						onSave={(data) => {
@@ -159,11 +221,11 @@ export function ContratacionServiciosFormShell({
 								...draft,
 								mayorAdministradorContrato: { ...draft.mayorAdministradorContrato, ...data },
 							});
-							goToNextTab('cs-g6', orderedTabIds);
+							goToNextTab('cs-g10', orderedTabIds);
 						}}
 					/>
 				</TabsPanel>
-				<TabsPanel value="cs-g7" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
+				<TabsPanel value="cs-g11" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 					<MayorDocumentoTab
 						draft={draft}
 						numeroLabel={numeroLabel}

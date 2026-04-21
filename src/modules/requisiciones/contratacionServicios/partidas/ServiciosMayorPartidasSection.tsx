@@ -2,10 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, Pencil, Plus, Trash2, X } from 'lucide-react';
 import {
 	Button,
-	DateInputWithClear,
 	DecimalStringCellInput,
 	FormSection,
-	Input,
 	SearchableSelect,
 	Tabs,
 	TabsList,
@@ -24,10 +22,7 @@ function upper(s: string) {
 	return s.trim().toUpperCase();
 }
 
-function validatePartida(
-	hideRevisorFields: boolean,
-	p: ServiciosPartidaMayor
-): string | null {
+function validatePartida(p: ServiciosPartidaMayor): string | null {
 	if (!p.unidadMedidaId.trim()) return 'Seleccione unidad de medida.';
 	if (!p.cantidad.trim()) return 'Capture la cantidad.';
 	if (!p.defDescripcionGeneral.trim()) return 'Descripción general requerida.';
@@ -37,23 +32,6 @@ function validatePartida(
 	if (!p.defEntregablesAcreditacion.trim()) return 'Entregables para acreditar ejecución requeridos.';
 	if (!p.defCondicionesGeneralesContratacion.trim()) {
 		return 'Condiciones generales de contratación (definición) requeridas.';
-	}
-	const hasPeriodo =
-		p.execPeriodoTexto.trim() ||
-		(p.execPeriodoInicio.trim() && p.execPeriodoFin.trim());
-	if (!hasPeriodo) return 'Indique periodo de ejecución (fechas o texto).';
-	if (!p.recPersonalRequerido.trim()) return 'Personal requerido (recursos) requerido.';
-	if (!p.entEntregables.trim()) return 'Entregables requeridos.';
-	if (!p.condCondicionesGeneralesContratacion.trim()) {
-		return 'Condiciones generales de contratación (condiciones) requeridas.';
-	}
-	if (!hideRevisorFields) {
-		if (!p.execExperienciaLicitante.trim()) return 'Experiencia del licitante requerida.';
-		if (!p.execCalle.trim() || !p.execColonia.trim() || !p.execCp.trim() || !p.execCiudad.trim()) {
-			return 'Complete lugar de ejecución (dirección).';
-		}
-		if (!p.condDiasEntrega.trim()) return 'Días de entrega requeridos.';
-		if (!p.condPagosSeRealizaran.trim()) return 'Indique cómo se realizarán los pagos.';
 	}
 	return null;
 }
@@ -103,7 +81,7 @@ export function ServiciosMayorPartidasSection({
 
 	function handleSaveModal() {
 		if (!modalDraft) return;
-		const err = validatePartida(hideRevisorFields, modalDraft);
+		const err = validatePartida(modalDraft);
 		if (err) {
 			setModalError(err);
 			return;
@@ -119,18 +97,6 @@ export function ServiciosMayorPartidasSection({
 			defPersonalRequerido: upper(modalDraft.defPersonalRequerido),
 			defEntregablesAcreditacion: upper(modalDraft.defEntregablesAcreditacion),
 			defCondicionesGeneralesContratacion: upper(modalDraft.defCondicionesGeneralesContratacion),
-			execExperienciaLicitante: upper(modalDraft.execExperienciaLicitante),
-			execCalle: upper(modalDraft.execCalle),
-			execColonia: upper(modalDraft.execColonia),
-			execCp: modalDraft.execCp.trim(),
-			execCiudad: upper(modalDraft.execCiudad),
-			execPeriodoTexto: upper(modalDraft.execPeriodoTexto),
-			execHorario: upper(modalDraft.execHorario),
-			recPersonalRequerido: upper(modalDraft.recPersonalRequerido),
-			entEntregables: upper(modalDraft.entEntregables),
-			condDiasEntrega: upper(modalDraft.condDiasEntrega),
-			condCondicionesGeneralesContratacion: upper(modalDraft.condCondicionesGeneralesContratacion),
-			condPagosSeRealizaran: upper(modalDraft.condPagosSeRealizaran),
 		};
 		const exists = partidas.some((p) => p.id === normalized.id);
 		if (exists) {
@@ -299,76 +265,6 @@ export function ServiciosMayorPartidasSection({
 														</div>
 													</div>
 												</div>
-												<div className="col-span-12 lg:col-span-6">
-													<p className="mb-2 text-xs font-semibold text-slate-600 uppercase">
-														Ejecución
-													</p>
-													<div className="space-y-2">
-														{!hideRevisorFields ? (
-															<>
-																<DetailItem
-																	label="Experiencia del licitante"
-																	value={row.execExperienciaLicitante}
-																/>
-																<DetailItem
-																	label="Dirección"
-																	value={
-																		[row.execCalle, row.execColonia, row.execCp, row.execCiudad]
-																			.filter(Boolean)
-																			.join(', ') || '-'
-																	}
-																/>
-															</>
-														) : null}
-														<div className="grid grid-cols-12 gap-2">
-															<div className="col-span-12 sm:col-span-4">
-																<DetailItem label="Periodo inicio" value={row.execPeriodoInicio} />
-															</div>
-															<div className="col-span-12 sm:col-span-4">
-																<DetailItem label="Periodo fin" value={row.execPeriodoFin} />
-															</div>
-															<div className="col-span-12 sm:col-span-4">
-																<DetailItem label="Periodo (texto)" value={row.execPeriodoTexto} />
-															</div>
-															<div className="col-span-12">
-																<DetailItem label="Horario" value={row.execHorario} />
-															</div>
-														</div>
-													</div>
-												</div>
-												<div className="col-span-12 lg:col-span-6">
-													<p className="mb-2 text-xs font-semibold text-slate-600 uppercase">
-														Recursos y entregables
-													</p>
-													<div className="space-y-2">
-														<DetailItem
-															label="Personal requerido"
-															value={row.recPersonalRequerido}
-														/>
-														<DetailItem label="Entregables" value={row.entEntregables} />
-													</div>
-													<p className="mb-2 mt-4 text-xs font-semibold text-slate-600 uppercase">
-														Condiciones
-													</p>
-													<div className="space-y-2">
-														{!hideRevisorFields ? (
-															<DetailItem
-																label="Días de entrega"
-																value={row.condDiasEntrega}
-															/>
-														) : null}
-														<DetailItem
-															label="Condiciones generales de contratación"
-															value={row.condCondicionesGeneralesContratacion}
-														/>
-														{!hideRevisorFields ? (
-															<DetailItem
-																label="Los pagos se realizarán"
-																value={row.condPagosSeRealizaran}
-															/>
-														) : null}
-													</div>
-												</div>
 											</div>
 										</div>
 									) : null}
@@ -404,10 +300,6 @@ export function ServiciosMayorPartidasSection({
 								<TabsList className="shrink-0 border-b border-slate-200 bg-white">
 									<TabsTab value="base" label="Información base" />
 									<TabsTab value="definicion" label="Definición del servicio" />
-									<TabsTab value="ejecucion" label="Ejecución" />
-									<TabsTab value="recursos" label="Recursos" />
-									<TabsTab value="entregables" label="Entregables" />
-									<TabsTab value="condiciones" label="Condiciones" />
 								</TabsList>
 
 								<TabsPanel value="base" className="pt-4">
@@ -482,215 +374,6 @@ export function ServiciosMayorPartidasSection({
 									</FormSection>
 								</TabsPanel>
 
-								<TabsPanel value="ejecucion" className="pt-4">
-									<FormSection>
-										<div className="grid grid-cols-12 gap-3">
-											{!hideRevisorFields ? (
-												<div className="col-span-12">
-													<FieldRoleLabel>Experiencia del licitante</FieldRoleLabel>
-													<TextArea
-														rows={2}
-														value={modalDraft.execExperienciaLicitante}
-														onChange={(e) =>
-															setModalDraft((d) =>
-																d
-																	? { ...d, execExperienciaLicitante: e.target.value.toUpperCase() }
-																	: d
-															)
-														}
-														className="uppercase"
-													/>
-												</div>
-											) : null}
-											{!hideRevisorFields ? (
-												<>
-													<div className="col-span-12 sm:col-span-6">
-														<FieldRoleLabel>Lugar ejecución — Calle</FieldRoleLabel>
-														<Input
-															value={modalDraft.execCalle}
-															onChange={(e) =>
-																setModalDraft((d) =>
-																	d ? { ...d, execCalle: e.target.value.toUpperCase() } : d
-																)
-															}
-															className="uppercase"
-														/>
-													</div>
-													<div className="col-span-12 sm:col-span-6">
-														<FieldRoleLabel>Colonia</FieldRoleLabel>
-														<Input
-															value={modalDraft.execColonia}
-															onChange={(e) =>
-																setModalDraft((d) =>
-																	d ? { ...d, execColonia: e.target.value.toUpperCase() } : d
-																)
-															}
-															className="uppercase"
-														/>
-													</div>
-													<div className="col-span-12 sm:col-span-4">
-														<FieldRoleLabel>Código postal</FieldRoleLabel>
-														<Input
-															value={modalDraft.execCp}
-															onChange={(e) =>
-																setModalDraft((d) =>
-																	d ? { ...d, execCp: e.target.value } : d
-																)
-															}
-														/>
-													</div>
-													<div className="col-span-12 sm:col-span-8">
-														<FieldRoleLabel>Ciudad</FieldRoleLabel>
-														<Input
-															value={modalDraft.execCiudad}
-															onChange={(e) =>
-																setModalDraft((d) =>
-																	d ? { ...d, execCiudad: e.target.value.toUpperCase() } : d
-																)
-															}
-															className="uppercase"
-														/>
-													</div>
-												</>
-											) : null}
-											<div className="col-span-12 sm:col-span-4">
-												<FieldRoleLabel>Periodo ejecución — Inicio</FieldRoleLabel>
-												<DateInputWithClear
-													value={modalDraft.execPeriodoInicio}
-													onChange={(v) =>
-														setModalDraft((d) => (d ? { ...d, execPeriodoInicio: v } : d))
-													}
-												/>
-											</div>
-											<div className="col-span-12 sm:col-span-4">
-												<FieldRoleLabel>Periodo ejecución — Fin</FieldRoleLabel>
-												<DateInputWithClear
-													value={modalDraft.execPeriodoFin}
-													onChange={(v) =>
-														setModalDraft((d) => (d ? { ...d, execPeriodoFin: v } : d))
-													}
-												/>
-											</div>
-											<div className="col-span-12 sm:col-span-4">
-												<FieldRoleLabel>Periodo ejecución (texto)</FieldRoleLabel>
-												<Input
-													value={modalDraft.execPeriodoTexto}
-													onChange={(e) =>
-														setModalDraft((d) =>
-															d ? { ...d, execPeriodoTexto: e.target.value.toUpperCase() } : d
-														)
-													}
-													className="uppercase"
-												/>
-											</div>
-											<div className="col-span-12">
-												<FieldRoleLabel>Horario (opcional)</FieldRoleLabel>
-												<Input
-													value={modalDraft.execHorario}
-													onChange={(e) =>
-														setModalDraft((d) =>
-															d ? { ...d, execHorario: e.target.value.toUpperCase() } : d
-														)
-													}
-													className="uppercase"
-												/>
-											</div>
-										</div>
-									</FormSection>
-								</TabsPanel>
-
-								<TabsPanel value="recursos" className="pt-4">
-									<FormSection>
-										<div className="col-span-12">
-											<FieldRoleLabel>Personal requerido</FieldRoleLabel>
-											<TextArea
-												rows={2}
-												value={modalDraft.recPersonalRequerido}
-												onChange={(e) =>
-													setModalDraft((d) =>
-														d ? { ...d, recPersonalRequerido: e.target.value.toUpperCase() } : d
-													)
-												}
-												className="uppercase"
-											/>
-										</div>
-									</FormSection>
-								</TabsPanel>
-
-								<TabsPanel value="entregables" className="pt-4">
-									<FormSection>
-										<div className="col-span-12">
-											<FieldRoleLabel>Entregables</FieldRoleLabel>
-											<TextArea
-												rows={2}
-												value={modalDraft.entEntregables}
-												onChange={(e) =>
-													setModalDraft((d) =>
-														d ? { ...d, entEntregables: e.target.value.toUpperCase() } : d
-													)
-												}
-												className="uppercase"
-											/>
-										</div>
-									</FormSection>
-								</TabsPanel>
-
-								<TabsPanel value="condiciones" className="pt-4">
-									<FormSection>
-										<div className="grid grid-cols-12 gap-3">
-											{!hideRevisorFields ? (
-												<div className="col-span-12 sm:col-span-6">
-													<FieldRoleLabel>Días de entrega</FieldRoleLabel>
-													<Input
-														value={modalDraft.condDiasEntrega}
-														onChange={(e) =>
-															setModalDraft((d) =>
-																d ? { ...d, condDiasEntrega: e.target.value.toUpperCase() } : d
-															)
-														}
-														className="uppercase"
-													/>
-												</div>
-											) : null}
-											<div className="col-span-12">
-												<FieldRoleLabel>Condiciones generales de contratación</FieldRoleLabel>
-												<TextArea
-													rows={2}
-													value={modalDraft.condCondicionesGeneralesContratacion}
-													onChange={(e) =>
-														setModalDraft((d) =>
-															d
-																? {
-																		...d,
-																		condCondicionesGeneralesContratacion:
-																			e.target.value.toUpperCase(),
-																  }
-																: d
-														)
-													}
-													className="uppercase"
-												/>
-											</div>
-											{!hideRevisorFields ? (
-												<div className="col-span-12">
-													<FieldRoleLabel>Los pagos se realizarán</FieldRoleLabel>
-													<TextArea
-														rows={2}
-														value={modalDraft.condPagosSeRealizaran}
-														onChange={(e) =>
-															setModalDraft((d) =>
-																d
-																	? { ...d, condPagosSeRealizaran: e.target.value.toUpperCase() }
-																	: d
-															)
-														}
-														className="uppercase"
-													/>
-												</div>
-											) : null}
-										</div>
-									</FormSection>
-								</TabsPanel>
 							</Tabs>
 						</div>
 						<div className="flex shrink-0 justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3">
