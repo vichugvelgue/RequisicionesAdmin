@@ -34,7 +34,7 @@ const INITIAL_ROWS: UsuarioRow[] = [
 		id: "1",
 		nombre: "JUAN PEREZ LOPEZ",
 		correo: "juan.perez@nexerp.com",
-		tipoUsuario: "ADMINISTRADOR",
+		tipoUsuario: "ADMINISTRADOR GENERAL",
 		tipoPerfil: "ADMINISTRADOR GENERAL",
 		puesto: "JEFE DE AREA",
 		area: "SISTEMAS",
@@ -43,7 +43,7 @@ const INITIAL_ROWS: UsuarioRow[] = [
 		id: "2",
 		nombre: "MARIA GARCIA RAMOS",
 		correo: "maria.garcia@nexerp.com",
-		tipoUsuario: "OPERATIVO",
+		tipoUsuario: "SOLICITANTE",
 		tipoPerfil: "SOLICITANTE",
 		puesto: "ANALISTA",
 		area: "FINANZAS",
@@ -129,14 +129,17 @@ const usuarioSchema = yup.object({
 		then: (schema) => schema.trim(),
 		otherwise: (schema) => schema.trim().required("*Requerido"),
 	}),
-	tipoUsuario: yup.string().trim().required("*Requerido"),
-	tipoPerfil: yup
+	tipoUsuario: yup
 		.string()
 		.oneOf(
 			["SOLICITANTE", "REVISOR", "AUTORIZADOR", "ADMINISTRADOR GENERAL"],
 			"*Requerido"
 		)
 		.required("*Requerido"),
+	tipoPerfil: yup
+		.string()
+		.oneOf(["", "SOLICITANTE", "REVISOR", "AUTORIZADOR", "ADMINISTRADOR GENERAL"])
+		.default(""),
 	generarInvitacion: yup.boolean().default(false),
 	puesto: yup.string().trim().required("*Requerido"),
 	area: yup.string().trim().required("*Requerido"),
@@ -156,7 +159,7 @@ function toFormValues(row?: UsuarioRow): UsuarioFormValues {
 		apellidoMaterno,
 		correo: row.correo,
 		contrasena: "",
-		tipoUsuario: row.tipoUsuario,
+		tipoUsuario: row.tipoPerfil,
 		tipoPerfil: row.tipoPerfil,
 		generarInvitacion: false,
 		puesto: row.puesto,
@@ -422,7 +425,7 @@ export function UsuariosListadoFormView() {
 			nombre: nombreCompleto,
 			correo: values.correo.trim().toLowerCase(),
 			tipoUsuario: normalizeText(values.tipoUsuario),
-			tipoPerfil: values.tipoPerfil,
+			tipoPerfil: normalizeText(values.tipoUsuario) as UsuarioRow["tipoPerfil"],
 			puesto: normalizeText(values.puesto),
 			area: normalizeText(values.area),
 		};
