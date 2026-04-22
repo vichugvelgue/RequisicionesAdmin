@@ -116,6 +116,7 @@ Reglas:
 - `autoId`: boolean.
 - `idPrefix`: string opcional.
 - `editableFields`: string[].
+- Al activar `Agregar` (alta inline), la nueva fila debe enfocar automaticamente su primer campo editable.
 
 `behavior.edit`:
 - `enabled`: boolean.

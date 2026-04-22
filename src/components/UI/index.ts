@@ -1,5 +1,7 @@
 export { Label } from './Label';
 export { Input } from './Input';
+export { PasswordRequirements } from './PasswordRequirements';
+export type { PasswordRequirementsProps } from './PasswordRequirements';
 export {
 	DecimalStringCellInput,
 	sanitizeDecimalTyping,

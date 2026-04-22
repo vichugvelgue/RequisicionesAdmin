@@ -14,6 +14,7 @@ export interface SortConfig {
 
 export type ButtonVariant =
   | 'primary'
+  | 'primarySm'
   | 'secondary'
   | 'outline'
   | 'outlinePage'
@@ -61,7 +62,10 @@ export type StatusBadgeVariant =
   | 'Borrador'
   | 'Transito'
   | 'Recibido'
-  | 'Solicitado';
+  | 'Solicitado'
+  | 'Pendiente'
+  | 'Aprobada'
+  | 'Rechazada';
 
 export type ActionButtonVariant =
   | 'icon'

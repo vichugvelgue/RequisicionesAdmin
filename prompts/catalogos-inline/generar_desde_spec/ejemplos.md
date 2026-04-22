@@ -20,6 +20,7 @@ Usa `prompts/catalogos-inline/generar_desde_spec/prompt.md`
 - Vista con `PageCard + ViewHeader`.
 - Tabla `InlineInsertInfiniteTable`.
 - Alta/edicion/eliminacion inline.
+- Al presionar `Agregar`, el foco cae automaticamente en el primer input editable de la fila insertada.
 - Modal de eliminacion estandarizado.
 - Toast de confirmacion en eliminar/editar.
 - Iconografia consistente por accion.
@@ -47,6 +48,7 @@ Usa `prompts/catalogos-inline/generar_desde_spec/prompt.md`
 **Resultado esperado (resumen):**
 - Componente reusable sin layout de pagina completo.
 - Incluye busqueda global, filtros inline y ordenamiento.
+- Al presionar `Agregar`, el foco cae automaticamente en el primer input editable de la fila insertada.
 - Incluye `ConfirmModal` con `variant="danger"` y labels de eliminar/cancelar.
 - Respeta iconos oficiales por accion.
 

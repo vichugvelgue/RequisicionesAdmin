@@ -6,6 +6,14 @@ export default {
   ],
   theme: {
     extend: {
+      colors: {
+        brand: {
+          primary: 'rgb(116, 29, 75)',
+          secondary: 'rgb(189, 184, 153)',
+          neutral: 'rgb(72, 72, 72)',
+          white: 'rgb(255, 255, 255)',
+        },
+      },
       keyframes: {
         wave: {
           '0%': { transform: 'rotate(0.0deg)' },

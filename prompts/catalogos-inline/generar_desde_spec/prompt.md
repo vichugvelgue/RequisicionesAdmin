@@ -74,6 +74,7 @@ Si hay errores:
 
 4. Alta inline (`behavior.insert`).
    - Soportar fila `insertRow`.
+   - Al presionar `Agregar`, enfocar automaticamente el primer input editable de la fila insertada.
    - Enter guarda, Escape cancela.
    - Campos configurados en `editableFields`.
    - Normalizar a mayusculas cuando `uppercase=true`.

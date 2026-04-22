@@ -9,6 +9,9 @@ const VARIANT_CLASS: Record<StatusBadgeVariant | 'default', string> = {
   Transito: 'bg-orange-100 text-orange-800',
   Recibido: 'bg-green-100 text-green-700',
   Solicitado: 'bg-yellow-100 text-yellow-800',
+  Pendiente: 'bg-amber-100 text-amber-900',
+  Aprobada: 'bg-emerald-100 text-emerald-800',
+  Rechazada: 'bg-rose-100 text-rose-800',
   default: 'bg-slate-100 text-slate-600',
 };
 

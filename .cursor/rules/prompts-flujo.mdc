@@ -22,5 +22,6 @@ Cuando el usuario pida crear algo de forma genérica (**menú**, **formulario**,
    - **Menú / opción del menú / sidebar / división / padre / hijo** → `prompts/menu/` (recomendado: `prompts/menu/generar_desde_spec/`).
    - **Formulario / form / captura** → `prompts/formularios/` (recomendado: `prompts/formularios/generar_desde_spec/`).
    - **Tabla / listado / grid / vista de tabla** → `prompts/tablas/` (recomendado: `prompts/tablas/generar_desde_spec/`).
+   - **Listado + formulario / pantalla listado y alta / CRUD con rutas / listado con página de captura** (listado con `InfiniteScrollTable` y formulario en rutas `.../nuevo` y `.../:id`, no catálogo inline) → leer y aplicar **`.cursor/rules/listado-form-checklist.mdc`**; referencia de código: `src/modules/ejemplos/listadoForm/`. Ver también `prompts/README.md` sección "Listado + formulario".
 
 5. No inventar specs ni rutas; si no hay match claro, preguntar: *"¿Quieres que use el spec de menú, formularios o tablas? Tengo prompts en prompts/menu/, prompts/formularios/ y prompts/tablas/."*

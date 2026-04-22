@@ -15,10 +15,10 @@ export function ViewHeader({
 }: ViewHeaderProps) {
   return (
     <div
-      className={`px-5 py-4 border-b border-slate-200 shrink-0 bg-white ${className}`.trim()}
+      className={`px-5 py-4 border-b border-brand-neutral/20 shrink-0 bg-brand-white ${className}`.trim()}
     >
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-slate-800 text-center sm:text-left leading-none">
+        <h2 className="text-xl font-bold text-brand-neutral text-center sm:text-left leading-none">
           {title}
         </h2>
         {action}

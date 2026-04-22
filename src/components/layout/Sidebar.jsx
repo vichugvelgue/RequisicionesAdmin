@@ -1,13 +1,20 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, X } from "lucide-react";
+import { ClipboardList, LayoutDashboard, Package, Users, X } from "lucide-react";
 
 import {
 	SidebarSubmenuItem,
 	SidebarParentExpandable,
 	SidebarItem,
 } from "./sidebar/index.js";
-import { COMPONENTES_SUBMENU, EJEMPLOS_SUBMENU } from "../../data/menuData";
+import {
+	CATALOGOS_SUBMENU,
+	COMPONENTES_SUBMENU,
+	EJEMPLOS_SUBMENU,
+	USUARIOS_SUBMENU,
+	REQUISICIONES_SUBMENU,
+} from "../../data/menuData";
+import { useAuth, canAccessCatalogosUsuarios } from "../../auth";
 
 const COMPONENTES_PATH_MAP = {
 	ComponentesInputs: "/componentes/inputs",
@@ -24,18 +31,46 @@ const COMPONENTES_PATH_MAP = {
 
 const EJEMPLOS_PATH_MAP = {
 	EjemplosCatalogoInline: "/ejemplos/catalogo-inline",
+	EjemplosListadoForm: "/ejemplos/listado-form",
+};
+
+const USUARIOS_PATH_MAP = {
+	UsuariosListado: "/usuarios",
+};
+
+const REQUISICIONES_PATH_MAP = {
+	RequisicionesAdquisicionBienes: "/requisiciones/adquisicion-bienes",
+	RequisicionesContratacionServicios: "/requisiciones/contratacion-servicios",
+};
+
+const CATALOGOS_PATH_MAP = {
+	CatalogosActividad: "/catalogos/actividad",
+	CatalogosClavePresupuestalObjetoGasto: "/catalogos/clave-presupuestal-objeto-gasto",
+	CatalogosOrigenRecurso: "/catalogos/origen-recurso",
+	CatalogosTipoPrograma: "/catalogos/tipo-programa",
+	CatalogosUnidadMedida: "/catalogos/unidad-medida",
+	CatalogosUnidadSolicitante: "/catalogos/unidad-solicitante",
 };
 
 export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
+	const { user } = useAuth();
 	const location = useLocation();
 	const navigate = useNavigate();
 	const pathname = location.pathname;
+	const showCatalogosUsuarios = canAccessCatalogosUsuarios(user?.tipoPerfil);
 
 	const [isComponentesOpen, setIsComponentesOpen] = useState(false);
 	const [isEjemplosOpen, setIsEjemplosOpen] = useState(false);
+	const [isCatalogosOpen, setIsCatalogosOpen] = useState(false);
+	const [isUsuariosOpen, setIsUsuariosOpen] = useState(false);
+	const [isRequisicionesOpen, setIsRequisicionesOpen] = useState(false);
 
 	const isComponentesActive = pathname.startsWith("/componentes");
 	const isEjemplosActive = pathname.startsWith("/ejemplos");
+	const isUsuariosActive = pathname.startsWith("/usuarios");
+	const isRequisicionesActive = pathname.startsWith("/requisiciones");
+	const isCatalogosActive = pathname.startsWith("/catalogos");
+	const showComponentesMenu = import.meta.env.VITE_SHOW_COMPONENTES === "true";
 	const showExamplesMenu = import.meta.env.VITE_SHOW_EXAMPLES === "true";
 
 	const handleNav = (path) => {
@@ -49,36 +84,36 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
 		<>
 			{isSidebarOpen && (
 				<div
-					className="fixed inset-0 bg-slate-800/40 backdrop-blur-sm z-40 lg:hidden"
+					className="fixed inset-0 bg-brand-neutral/40 backdrop-blur-sm z-40 lg:hidden"
 					onClick={() => setIsSidebarOpen(false)}
 				/>
 			)}
 
 			<aside
 				data-sidebar
-				className={`fixed inset-y-0 left-0 z-50 w-60 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 ease-in-out shadow-lg lg:shadow-none ${
+				className={`fixed inset-y-0 left-0 z-50 w-60 bg-brand-white border-r border-brand-neutral/20 flex flex-col transition-transform duration-300 ease-in-out shadow-lg lg:shadow-none ${
 					isSidebarOpen ? "translate-x-0" : "-translate-x-full"
 				}`}
 			>
-				<div className="h-14 flex items-center px-5 border-b border-slate-200 bg-slate-50/50">
-					<div className="flex items-center gap-2.5 text-blue-600">
-						<div className="bg-blue-600 text-white p-1 rounded">
+				<div className="h-14 flex items-center px-5 border-b border-brand-neutral/20 bg-brand-secondary/15">
+					<div className="flex items-center gap-2.5 text-brand-primary">
+						<div className="bg-brand-primary text-brand-white p-1 rounded">
 							<LayoutDashboard className="w-4 h-4" />
 						</div>
-						<span className="font-bold text-lg text-slate-800 tracking-tight">
+						<span className="font-bold text-lg text-brand-neutral tracking-tight">
 							NexERP
 						</span>
 					</div>
 					<button
 						type="button"
 						onClick={() => setIsSidebarOpen(false)}
-						className="ml-auto text-slate-400 hover:text-slate-600 lg:hidden p-1"
+						className="ml-auto text-brand-neutral/60 hover:text-brand-neutral lg:hidden p-1"
 					>
 						<X className="w-4 h-4" />
 					</button>
 				</div>
 
-				<div className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-0.5 custom-scrollbar bg-slate-50/20">
+				<div className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-0.5 custom-scrollbar bg-brand-secondary/10">
 					<SidebarItem
 						icon={<LayoutDashboard className="w-4 h-4" />}
 						label="Dashboard"
@@ -86,26 +121,28 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
 						isActive={pathname === "/"}
 					/>
 
-					<SidebarParentExpandable
-						icon={<LayoutDashboard className="w-4 h-4" />}
-						label="Componentes"
-						open={isComponentesOpen}
-						onToggle={() => setIsComponentesOpen(!isComponentesOpen)}
-						isActive={isComponentesActive}
-					>
-						{COMPONENTES_SUBMENU.map((item) => {
-							const path = COMPONENTES_PATH_MAP[item.id];
-							return (
-								<SidebarSubmenuItem
-									key={item.id}
-									id={item.id}
-									label={item.label}
-									isActive={pathname === path}
-									onClick={() => path && handleNav(path)}
-								/>
-							);
-						})}
-					</SidebarParentExpandable>
+					{showComponentesMenu ? (
+						<SidebarParentExpandable
+							icon={<LayoutDashboard className="w-4 h-4" />}
+							label="Componentes"
+							open={isComponentesOpen}
+							onToggle={() => setIsComponentesOpen(!isComponentesOpen)}
+							isActive={isComponentesActive}
+						>
+							{COMPONENTES_SUBMENU.map((item) => {
+								const path = COMPONENTES_PATH_MAP[item.id];
+								return (
+									<SidebarSubmenuItem
+										key={item.id}
+										id={item.id}
+										label={item.label}
+										isActive={pathname === path}
+										onClick={() => path && handleNav(path)}
+									/>
+								);
+							})}
+						</SidebarParentExpandable>
+					) : null}
 
 					{showExamplesMenu ? (
 						<SidebarParentExpandable
@@ -117,6 +154,70 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
 						>
 							{EJEMPLOS_SUBMENU.map((item) => {
 								const path = EJEMPLOS_PATH_MAP[item.id];
+								return (
+									<SidebarSubmenuItem
+										key={item.id}
+										id={item.id}
+										label={item.label}
+										isActive={pathname === path}
+										onClick={() => path && handleNav(path)}
+									/>
+								);
+							})}
+						</SidebarParentExpandable>
+					) : null}
+					<SidebarParentExpandable
+						icon={<ClipboardList className="w-4 h-4" />}
+						label="Requisiciones"
+						open={isRequisicionesOpen}
+						onToggle={() => setIsRequisicionesOpen(!isRequisicionesOpen)}
+						isActive={isRequisicionesActive}
+					>
+						{REQUISICIONES_SUBMENU.map((item) => {
+							const path = REQUISICIONES_PATH_MAP[item.id];
+							return (
+								<SidebarSubmenuItem
+									key={item.id}
+									id={item.id}
+									label={item.label}
+									isActive={pathname === path || pathname.startsWith(`${path}/`)}
+									onClick={() => path && handleNav(path)}
+								/>
+							);
+						})}
+					</SidebarParentExpandable>
+					{showCatalogosUsuarios ? (
+						<SidebarParentExpandable
+							icon={<Package className="w-4 h-4" />}
+							label="Catálogos"
+							open={isCatalogosOpen}
+							onToggle={() => setIsCatalogosOpen(!isCatalogosOpen)}
+							isActive={isCatalogosActive}
+						>
+							{CATALOGOS_SUBMENU.map((item) => {
+								const path = CATALOGOS_PATH_MAP[item.id];
+								return (
+									<SidebarSubmenuItem
+										key={item.id}
+										id={item.id}
+										label={item.label}
+										isActive={pathname === path}
+										onClick={() => path && handleNav(path)}
+									/>
+								);
+							})}
+						</SidebarParentExpandable>
+					) : null}
+					{showCatalogosUsuarios ? (
+						<SidebarParentExpandable
+							icon={<Users className="w-4 h-4" />}
+							label="Usuarios"
+							open={isUsuariosOpen}
+							onToggle={() => setIsUsuariosOpen(!isUsuariosOpen)}
+							isActive={isUsuariosActive}
+						>
+							{USUARIOS_SUBMENU.map((item) => {
+								const path = USUARIOS_PATH_MAP[item.id];
 								return (
 									<SidebarSubmenuItem
 										key={item.id}

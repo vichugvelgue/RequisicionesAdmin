@@ -1,6 +1,6 @@
 # Prompts reutilizables – Menú y sidebar
 
-Prompts reutilizables para generar funcionalidades sin repetir lógica. Están organizados por función: **menu** (menú y sidebar), **tablas**, **formularios** y **catalogos-inline**.
+Prompts reutilizables para generar funcionalidades sin repetir lógica. Están organizados por función: **menu** (menú y sidebar), **tablas**, **formularios** y **catalogos-inline**. Para el patrón **listado + formulario en rutas** (sin prompt dedicado aún), usar el checklist en `.cursor/rules/` (ver sección siguiente).
 
 ## Estructura
 
@@ -49,6 +49,13 @@ Estándares obligatorios del dominio:
 - `InlineInsertInfiniteTable` como tabla base.
 - `ConfirmModal` para eliminar con `variant="danger"`.
 - Iconos fijos por acción: `Plus`, `Pencil`, `Trash2`, `Check`, `X`.
+
+## Listado + formulario (página dedicada)
+
+Patrón: tabla con **InfiniteScrollTable**, alta/edición en **pantallas o rutas dedicadas** (no edición inline en fila), `PageCard` + `ViewHeader`, `ConfirmModal` + `Toast`, formulario con `react-hook-form` + `yup` según el ejemplo.
+
+- **Checklist de revisión (revisor):** [.cursor/rules/listado-form-checklist.mdc](../.cursor/rules/listado-form-checklist.mdc) — aplicar al crear o revisar módulos de este tipo.
+- **Referencia en código:** `src/modules/ejemplos/listadoForm/` (`EjemplosListadoFormView.tsx`, `UsuarioFormSection.tsx`, `types.ts`).
 
 ## Archivos del proyecto implicados
 

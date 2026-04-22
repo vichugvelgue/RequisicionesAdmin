@@ -10,7 +10,7 @@ export function SidebarSubmenuItem({ label, isActive, onClick }) {
       type="button"
       onClick={onClick}
       className={`text-left px-2 py-1.5 text-[13px] rounded transition-colors ${
-        isActive ? 'text-blue-700 bg-blue-50 font-semibold' : 'text-slate-500 hover:text-blue-600 hover:bg-blue-50/50'
+        isActive ? 'text-brand-primary bg-brand-secondary/30 font-semibold' : 'text-brand-neutral/70 hover:text-brand-primary hover:bg-brand-secondary/20'
       }`}
     >
       {label}

@@ -1,0 +1,199 @@
+{
+  "specVersion": 1,
+  "target": {
+    "file": "src/modules/ejemplos/listadoForm/EjemplosListadoFormView.tsx",
+    "component": "EjemplosListadoFormView",
+    "mode": "solo_formulario"
+  },
+  "page": {
+    "title": "Formulario de usuario",
+    "subtitle": "Captura de usuario de ejemplo",
+    "actions": [
+      {
+        "type": "submit",
+        "label": "Guardar",
+        "variant": "success",
+        "icon": "Save"
+      }
+    ]
+  },
+  "form": {
+    "fields": [
+      {
+        "name": "nombres",
+        "label": "Nombres",
+        "ui": {
+          "type": "input",
+          "inputType": "text",
+          "span": 4
+        },
+        "validation": {
+          "required": true,
+          "message": "*Requerido"
+        }
+      },
+      {
+        "name": "apellidoPaterno",
+        "label": "Apellido Paterno",
+        "ui": {
+          "type": "input",
+          "inputType": "text",
+          "span": 4
+        },
+        "validation": {
+          "required": true,
+          "message": "*Requerido"
+        }
+      },
+      {
+        "name": "apellidoMaterno",
+        "label": "Apellido Materno",
+        "ui": {
+          "type": "input",
+          "inputType": "text",
+          "span": 4
+        },
+        "validation": {
+          "required": true,
+          "message": "*Requerido"
+        }
+      },
+      {
+        "name": "correo",
+        "label": "Correo",
+        "ui": {
+          "type": "input",
+          "inputType": "text",
+          "span": 6
+        },
+        "validation": {
+          "required": true,
+          "message": "*Requerido",
+          "email": true
+        }
+      },
+      {
+        "name": "contrasena",
+        "label": "Contraseña",
+        "ui": {
+          "type": "input",
+          "inputType": "text",
+          "span": 6
+        },
+        "validation": {
+          "required": false,
+          "message": "*Requerido"
+        }
+      },
+      {
+        "name": "tipoUsuario",
+        "label": "Tipo usuario",
+        "ui": {
+          "type": "select",
+          "span": 4
+        },
+        "options": {
+          "source": "local",
+          "items": [
+            {
+              "value": "ADMINISTRADOR",
+              "label": "ADMINISTRADOR"
+            },
+            {
+              "value": "OPERATIVO",
+              "label": "OPERATIVO"
+            }
+          ]
+        },
+        "validation": {
+          "required": true,
+          "message": "*Requerido"
+        }
+      },
+      {
+        "name": "puesto",
+        "label": "Puesto",
+        "ui": {
+          "type": "select",
+          "span": 4
+        },
+        "options": {
+          "source": "local",
+          "items": [
+            {
+              "value": "JEFE DE AREA",
+              "label": "JEFE DE AREA"
+            },
+            {
+              "value": "ANALISTA",
+              "label": "ANALISTA"
+            },
+            {
+              "value": "AUXILIAR",
+              "label": "AUXILIAR"
+            }
+          ]
+        },
+        "validation": {
+          "required": true,
+          "message": "*Requerido"
+        }
+      },
+      {
+        "name": "area",
+        "label": "Area",
+        "ui": {
+          "type": "select",
+          "span": 4
+        },
+        "options": {
+          "source": "local",
+          "items": [
+            {
+              "value": "FINANZAS",
+              "label": "FINANZAS"
+            },
+            {
+              "value": "RECURSOS HUMANOS",
+              "label": "RECURSOS HUMANOS"
+            },
+            {
+              "value": "SISTEMAS",
+              "label": "SISTEMAS"
+            }
+          ]
+        },
+        "validation": {
+          "required": true,
+          "message": "*Requerido"
+        }
+      }
+    ],
+    "sections": [
+      {
+        "id": "datos-usuario",
+        "title": "Datos de usuario",
+        "subtitle": "Informacion general",
+        "fields": [
+          "nombres",
+          "apellidoPaterno",
+          "apellidoMaterno",
+          "correo",
+          "contrasena",
+          "tipoUsuario",
+          "puesto",
+          "area"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "type": "requiredIf",
+        "field": "contrasena",
+        "when": "isEditMode",
+        "equals": false,
+        "message": "*Requerido"
+      }
+    ]
+  }
+}

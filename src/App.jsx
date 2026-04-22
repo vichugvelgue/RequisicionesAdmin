@@ -2,6 +2,10 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import { MainLayout } from "./components/layout/MainLayout";
 import { DashboardView } from "./views/DashboardView";
+import { LoginView } from "./views/LoginView";
+import { CambiarContrasenaView } from "./views/CambiarContrasenaView";
+import { InvitacionUsuarioView } from "./views/InvitacionUsuarioView";
+import { RequireAuth, RequireCatalogosUsuariosAccess } from "./auth";
 import {
 	ComponentesInputsView,
 	ComponentesSearchableSelectView,
@@ -14,12 +18,29 @@ import {
 	ComponentesTabsView,
 	ComponentesFileUploadView,
 } from "./modules/componentes";
-import { CatalogoInlineView } from "./modules/ejemplos";
+import { CatalogoInlineView, EjemplosListadoFormView } from "./modules/ejemplos";
+import { UsuariosListadoFormView } from "./modules/usuarios";
+import {
+	AdquisicionBienesListadoFormView,
+	ContratacionServiciosListadoFormView,
+} from "./modules/requisiciones";
+import {
+	ActividadView,
+	ClavePresupuestalObjetoGastoView,
+	OrigenRecursoView,
+	TipoProgramaView,
+	UnidadMedidaView,
+	UnidadSolicitanteView,
+} from "./modules/catalogos";
 
 function App() {
 	return (
 		<Routes>
-			<Route path="/" element={<MainLayout />}>
+			<Route path="/login" element={<LoginView />} />
+			<Route path="/cambiar-contrasena" element={<CambiarContrasenaView />} />
+			<Route path="/invitacion" element={<InvitacionUsuarioView />} />
+			<Route element={<RequireAuth />}>
+				<Route path="/" element={<MainLayout />}>
 				<Route index element={<DashboardView />} />
 				<Route path="componentes/inputs" element={<ComponentesInputsView />} />
 				<Route
@@ -38,6 +59,51 @@ function App() {
 				<Route path="componentes/feedback" element={<ComponentesFeedbackView />} />
 				<Route path="componentes/file-upload" element={<ComponentesFileUploadView />} />
 				<Route path="ejemplos/catalogo-inline" element={<CatalogoInlineView />} />
+				<Route path="ejemplos/listado-form" element={<EjemplosListadoFormView />} />
+				<Route path="ejemplos/listado-form/nuevo" element={<EjemplosListadoFormView />} />
+				<Route path="ejemplos/listado-form/:id" element={<EjemplosListadoFormView />} />
+				<Route element={<RequireCatalogosUsuariosAccess />}>
+				<Route path="usuarios" element={<UsuariosListadoFormView />} />
+				<Route path="usuarios/nuevo" element={<UsuariosListadoFormView />} />
+				<Route path="usuarios/:id" element={<UsuariosListadoFormView />} />
+				<Route path="catalogos/actividad" element={<ActividadView />} />
+				<Route
+					path="catalogos/clave-presupuestal-objeto-gasto"
+					element={<ClavePresupuestalObjetoGastoView />}
+				/>
+				<Route path="catalogos/origen-recurso" element={<OrigenRecursoView />} />
+				<Route path="catalogos/tipo-programa" element={<TipoProgramaView />} />
+				<Route path="catalogos/unidad-medida" element={<UnidadMedidaView />} />
+				<Route
+					path="catalogos/unidad-solicitante"
+					element={<UnidadSolicitanteView />}
+				/>
+				</Route>
+				<Route
+					path="requisiciones/adquisicion-bienes"
+					element={<AdquisicionBienesListadoFormView />}
+				/>
+				<Route
+					path="requisiciones/adquisicion-bienes/nuevo"
+					element={<AdquisicionBienesListadoFormView />}
+				/>
+				<Route
+					path="requisiciones/adquisicion-bienes/:id"
+					element={<AdquisicionBienesListadoFormView />}
+				/>
+				<Route
+					path="requisiciones/contratacion-servicios"
+					element={<ContratacionServiciosListadoFormView />}
+				/>
+				<Route
+					path="requisiciones/contratacion-servicios/nuevo"
+					element={<ContratacionServiciosListadoFormView />}
+				/>
+				<Route
+					path="requisiciones/contratacion-servicios/:id"
+					element={<ContratacionServiciosListadoFormView />}
+				/>
+				</Route>
 			</Route>
 		</Routes>
 	);

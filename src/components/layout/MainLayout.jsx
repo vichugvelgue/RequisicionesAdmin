@@ -21,7 +21,7 @@ export function MainLayout() {
     }, [isSidebarOpen]);
 
     return (
-        <div className="flex h-screen bg-slate-50 font-sans text-slate-800 overflow-hidden">
+        <div className="flex h-screen bg-brand-secondary/10 font-sans text-brand-neutral overflow-hidden">
 
             {/* Hover strip on left edge to reveal sidebar when closed (desktop only) */}
             {!isSidebarOpen && (

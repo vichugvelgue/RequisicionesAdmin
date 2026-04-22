@@ -15,4 +15,27 @@ export const COMPONENTES_SUBMENU = [
 /** Submenú de Ejemplos: id = activeView, label = texto en menú */
 export const EJEMPLOS_SUBMENU = [
 	{ id: "EjemplosCatalogoInline", label: "Catalogo inline" },
+	{ id: "EjemplosListadoForm", label: "Listado + Form" },
+];
+
+/** Submenú de Usuarios: id = activeView, label = texto en menú */
+export const USUARIOS_SUBMENU = [{ id: "UsuariosListado", label: "Usuarios" }];
+
+/** Submenú de Requisiciones */
+export const REQUISICIONES_SUBMENU = [
+	{ id: "RequisicionesAdquisicionBienes", label: "Adquisición de bienes" },
+	{ id: "RequisicionesContratacionServicios", label: "Contratación de servicios" },
+];
+
+/** Submenú de Catálogos: id = activeView, label = texto en menú */
+export const CATALOGOS_SUBMENU = [
+	{ id: "CatalogosActividad", label: "Actividad" },
+	{
+		id: "CatalogosClavePresupuestalObjetoGasto",
+		label: "Clave presupuestal / objeto gasto",
+	},
+	{ id: "CatalogosOrigenRecurso", label: "Origen del recurso" },
+	{ id: "CatalogosTipoPrograma", label: "Tipo de programa" },
+	{ id: "CatalogosUnidadMedida", label: "Unidad de medida" },
+	{ id: "CatalogosUnidadSolicitante", label: "Unidad solicitante" },
 ];

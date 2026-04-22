@@ -1,0 +1,109 @@
+{
+  "specVersion": 1,
+  "target": {
+    "file": "src/modules/ejemplos/listadoForm/EjemplosListadoFormView.tsx",
+    "component": "EjemplosListadoFormView",
+    "mode": "solo_tabla",
+    "tableType": "completa"
+  },
+  "page": null,
+  "table": {
+    "columns": [
+      {
+        "id": "id",
+        "label": "ID",
+        "ordenable": true,
+        "usaFiltroInline": true,
+        "ancho": "w-[8%]",
+        "tipoCelda": "texto"
+      },
+      {
+        "id": "nombre",
+        "label": "NOMBRE",
+        "ordenable": true,
+        "usaFiltroInline": true,
+        "ancho": "w-[20%]",
+        "tipoCelda": "texto"
+      },
+      {
+        "id": "correo",
+        "label": "CORREO",
+        "ordenable": true,
+        "usaFiltroInline": true,
+        "ancho": "w-[20%]",
+        "tipoCelda": "texto"
+      },
+      {
+        "id": "tipoUsuario",
+        "label": "TIPO USUARIO",
+        "ordenable": true,
+        "usaFiltroInline": true,
+        "ancho": "w-[14%]",
+        "tipoCelda": "texto"
+      },
+      {
+        "id": "puesto",
+        "label": "PUESTO",
+        "ordenable": true,
+        "usaFiltroInline": true,
+        "ancho": "w-[16%]",
+        "tipoCelda": "texto"
+      },
+      {
+        "id": "area",
+        "label": "AREA",
+        "ordenable": true,
+        "usaFiltroInline": true,
+        "ancho": "w-[14%]",
+        "tipoCelda": "texto"
+      },
+      {
+        "id": "acciones",
+        "label": "",
+        "tipoCelda": "acciones"
+      }
+    ],
+    "dataSource": {
+      "type": "state",
+      "stateName": "rows",
+      "recordShape": [
+        "id",
+        "nombre",
+        "correo",
+        "tipoUsuario",
+        "puesto",
+        "area"
+      ]
+    },
+    "globalSearch": true,
+    "searchCriteria": [
+      "Coincidencia",
+      "Nombre",
+      "Correo",
+      "Tipo usuario",
+      "Puesto",
+      "Area"
+    ],
+    "pagination": true,
+    "pageSizes": [
+      30
+    ],
+    "inlineFilters": true,
+    "inlineFiltersVisibleByDefault": false,
+    "export": false,
+    "rowActions": [
+      {
+        "id": "editar",
+        "icon": "Edit",
+        "title": "Editar",
+        "behavior": "abrir formulario en modo edicion con los datos del registro"
+      },
+      {
+        "id": "eliminar",
+        "icon": "Trash2",
+        "title": "Eliminar",
+        "behavior": "abrir modal de confirmacion antes de eliminar el registro"
+      }
+    ]
+  }
+}
