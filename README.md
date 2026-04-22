@@ -18,6 +18,18 @@ npm install
 npm run dev
 ```
 
+## Variables de entorno (mock)
+
+En desarrollo local, actualmente se usan estas variables en `.env`:
+
+```env
+VITE_SHOW_COMPONENTES=false
+VITE_SHOW_EXAMPLES=false
+VITE_AUTH_MOCK_SOLICITANTE_EMAIL=solicitante@admin.com
+VITE_AUTH_MOCK_REVISOR_EMAIL=revisor@admin.com
+VITE_AUTH_MOCK_ADMIN_GENERAL_EMAIL=admin@admin.com
+```
+
 Otros scripts:
 
 - `npm run build` — build de producción
