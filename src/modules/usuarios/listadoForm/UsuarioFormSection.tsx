@@ -11,7 +11,7 @@ import { formatDateToDDMMMYYYY } from "../../../utils/dateFormat";
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import type { InvitacionHistorialItem, UsuarioFormValues } from "./types";
 
-const TIPO_PERFIL_OPTIONS: { value: UsuarioFormValues["tipoPerfil"]; label: string }[] =
+const TIPO_USUARIO_OPTIONS: { value: UsuarioFormValues["tipoPerfil"]; label: string }[] =
 	[
 		{ value: "", label: "Seleccione…" },
 		{ value: "SOLICITANTE", label: "Solicitante" },
@@ -109,32 +109,23 @@ export function UsuarioFormSection({
 							) : null}
 						</div>
 						<div className="col-span-12 lg:col-span-3">
-							<Label required>Tipo usuario</Label>
-							<Input {...register("tipoUsuario")} className="uppercase" />
-							{errors.tipoUsuario?.message ? (
-								<p className="text-[11px] mt-1 text-red-600">
-									{errors.tipoUsuario.message}
-								</p>
-							) : null}
-						</div>
-						<div className="col-span-12 lg:col-span-3">
-							<Label htmlFor="usuario-tipo-perfil" required>
-								Tipo perfil
+							<Label htmlFor="usuario-tipo-usuario" required>
+								Tipo usuario
 							</Label>
 							<Select
-								id="usuario-tipo-perfil"
-								{...register("tipoPerfil")}
+								id="usuario-tipo-usuario"
+								{...register("tipoUsuario")}
 								size="default"
 							>
-								{TIPO_PERFIL_OPTIONS.map((opt) => (
+								{TIPO_USUARIO_OPTIONS.map((opt) => (
 									<option key={opt.value || "__empty"} value={opt.value}>
 										{opt.label}
 									</option>
 								))}
 							</Select>
-							{errors.tipoPerfil?.message ? (
+							{errors.tipoUsuario?.message ? (
 								<p className="text-[11px] mt-1 text-red-600">
-									{errors.tipoPerfil.message}
+									{errors.tipoUsuario.message}
 								</p>
 							) : null}
 						</div>
