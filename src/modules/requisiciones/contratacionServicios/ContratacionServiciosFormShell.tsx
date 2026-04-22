@@ -15,12 +15,11 @@ import { MayorAdministradorContratoTab } from './tabs/mayor/MayorAdministradorCo
 import { MayorDocumentoTab } from './tabs/mayor/MayorDocumentoTab';
 import { MenorDatosGeneralesTab } from './tabs/menor/MenorDatosGeneralesTab';
 import { MenorDatosRequisicionTab } from './tabs/menor/MenorDatosRequisicionTab';
-import { MenorDetalleServicioTab } from './tabs/menor/MenorDetalleServicioTab';
 import { MenorPartidasTab } from './tabs/menor/MenorPartidasTab';
 import { MenorDocumentoTab } from './tabs/menor/MenorDocumentoTab';
 
 export const CONTRATACION_SERVICIOS_TAB_DOCUMENTO_MAYOR = 'cs-g11';
-export const CONTRATACION_SERVICIOS_TAB_DOCUMENTO_MENOR = 'cs-m5';
+export const CONTRATACION_SERVICIOS_TAB_DOCUMENTO_MENOR = 'cs-m4';
 
 const REQUISICION_TAB_FIELDSET_CLASS =
 	'border-0 p-0 m-0 min-h-0 min-w-0 flex flex-1 flex-col overflow-auto bg-transparent';
@@ -279,7 +278,7 @@ export function ContratacionServiciosFormShell({
 		);
 	}
 
-	const menorTabIds = ['cs-m1', 'cs-m2', 'cs-m3', 'cs-m4', 'cs-m5'];
+	const menorTabIds = ['cs-m1', 'cs-m2', 'cs-m3', 'cs-m4'];
 	let mStep = 0;
 
 	return (
@@ -287,9 +286,8 @@ export function ContratacionServiciosFormShell({
 			<TabsList className="shrink-0 bg-white border-b border-slate-200">
 				<TabsTab value="cs-m1" label={<StepperTabLabel step={++mStep} title="Datos generales" />} />
 				<TabsTab value="cs-m2" label={<StepperTabLabel step={++mStep} title="Datos requisición" />} />
-				<TabsTab value="cs-m3" label={<StepperTabLabel step={++mStep} title="Detalle del servicio" />} />
-				<TabsTab value="cs-m4" label={<StepperTabLabel step={++mStep} title="Partidas" />} />
-				<TabsTab value="cs-m5" label={<StepperTabLabel step={++mStep} title="Documento" />} />
+				<TabsTab value="cs-m3" label={<StepperTabLabel step={++mStep} title="Partidas" />} />
+				<TabsTab value="cs-m4" label={<StepperTabLabel step={++mStep} title="Documento" />} />
 			</TabsList>
 			<TabsPanel value="cs-m1" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 				<RequisicionTabPanelFieldset readOnly={readOnly}>
@@ -322,20 +320,6 @@ export function ContratacionServiciosFormShell({
 			</TabsPanel>
 			<TabsPanel value="cs-m3" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 				<RequisicionTabPanelFieldset readOnly={readOnly}>
-					<MenorDetalleServicioTab
-						initialValues={draft.menorDetalleServicio}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								menorDetalleServicio: { ...draft.menorDetalleServicio, ...data },
-							});
-							goToNextTab('cs-m3', menorTabIds);
-						}}
-					/>
-				</RequisicionTabPanelFieldset>
-			</TabsPanel>
-			<TabsPanel value="cs-m4" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-				<RequisicionTabPanelFieldset readOnly={readOnly}>
 					<MenorPartidasTab
 						partidas={draft.menorPartidas}
 						canEditSolicitanteFields={canEditSolicitanteFields}
@@ -345,7 +329,7 @@ export function ContratacionServiciosFormShell({
 					/>
 				</RequisicionTabPanelFieldset>
 			</TabsPanel>
-			<TabsPanel value="cs-m5" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
+			<TabsPanel value="cs-m4" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 				<RequisicionTabPanelFieldset readOnly={readOnly}>
 					<MenorDocumentoTab draft={draft} numeroLabel={numeroLabel} solicitanteLabel={solicitantePreview} />
 				</RequisicionTabPanelFieldset>
