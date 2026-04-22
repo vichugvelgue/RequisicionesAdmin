@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Check, Plus, Save, Trash2 } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../../../auth';
+import { useAuth, isRequisicionReadOnlyProfile } from '../../../auth';
 import {
 	BackLink,
 	Button,
@@ -193,18 +193,30 @@ export function ContratacionServiciosListadoFormView() {
 
 	const isNewRecord = Boolean(editingRow && newlyCreatedIds.includes(editingRow.id));
 	const isRevisorProfile = user?.tipoPerfil === 'REVISOR';
+	const isRequisicionReadOnly = isRequisicionReadOnlyProfile(user?.tipoPerfil);
 	/** Solo el solicitante oculta bloques de revisor; `isNewRecord` no debe acortar el formulario al revisor al consultar. */
 	const hideRevisorFields = userHidesRevisorFields(user) || (isNewRecord && !isRevisorProfile);
 
 	useEffect(() => {
-		if (!isCreateMode || !isRevisorProfile) return;
-		navigate(BASE_PATH, { replace: true });
-		setToastState({
-			visible: true,
-			title: 'Los revisores no crean requisiciones nuevas.',
-			variant: 'error',
-		});
-	}, [isCreateMode, isRevisorProfile, navigate]);
+		if (!isCreateMode) return;
+		if (isRevisorProfile) {
+			navigate(BASE_PATH, { replace: true });
+			setToastState({
+				visible: true,
+				title: 'Los revisores no crean requisiciones nuevas.',
+				variant: 'error',
+			});
+			return;
+		}
+		if (isRequisicionReadOnly) {
+			navigate(BASE_PATH, { replace: true });
+			setToastState({
+				visible: true,
+				title: 'El administrador general solo puede consultar requisiciones.',
+				variant: 'error',
+			});
+		}
+	}, [isCreateMode, isRevisorProfile, isRequisicionReadOnly, navigate]);
 
 	useEffect(() => {
 		if (mode !== 'form-edicion') return;
@@ -320,7 +332,8 @@ export function ContratacionServiciosListadoFormView() {
 		mode === 'form-edicion' &&
 		editingRow &&
 		newlyCreatedIds.includes(editingRow.id) &&
-		Boolean(isDocumentoTab);
+		Boolean(isDocumentoTab) &&
+		!isRequisicionReadOnly;
 
 	const handleAddClick = () => {
 		navigate(`${BASE_PATH}/nuevo`);
@@ -448,11 +461,13 @@ export function ContratacionServiciosListadoFormView() {
 									size="md"
 									leftIcon={<Plus className="w-4 h-4" />}
 									onClick={handleAddClick}
-									disabled={isRevisorProfile}
+									disabled={isRevisorProfile || isRequisicionReadOnly}
 									title={
 										isRevisorProfile
 											? 'Los revisores no crean requisiciones nuevas.'
-											: undefined
+											: isRequisicionReadOnly
+												? 'El administrador general solo puede consultar requisiciones.'
+												: undefined
 									}
 								>
 									Agregar
@@ -502,7 +517,9 @@ export function ContratacionServiciosListadoFormView() {
 										}))
 									}
 									onEdit={handleEditClick}
-									onDelete={(row) => setPendingDeleteRow(row)}
+									onDelete={
+										isRequisicionReadOnly ? undefined : (row) => setPendingDeleteRow(row)
+									}
 									showInlineFilters={showInlineFilters}
 									onToggleInlineFilters={() => setShowInlineFilters((v) => !v)}
 									inlineFilters={inlineFilters}
@@ -530,6 +547,7 @@ export function ContratacionServiciosListadoFormView() {
 								key={editingRow.id}
 								tipoCompra={editingRow.tipoCompra}
 								hideRevisorFields={hideRevisorFields}
+								readOnly={isRequisicionReadOnly}
 								draft={draftForEdit}
 								onDraftChange={(next) => setDraftForId(editingRow.id, next)}
 								editingRow={editingRow}

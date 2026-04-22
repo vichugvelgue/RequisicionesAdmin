@@ -22,9 +22,27 @@ import { MenorDocumentoTab } from './tabs/menor/MenorDocumentoTab';
 export const CONTRATACION_SERVICIOS_TAB_DOCUMENTO_MAYOR = 'cs-g11';
 export const CONTRATACION_SERVICIOS_TAB_DOCUMENTO_MENOR = 'cs-m5';
 
+const REQUISICION_TAB_FIELDSET_CLASS =
+	'border-0 p-0 m-0 min-h-0 min-w-0 flex flex-1 flex-col overflow-auto bg-transparent';
+
+function RequisicionTabPanelFieldset({
+	readOnly,
+	children,
+}: {
+	readOnly: boolean;
+	children: React.ReactNode;
+}) {
+	return (
+		<fieldset disabled={readOnly} className={REQUISICION_TAB_FIELDSET_CLASS}>
+			{children}
+		</fieldset>
+	);
+}
+
 export function ContratacionServiciosFormShell({
 	tipoCompra,
 	hideRevisorFields,
+	readOnly = false,
 	draft,
 	onDraftChange,
 	editingRow,
@@ -34,6 +52,8 @@ export function ContratacionServiciosFormShell({
 }: {
 	tipoCompra: TipoCompraServicios;
 	hideRevisorFields: boolean;
+	/** Solo consulta (p. ej. perfil administrador general). */
+	readOnly?: boolean;
 	draft: ContratacionServiciosDraft;
 	onDraftChange: (next: ContratacionServiciosDraft) => void;
 	editingRow: ContratacionServiciosRow;
@@ -104,134 +124,156 @@ export function ContratacionServiciosFormShell({
 					<TabsTab value="cs-g11" label={<StepperTabLabel step={++step} title="Documento" />} />
 				</TabsList>
 				<TabsPanel value="cs-g1" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<MayorDatosGeneralesTab
-						hideRevisorFields={hideRevisorFields}
-						initialValues={draft.mayorDatosGenerales}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorDatosGenerales: { ...draft.mayorDatosGenerales, ...data },
-							});
-							onPatchRow({ solicitante: data.nombreTitular });
-							goToNextTab('cs-g1', orderedTabIds);
-						}}
-					/>
+					<RequisicionTabPanelFieldset readOnly={readOnly}>
+						<MayorDatosGeneralesTab
+							hideRevisorFields={hideRevisorFields}
+							initialValues={draft.mayorDatosGenerales}
+							onSave={(data) => {
+								onDraftChange({
+									...draft,
+									mayorDatosGenerales: { ...draft.mayorDatosGenerales, ...data },
+								});
+								onPatchRow({ solicitante: data.nombreTitular });
+								goToNextTab('cs-g1', orderedTabIds);
+							}}
+						/>
+					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g2" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<MayorDatosPresupuestalesTab
-						initialValues={draft.mayorDatosPresupuestales}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorDatosPresupuestales: { ...draft.mayorDatosPresupuestales, ...data },
-							});
-							goToNextTab('cs-g2', orderedTabIds);
-						}}
-					/>
+					<RequisicionTabPanelFieldset readOnly={readOnly}>
+						<MayorDatosPresupuestalesTab
+							initialValues={draft.mayorDatosPresupuestales}
+							onSave={(data) => {
+								onDraftChange({
+									...draft,
+									mayorDatosPresupuestales: { ...draft.mayorDatosPresupuestales, ...data },
+								});
+								goToNextTab('cs-g2', orderedTabIds);
+							}}
+						/>
+					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g3" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<MayorDatosRequisicionTab
-						initialValues={draft.mayorDatosRequisicion}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorDatosRequisicion: { ...draft.mayorDatosRequisicion, ...data },
-							});
-							goToNextTab('cs-g3', orderedTabIds);
-						}}
-					/>
+					<RequisicionTabPanelFieldset readOnly={readOnly}>
+						<MayorDatosRequisicionTab
+							initialValues={draft.mayorDatosRequisicion}
+							onSave={(data) => {
+								onDraftChange({
+									...draft,
+									mayorDatosRequisicion: { ...draft.mayorDatosRequisicion, ...data },
+								});
+								goToNextTab('cs-g3', orderedTabIds);
+							}}
+						/>
+					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g4" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<MayorPartidasTab
-						partidas={draft.mayorPartidas}
-						hideRevisorFields={hideRevisorFields}
-						canEditSolicitanteFields={canEditSolicitanteFields}
-						onChange={(partidas) => {
-							onDraftChange({ ...draft, mayorPartidas: partidas });
-						}}
-					/>
+					<RequisicionTabPanelFieldset readOnly={readOnly}>
+						<MayorPartidasTab
+							partidas={draft.mayorPartidas}
+							hideRevisorFields={hideRevisorFields}
+							canEditSolicitanteFields={canEditSolicitanteFields}
+							onChange={(partidas) => {
+								onDraftChange({ ...draft, mayorPartidas: partidas });
+							}}
+						/>
+					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g5" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<MayorEjecucionTab
-						hideRevisorFields={hideRevisorFields}
-						initialValues={draft.mayorEjecucion}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorEjecucion: { ...draft.mayorEjecucion, ...data },
-							});
-							goToNextTab('cs-g5', orderedTabIds);
-						}}
-					/>
+					<RequisicionTabPanelFieldset readOnly={readOnly}>
+						<MayorEjecucionTab
+							hideRevisorFields={hideRevisorFields}
+							initialValues={draft.mayorEjecucion}
+							onSave={(data) => {
+								onDraftChange({
+									...draft,
+									mayorEjecucion: { ...draft.mayorEjecucion, ...data },
+								});
+								goToNextTab('cs-g5', orderedTabIds);
+							}}
+						/>
+					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g6" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<MayorRecursosTab
-						initialValues={draft.mayorRecursos}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorRecursos: { ...draft.mayorRecursos, ...data },
-							});
-							goToNextTab('cs-g6', orderedTabIds);
-						}}
-					/>
+					<RequisicionTabPanelFieldset readOnly={readOnly}>
+						<MayorRecursosTab
+							initialValues={draft.mayorRecursos}
+							onSave={(data) => {
+								onDraftChange({
+									...draft,
+									mayorRecursos: { ...draft.mayorRecursos, ...data },
+								});
+								goToNextTab('cs-g6', orderedTabIds);
+							}}
+						/>
+					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g7" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<MayorEntregablesTab
-						initialValues={draft.mayorEntregables}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorEntregables: { ...draft.mayorEntregables, ...data },
-							});
-							goToNextTab('cs-g7', orderedTabIds);
-						}}
-					/>
+					<RequisicionTabPanelFieldset readOnly={readOnly}>
+						<MayorEntregablesTab
+							initialValues={draft.mayorEntregables}
+							onSave={(data) => {
+								onDraftChange({
+									...draft,
+									mayorEntregables: { ...draft.mayorEntregables, ...data },
+								});
+								goToNextTab('cs-g7', orderedTabIds);
+							}}
+						/>
+					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g8" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<MayorCondicionesTab
-						hideRevisorFields={hideRevisorFields}
-						initialValues={draft.mayorCondiciones}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorCondiciones: { ...draft.mayorCondiciones, ...data },
-							});
-							goToNextTab('cs-g8', orderedTabIds);
-						}}
-					/>
+					<RequisicionTabPanelFieldset readOnly={readOnly}>
+						<MayorCondicionesTab
+							hideRevisorFields={hideRevisorFields}
+							initialValues={draft.mayorCondiciones}
+							onSave={(data) => {
+								onDraftChange({
+									...draft,
+									mayorCondiciones: { ...draft.mayorCondiciones, ...data },
+								});
+								goToNextTab('cs-g8', orderedTabIds);
+							}}
+						/>
+					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g9" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<MayorRepresentantesTab
-						initialValues={draft.mayorRepresentantes}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorRepresentantes: { ...draft.mayorRepresentantes, ...data },
-							});
-							goToNextTab('cs-g9', orderedTabIds);
-						}}
-					/>
+					<RequisicionTabPanelFieldset readOnly={readOnly}>
+						<MayorRepresentantesTab
+							initialValues={draft.mayorRepresentantes}
+							onSave={(data) => {
+								onDraftChange({
+									...draft,
+									mayorRepresentantes: { ...draft.mayorRepresentantes, ...data },
+								});
+								goToNextTab('cs-g9', orderedTabIds);
+							}}
+						/>
+					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g10" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<MayorAdministradorContratoTab
-						initialValues={draft.mayorAdministradorContrato}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorAdministradorContrato: { ...draft.mayorAdministradorContrato, ...data },
-							});
-							goToNextTab('cs-g10', orderedTabIds);
-						}}
-					/>
+					<RequisicionTabPanelFieldset readOnly={readOnly}>
+						<MayorAdministradorContratoTab
+							initialValues={draft.mayorAdministradorContrato}
+							onSave={(data) => {
+								onDraftChange({
+									...draft,
+									mayorAdministradorContrato: { ...draft.mayorAdministradorContrato, ...data },
+								});
+								goToNextTab('cs-g10', orderedTabIds);
+							}}
+						/>
+					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g11" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<MayorDocumentoTab
-						draft={draft}
-						numeroLabel={numeroLabel}
-						solicitanteLabel={solicitantePreview}
-						hideRevisorFields={hideRevisorFields}
-					/>
+					<RequisicionTabPanelFieldset readOnly={readOnly}>
+						<MayorDocumentoTab
+							draft={draft}
+							numeroLabel={numeroLabel}
+							solicitanteLabel={solicitantePreview}
+							hideRevisorFields={hideRevisorFields}
+						/>
+					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 			</Tabs>
 		);
@@ -250,53 +292,63 @@ export function ContratacionServiciosFormShell({
 				<TabsTab value="cs-m5" label={<StepperTabLabel step={++mStep} title="Documento" />} />
 			</TabsList>
 			<TabsPanel value="cs-m1" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-				<MenorDatosGeneralesTab
-					initialValues={draft.menorDatosGenerales}
-					onSave={(data) => {
-						onDraftChange({
-							...draft,
-							menorDatosGenerales: { ...draft.menorDatosGenerales, ...data },
-						});
-						onPatchRow({ solicitante: data.nombreSolicitante });
-						goToNextTab('cs-m1', menorTabIds);
-					}}
-				/>
+				<RequisicionTabPanelFieldset readOnly={readOnly}>
+					<MenorDatosGeneralesTab
+						initialValues={draft.menorDatosGenerales}
+						onSave={(data) => {
+							onDraftChange({
+								...draft,
+								menorDatosGenerales: { ...draft.menorDatosGenerales, ...data },
+							});
+							onPatchRow({ solicitante: data.nombreSolicitante });
+							goToNextTab('cs-m1', menorTabIds);
+						}}
+					/>
+				</RequisicionTabPanelFieldset>
 			</TabsPanel>
 			<TabsPanel value="cs-m2" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-				<MenorDatosRequisicionTab
-					initialValues={draft.menorDatosRequisicion}
-					onSave={(data) => {
-						onDraftChange({
-							...draft,
-							menorDatosRequisicion: { ...draft.menorDatosRequisicion, ...data },
-						});
-						goToNextTab('cs-m2', menorTabIds);
-					}}
-				/>
+				<RequisicionTabPanelFieldset readOnly={readOnly}>
+					<MenorDatosRequisicionTab
+						initialValues={draft.menorDatosRequisicion}
+						onSave={(data) => {
+							onDraftChange({
+								...draft,
+								menorDatosRequisicion: { ...draft.menorDatosRequisicion, ...data },
+							});
+							goToNextTab('cs-m2', menorTabIds);
+						}}
+					/>
+				</RequisicionTabPanelFieldset>
 			</TabsPanel>
 			<TabsPanel value="cs-m3" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-				<MenorDetalleServicioTab
-					initialValues={draft.menorDetalleServicio}
-					onSave={(data) => {
-						onDraftChange({
-							...draft,
-							menorDetalleServicio: { ...draft.menorDetalleServicio, ...data },
-						});
-						goToNextTab('cs-m3', menorTabIds);
-					}}
-				/>
+				<RequisicionTabPanelFieldset readOnly={readOnly}>
+					<MenorDetalleServicioTab
+						initialValues={draft.menorDetalleServicio}
+						onSave={(data) => {
+							onDraftChange({
+								...draft,
+								menorDetalleServicio: { ...draft.menorDetalleServicio, ...data },
+							});
+							goToNextTab('cs-m3', menorTabIds);
+						}}
+					/>
+				</RequisicionTabPanelFieldset>
 			</TabsPanel>
 			<TabsPanel value="cs-m4" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-				<MenorPartidasTab
-					partidas={draft.menorPartidas}
-					canEditSolicitanteFields={canEditSolicitanteFields}
-					onChange={(partidas) => {
-						onDraftChange({ ...draft, menorPartidas: partidas });
-					}}
-				/>
+				<RequisicionTabPanelFieldset readOnly={readOnly}>
+					<MenorPartidasTab
+						partidas={draft.menorPartidas}
+						canEditSolicitanteFields={canEditSolicitanteFields}
+						onChange={(partidas) => {
+							onDraftChange({ ...draft, menorPartidas: partidas });
+						}}
+					/>
+				</RequisicionTabPanelFieldset>
 			</TabsPanel>
 			<TabsPanel value="cs-m5" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-				<MenorDocumentoTab draft={draft} numeroLabel={numeroLabel} solicitanteLabel={solicitantePreview} />
+				<RequisicionTabPanelFieldset readOnly={readOnly}>
+					<MenorDocumentoTab draft={draft} numeroLabel={numeroLabel} solicitanteLabel={solicitantePreview} />
+				</RequisicionTabPanelFieldset>
 			</TabsPanel>
 		</Tabs>
 	);

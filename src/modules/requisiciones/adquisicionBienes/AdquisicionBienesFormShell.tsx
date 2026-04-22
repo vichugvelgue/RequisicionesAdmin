@@ -21,9 +21,27 @@ export const ADQUISICION_BIENES_TAB_DOCUMENTO_MAYOR = 'g8';
 /** Id de la pestaña "Documento" (última) en el flujo MENOR. */
 export const ADQUISICION_BIENES_TAB_DOCUMENTO_MENOR = 'm4';
 
+const REQUISICION_TAB_FIELDSET_CLASS =
+	'border-0 p-0 m-0 min-h-0 min-w-0 flex flex-1 flex-col overflow-auto bg-transparent';
+
+function RequisicionTabPanelFieldset({
+	readOnly,
+	children,
+}: {
+	readOnly: boolean;
+	children: React.ReactNode;
+}) {
+	return (
+		<fieldset disabled={readOnly} className={REQUISICION_TAB_FIELDSET_CLASS}>
+			{children}
+		</fieldset>
+	);
+}
+
 export function AdquisicionBienesFormShell({
 	tipoCompra,
 	hideRevisorFields,
+	readOnly = false,
 	draft,
 	onDraftChange,
 	editingRow,
@@ -33,6 +51,8 @@ export function AdquisicionBienesFormShell({
 }: {
 	tipoCompra: TipoCompra;
 	hideRevisorFields: boolean;
+	/** Solo consulta (p. ej. perfil administrador general). */
+	readOnly?: boolean;
 	draft: AdquisicionDraft;
 	onDraftChange: (next: AdquisicionDraft) => void;
 	editingRow: RequisicionRow;
@@ -294,7 +314,7 @@ export function AdquisicionBienesFormShell({
 				</TabsList>
 				{tabsList.map((t) => (
 					<TabsPanel key={t.id} value={t.id} className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-						{t.panel}
+						<RequisicionTabPanelFieldset readOnly={readOnly}>{t.panel}</RequisicionTabPanelFieldset>
 					</TabsPanel>
 				))}
 			</Tabs>
@@ -394,7 +414,7 @@ export function AdquisicionBienesFormShell({
 			</TabsList>
 			{menorTabs.map((t) => (
 				<TabsPanel key={t.id} value={t.id} className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					{t.panel}
+					<RequisicionTabPanelFieldset readOnly={readOnly}>{t.panel}</RequisicionTabPanelFieldset>
 				</TabsPanel>
 			))}
 		</Tabs>

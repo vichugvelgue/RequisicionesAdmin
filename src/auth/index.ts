@@ -1,5 +1,10 @@
 export { AuthProvider, useAuth } from './AuthContext';
 export { RequireAuth } from './RequireAuth';
+export { RequireCatalogosUsuariosAccess } from './RequireCatalogosUsuariosAccess';
+export {
+	canAccessCatalogosUsuarios,
+	isRequisicionReadOnlyProfile,
+} from './permissions';
 export { signInWithMock } from './mockAuthService';
 export {
 	readStoredSession,

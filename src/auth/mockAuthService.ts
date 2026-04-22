@@ -12,6 +12,9 @@ const SOLICITANTE_EMAIL =
 	'solicitante@cuautlancingo.gob.mx';
 const REVISOR_EMAIL =
 	import.meta.env.VITE_AUTH_MOCK_REVISOR_EMAIL ?? 'revisor@cuautlancingo.gob.mx';
+const ADMIN_GENERAL_EMAIL =
+	import.meta.env.VITE_AUTH_MOCK_ADMIN_GENERAL_EMAIL ??
+	'admin.general@cuautlancingo.gob.mx';
 
 const MOCK_LATENCY_MS = 450;
 
@@ -25,6 +28,11 @@ const ALLOWED_USERS: Record<string, { id: string; displayName: string; tipoPerfi
 		id: 'mock-revisor-1',
 		displayName: 'USUARIO REVISOR',
 		tipoPerfil: 'REVISOR',
+	},
+	[ADMIN_GENERAL_EMAIL.trim().toLowerCase()]: {
+		id: 'mock-admin-general-1',
+		displayName: 'ADMINISTRADOR GENERAL',
+		tipoPerfil: 'ADMINISTRADOR GENERAL',
 	},
 };
 

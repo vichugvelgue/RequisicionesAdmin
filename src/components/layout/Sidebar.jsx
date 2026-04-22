@@ -14,6 +14,7 @@ import {
 	USUARIOS_SUBMENU,
 	REQUISICIONES_SUBMENU,
 } from "../../data/menuData";
+import { useAuth, canAccessCatalogosUsuarios } from "../../auth";
 
 const COMPONENTES_PATH_MAP = {
 	ComponentesInputs: "/componentes/inputs",
@@ -52,9 +53,11 @@ const CATALOGOS_PATH_MAP = {
 };
 
 export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
+	const { user } = useAuth();
 	const location = useLocation();
 	const navigate = useNavigate();
 	const pathname = location.pathname;
+	const showCatalogosUsuarios = canAccessCatalogosUsuarios(user?.tipoPerfil);
 
 	const [isComponentesOpen, setIsComponentesOpen] = useState(false);
 	const [isEjemplosOpen, setIsEjemplosOpen] = useState(false);
@@ -183,46 +186,50 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen }) {
 							);
 						})}
 					</SidebarParentExpandable>
-					<SidebarParentExpandable
-						icon={<Package className="w-4 h-4" />}
-						label="Catálogos"
-						open={isCatalogosOpen}
-						onToggle={() => setIsCatalogosOpen(!isCatalogosOpen)}
-						isActive={isCatalogosActive}
-					>
-						{CATALOGOS_SUBMENU.map((item) => {
-							const path = CATALOGOS_PATH_MAP[item.id];
-							return (
-								<SidebarSubmenuItem
-									key={item.id}
-									id={item.id}
-									label={item.label}
-									isActive={pathname === path}
-									onClick={() => path && handleNav(path)}
-								/>
-							);
-						})}
-					</SidebarParentExpandable>
-					<SidebarParentExpandable
-						icon={<Users className="w-4 h-4" />}
-						label="Usuarios"
-						open={isUsuariosOpen}
-						onToggle={() => setIsUsuariosOpen(!isUsuariosOpen)}
-						isActive={isUsuariosActive}
-					>
-						{USUARIOS_SUBMENU.map((item) => {
-							const path = USUARIOS_PATH_MAP[item.id];
-							return (
-								<SidebarSubmenuItem
-									key={item.id}
-									id={item.id}
-									label={item.label}
-									isActive={pathname === path}
-									onClick={() => path && handleNav(path)}
-								/>
-							);
-						})}
-					</SidebarParentExpandable>
+					{showCatalogosUsuarios ? (
+						<SidebarParentExpandable
+							icon={<Package className="w-4 h-4" />}
+							label="Catálogos"
+							open={isCatalogosOpen}
+							onToggle={() => setIsCatalogosOpen(!isCatalogosOpen)}
+							isActive={isCatalogosActive}
+						>
+							{CATALOGOS_SUBMENU.map((item) => {
+								const path = CATALOGOS_PATH_MAP[item.id];
+								return (
+									<SidebarSubmenuItem
+										key={item.id}
+										id={item.id}
+										label={item.label}
+										isActive={pathname === path}
+										onClick={() => path && handleNav(path)}
+									/>
+								);
+							})}
+						</SidebarParentExpandable>
+					) : null}
+					{showCatalogosUsuarios ? (
+						<SidebarParentExpandable
+							icon={<Users className="w-4 h-4" />}
+							label="Usuarios"
+							open={isUsuariosOpen}
+							onToggle={() => setIsUsuariosOpen(!isUsuariosOpen)}
+							isActive={isUsuariosActive}
+						>
+							{USUARIOS_SUBMENU.map((item) => {
+								const path = USUARIOS_PATH_MAP[item.id];
+								return (
+									<SidebarSubmenuItem
+										key={item.id}
+										id={item.id}
+										label={item.label}
+										isActive={pathname === path}
+										onClick={() => path && handleNav(path)}
+									/>
+								);
+							})}
+						</SidebarParentExpandable>
+					) : null}
 				</div>
 			</aside>
 		</>

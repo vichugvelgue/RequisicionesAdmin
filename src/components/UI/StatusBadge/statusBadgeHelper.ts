@@ -24,6 +24,7 @@ const STATUS_MAP: Record<string, { label: string; variant: StatusBadgeVariant }>
   PENDIENTE: { label: 'Pendiente', variant: 'Pendiente' },
   APROBADA: { label: 'Aprobada', variant: 'Aprobada' },
   RECHAZADA: { label: 'Rechazada', variant: 'Rechazada' },
+  CAMBIOS_SOLICITADOS: { label: 'Cambios solicitados', variant: 'Solicitado' },
   VIGENTE: { label: 'Vigente', variant: 'Activa' },
   APLICADO: { label: 'Aplicado', variant: 'Recibido' },
   LIQUIDADO: { label: 'Liquidado', variant: 'Recibido' },

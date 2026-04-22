@@ -1,6 +1,6 @@
 import type { AuthUser } from '../../../auth/types';
 
-export type RequisicionEstatus = 'PENDIENTE' | 'APROBADA' | 'RECHAZADA';
+export type RequisicionEstatus = 'PENDIENTE' | 'APROBADA' | 'RECHAZADA' | 'CAMBIOS_SOLICITADOS';
 export type TipoCompra = 'MAYOR' | 'MENOR';
 
 export type SearchCriteria =
@@ -19,6 +19,8 @@ export interface RequisicionRow extends Record<string, unknown> {
 	estatus: RequisicionEstatus;
 	/** yyyy-mm-dd para filtros */
 	fechaSolicitudIso: string;
+	/** Último comentario del revisor (mock local). */
+	notaRevision?: string;
 }
 
 export interface MayorDatosGeneralesValues {

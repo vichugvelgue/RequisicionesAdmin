@@ -1,14 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Check, Plus, Save, Trash2 } from 'lucide-react';
+import { Ban, Check, MessageSquare, Plus, Save, Trash2 } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../../../auth';
+import { useAuth, isRequisicionReadOnlyProfile } from '../../../auth';
 import {
 	BackLink,
 	Button,
 	ConfirmModal,
 	InfiniteScrollTable,
+	Label,
 	PageCard,
 	TableFilterBar,
+	TextArea,
 	Toast,
 	ViewHeader,
 	StatusBadge,
@@ -178,6 +180,9 @@ export function AdquisicionBienesListadoFormView() {
 		variant: 'success' | 'error';
 	}>({ visible: false, title: '', variant: 'success' });
 
+	const [revisorModal, setRevisorModal] = useState<'solicitar-cambios' | 'cancelar' | null>(null);
+	const [revisorModalText, setRevisorModalText] = useState('');
+
 	const isCreateMode = location.pathname.endsWith('/nuevo');
 	const editingRow = rows.find((row) => row.id === id) ?? null;
 	const isEditRoute = Boolean(id) && !isCreateMode;
@@ -189,18 +194,30 @@ export function AdquisicionBienesListadoFormView() {
 
 	const isNewRecord = Boolean(editingRow && newlyCreatedIds.includes(editingRow.id));
 	const isRevisorProfile = user?.tipoPerfil === 'REVISOR';
+	const isRequisicionReadOnly = isRequisicionReadOnlyProfile(user?.tipoPerfil);
 	/** Solo el solicitante oculta bloques de revisor; `isNewRecord` no debe acortar el formulario al revisor al consultar. */
 	const hideRevisorFields = userHidesRevisorFields(user) || (isNewRecord && !isRevisorProfile);
 
 	useEffect(() => {
-		if (!isCreateMode || !isRevisorProfile) return;
-		navigate(BASE_PATH, { replace: true });
-		setToastState({
-			visible: true,
-			title: 'Los revisores no crean requisiciones nuevas.',
-			variant: 'error',
-		});
-	}, [isCreateMode, isRevisorProfile, navigate]);
+		if (!isCreateMode) return;
+		if (isRevisorProfile) {
+			navigate(BASE_PATH, { replace: true });
+			setToastState({
+				visible: true,
+				title: 'Los revisores no crean requisiciones nuevas.',
+				variant: 'error',
+			});
+			return;
+		}
+		if (isRequisicionReadOnly) {
+			navigate(BASE_PATH, { replace: true });
+			setToastState({
+				visible: true,
+				title: 'El administrador general solo puede consultar requisiciones.',
+				variant: 'error',
+			});
+		}
+	}, [isCreateMode, isRevisorProfile, isRequisicionReadOnly, navigate]);
 
 	useEffect(() => {
 		if (mode !== 'form-edicion') return;
@@ -277,6 +294,7 @@ export function AdquisicionBienesListadoFormView() {
 					{ value: 'PENDIENTE', label: 'Pendiente' },
 					{ value: 'APROBADA', label: 'Aprobada' },
 					{ value: 'RECHAZADA', label: 'Rechazada' },
+					{ value: 'CAMBIOS_SOLICITADOS', label: 'Cambios solicitados' },
 				],
 				value: pendingEstatus,
 				onChange: (v: string) => setPendingEstatus(v),
@@ -314,7 +332,8 @@ export function AdquisicionBienesListadoFormView() {
 		mode === 'form-edicion' &&
 		editingRow &&
 		newlyCreatedIds.includes(editingRow.id) &&
-		Boolean(isDocumentoTab);
+		Boolean(isDocumentoTab) &&
+		!isRequisicionReadOnly;
 
 	const handleAddClick = () => {
 		navigate(`${BASE_PATH}/nuevo`);
@@ -393,6 +412,60 @@ export function AdquisicionBienesListadoFormView() {
 		[]
 	);
 
+	const closeRevisorModal = useCallback(() => {
+		setRevisorModal(null);
+		setRevisorModalText('');
+	}, []);
+
+	const handleRevisorValidar = useCallback(() => {
+		if (!editingRow) return;
+		patchRow(editingRow.id, { estatus: 'APROBADA' });
+		resetToListado();
+		setToastState({
+			visible: true,
+			title: 'Requisición validada correctamente.',
+			variant: 'success',
+		});
+	}, [editingRow, patchRow, resetToListado]);
+
+	const handleRevisorModalConfirm = useCallback(() => {
+		const note = revisorModalText.trim();
+		if (!note) {
+			setToastState({
+				visible: true,
+				title: 'Escribe un comentario antes de confirmar.',
+				variant: 'error',
+			});
+			return;
+		}
+		if (!editingRow || !revisorModal) return;
+		if (revisorModal === 'solicitar-cambios') {
+			patchRow(editingRow.id, { estatus: 'CAMBIOS_SOLICITADOS', notaRevision: note });
+			closeRevisorModal();
+			resetToListado();
+			setToastState({
+				visible: true,
+				title: 'La solicitud de cambios se registró correctamente.',
+				variant: 'success',
+			});
+			return;
+		}
+		patchRow(editingRow.id, { estatus: 'RECHAZADA', notaRevision: note });
+		closeRevisorModal();
+		resetToListado();
+		setToastState({
+			visible: true,
+			title: 'Requisición cancelada.',
+			variant: 'success',
+		});
+	}, [closeRevisorModal, editingRow, patchRow, revisorModal, revisorModalText, resetToListado]);
+
+	useEffect(() => {
+		if (mode === 'form-edicion') return;
+		setRevisorModal(null);
+		setRevisorModalText('');
+	}, [mode]);
+
 	const draftForEdit = editingRow
 		? draftById[editingRow.id] ?? createEmptyDraft()
 		: createEmptyDraft();
@@ -448,11 +521,13 @@ export function AdquisicionBienesListadoFormView() {
 									size="md"
 									leftIcon={<Plus className="w-4 h-4" />}
 									onClick={handleAddClick}
-									disabled={isRevisorProfile}
+									disabled={isRevisorProfile || isRequisicionReadOnly}
 									title={
 										isRevisorProfile
 											? 'Los revisores no crean requisiciones nuevas.'
-											: undefined
+											: isRequisicionReadOnly
+												? 'El administrador general solo puede consultar requisiciones.'
+												: undefined
 									}
 								>
 									Agregar
@@ -467,6 +542,39 @@ export function AdquisicionBienesListadoFormView() {
 								>
 									Guardar
 								</Button>
+							) : mode === 'form-edicion' && isRevisorProfile && editingRow ? (
+								<div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
+									<Button
+										type="button"
+										variant="outline"
+										size="md"
+										onClick={() => {
+											setRevisorModal('solicitar-cambios');
+											setRevisorModalText('');
+										}}
+									>
+										Solicitar cambios
+									</Button>
+									<Button
+										type="button"
+										variant="success"
+										size="md"
+										onClick={handleRevisorValidar}
+									>
+										Validar
+									</Button>
+									<Button
+										type="button"
+										variant="danger"
+										size="md"
+										onClick={() => {
+											setRevisorModal('cancelar');
+											setRevisorModalText('');
+										}}
+									>
+										Cancelar
+									</Button>
+								</div>
 							) : null
 						}
 					/>
@@ -502,7 +610,9 @@ export function AdquisicionBienesListadoFormView() {
 										}))
 									}
 									onEdit={handleEditClick}
-									onDelete={(row) => setPendingDeleteRow(row)}
+									onDelete={
+										isRequisicionReadOnly ? undefined : (row) => setPendingDeleteRow(row)
+									}
 									showInlineFilters={showInlineFilters}
 									onToggleInlineFilters={() => setShowInlineFilters((v) => !v)}
 									inlineFilters={inlineFilters}
@@ -530,6 +640,7 @@ export function AdquisicionBienesListadoFormView() {
 								key={editingRow.id}
 								tipoCompra={editingRow.tipoCompra}
 								hideRevisorFields={hideRevisorFields}
+								readOnly={isRequisicionReadOnly}
 								draft={draftForEdit}
 								onDraftChange={(next) => setDraftForId(editingRow.id, next)}
 								editingRow={editingRow}
@@ -558,6 +669,42 @@ export function AdquisicionBienesListadoFormView() {
 						</strong>
 						?
 					</p>
+				</ConfirmModal>
+
+				<ConfirmModal
+					open={revisorModal !== null}
+					onClose={closeRevisorModal}
+					onConfirm={handleRevisorModalConfirm}
+					title={
+						revisorModal === 'cancelar'
+							? 'Cancelar requisición'
+							: 'Solicitar cambios'
+					}
+					icon={
+						revisorModal === 'cancelar' ? (
+							<Ban className="w-5 h-5" />
+						) : (
+							<MessageSquare className="w-5 h-5" />
+						)
+					}
+					variant={revisorModal === 'cancelar' ? 'danger' : 'neutral'}
+					confirmLabel={revisorModal === 'cancelar' ? 'Confirmar cancelación' : 'Enviar solicitud'}
+					cancelLabel="Cerrar"
+				>
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="revisor-modal-textarea">
+							{revisorModal === 'cancelar'
+								? 'Motivo de cancelación'
+								: 'Describe los cambios solicitados'}
+						</Label>
+						<TextArea
+							id="revisor-modal-textarea"
+							value={revisorModalText}
+							onChange={(e) => setRevisorModalText(e.target.value)}
+							rows={5}
+							placeholder="Escribe aquí…"
+						/>
+					</div>
 				</ConfirmModal>
 
 				<Toast
