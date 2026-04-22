@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, CalendarDays, Bell, CheckCircle2, LogOut } from "lucide-react";
+import { CalendarDays, Bell, CheckCircle2, LogOut } from "lucide-react";
 import { useAuth } from "../../auth";
 
 function initialsFromDisplayName(displayName) {
@@ -11,7 +11,7 @@ function initialsFromDisplayName(displayName) {
 	return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export function Topbar({ isSidebarOpen, setIsSidebarOpen }) {
+export function Topbar({ isSidebarOpen }) {
 	const { user, logout } = useAuth();
 	const navigate = useNavigate();
 	const activeProfileLabel = user?.tipoPerfil ?? "SIN PERFIL";
@@ -28,14 +28,8 @@ export function Topbar({ isSidebarOpen, setIsSidebarOpen }) {
 	return (
 		<header className="h-14 bg-brand-white border-b border-brand-neutral/20 flex items-center justify-between px-4 shrink-0 shadow-sm z-30">
 			<div className="flex items-center gap-3">
-				<button
-					onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-					className="text-brand-neutral/75 hover:text-brand-primary p-1.5 rounded-md hover:bg-brand-secondary/20 transition-colors"
-				>
-					<Menu className="w-5 h-5" />
-				</button>
 				<h1 className="text-base font-bold text-brand-neutral hidden sm:block">
-					NexERP
+					GESTIÓN Y SEGUIMIENTO DE REQUISICIONES
 				</h1>
 				<div className="h-4 w-px bg-brand-neutral/20 hidden sm:block"></div>
 				<div className="flex items-center gap-1.5 px-2.5 py-1 bg-brand-secondary/25 text-brand-neutral rounded text-[11px] font-bold border border-brand-secondary/50 uppercase tracking-wider hidden md:flex">
