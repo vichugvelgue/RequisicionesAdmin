@@ -4,9 +4,11 @@ import {
 	Button,
 	DecimalStringCellInput,
 	FormSection,
+	SearchableSelect,
 	SimpleTable,
 } from '../../../../components/UI';
 import type { SimpleTableColumn } from '../../../../components/UI/SimpleTable/SimpleTable';
+import { MOCK_UNIDAD_MEDIDA } from '../catalogMockOptions';
 import { FieldRoleLabel } from '../fieldRoleLabel';
 import type { ServiciosPartidaMenor } from '../types';
 
@@ -20,6 +22,7 @@ export function ServiciosMenorPartidasSection({
 	onChange: (next: ServiciosPartidaMenor[]) => void;
 }) {
 	const [cantidadDraft, setCantidadDraft] = useState('');
+	const [unidadMedidaIdDraft, setUnidadMedidaIdDraft] = useState('');
 	const [showErrors, setShowErrors] = useState(false);
 	const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -37,9 +40,9 @@ export function ServiciosMenorPartidasSection({
 				cellClassName: 'uppercase text-center font-semibold',
 			},
 			{
-				key: 'tipo',
-				label: 'Tipo',
-				width: 'w-36 min-w-36',
+				key: 'unidadMedidaLabel',
+				label: 'Unidad de medida',
+				width: 'w-48 min-w-48',
 				cellClassName: 'uppercase',
 			},
 			{
@@ -59,10 +62,13 @@ export function ServiciosMenorPartidasSection({
 
 	function handleSavePartida() {
 		setShowErrors(true);
-		if (!cantidadDraft.trim()) return;
+		if (!unidadMedidaIdDraft || !cantidadDraft.trim()) return;
+
+		const unidadSeleccionada = MOCK_UNIDAD_MEDIDA.find((u) => u.value === unidadMedidaIdDraft);
 
 		const base: Omit<ServiciosPartidaMenor, 'id' | 'numeroPartida'> = {
-			tipo: 'SERVICIO',
+			unidadMedidaId: unidadMedidaIdDraft,
+			unidadMedidaLabel: (unidadSeleccionada?.label ?? unidadMedidaIdDraft).toUpperCase(),
 			cantidad: cantidadDraft,
 		};
 
@@ -72,6 +78,7 @@ export function ServiciosMenorPartidasSection({
 			);
 			setEditingId(null);
 			setCantidadDraft('');
+			setUnidadMedidaIdDraft('');
 			setShowErrors(false);
 			return;
 		}
@@ -85,6 +92,7 @@ export function ServiciosMenorPartidasSection({
 			},
 		]);
 		setCantidadDraft('');
+		setUnidadMedidaIdDraft('');
 		setShowErrors(false);
 	}
 
@@ -92,6 +100,7 @@ export function ServiciosMenorPartidasSection({
 		if (editingId === row.id) {
 			setEditingId(null);
 			setCantidadDraft('');
+			setUnidadMedidaIdDraft('');
 			setShowErrors(false);
 		}
 		onChange(partidas.filter((item) => item.id !== row.id));
@@ -100,15 +109,18 @@ export function ServiciosMenorPartidasSection({
 	function handleEditPartida(row: ServiciosPartidaMenor) {
 		setEditingId(row.id);
 		setCantidadDraft(row.cantidad);
+		setUnidadMedidaIdDraft(row.unidadMedidaId);
 		setShowErrors(false);
 	}
 
 	function handleCancelEdit() {
 		setEditingId(null);
 		setCantidadDraft('');
+		setUnidadMedidaIdDraft('');
 		setShowErrors(false);
 	}
 
+	const unidadMedidaError = showErrors && !unidadMedidaIdDraft;
 	const cantidadError = showErrors && !cantidadDraft.trim();
 
 	return (
@@ -123,12 +135,19 @@ export function ServiciosMenorPartidasSection({
 							</div>
 						</div>
 						<div className="col-span-12 lg:col-span-2">
-							<FieldRoleLabel>Tipo</FieldRoleLabel>
-							<div className="flex h-[30px] items-center rounded border border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold uppercase text-slate-700">
-								SERVICIO
-							</div>
+							<FieldRoleLabel>Unidad de medida</FieldRoleLabel>
+							<SearchableSelect
+								options={MOCK_UNIDAD_MEDIDA}
+								value={unidadMedidaIdDraft}
+								onChange={setUnidadMedidaIdDraft}
+								placeholder="Buscar..."
+								disabled={!canEditSolicitanteFields}
+							/>
+							{unidadMedidaError ? (
+								<p className="text-[11px] mt-1 text-red-600">*Requerido</p>
+							) : null}
 						</div>
-						<div className="col-span-12 lg:col-span-3">
+						<div className="col-span-12 lg:col-span-2">
 							<FieldRoleLabel>Cantidad</FieldRoleLabel>
 							<DecimalStringCellInput
 								value={cantidadDraft}

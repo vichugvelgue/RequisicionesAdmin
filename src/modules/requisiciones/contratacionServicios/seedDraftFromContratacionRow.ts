@@ -44,14 +44,36 @@ export function createSeedDraftFromContratacionRow(row: ContratacionServiciosRow
 				{
 					id: partidaId(row.id, 1),
 					numeroPartida: 1,
-					tipo: 'SERVICIO',
+					unidadMedidaId: 'SERV',
+					unidadMedidaLabel: 'SERVICIO',
 					cantidad: '120.0000',
+					defDescripcionGeneral: 'SERVICIO DE SOPORTE OPERATIVO A PROCESOS INTERNOS.',
+					defDescripcionEspecifica:
+						'ATENCIÓN, SEGUIMIENTO Y DOCUMENTACIÓN DE ACTIVIDADES DE SOPORTE DEL ÁREA SOLICITANTE.',
+					defLugarPeriodoEjecucion:
+						'INSTALACIONES MUNICIPALES; EJECUCIÓN PROGRAMADA DURANTE EL EJERCICIO ACTUAL.',
+					defPersonalRequerido: 'PERSONAL TÉCNICO CON EXPERIENCIA COMPROBABLE EN SERVICIOS SIMILARES.',
+					defEntregablesAcreditacion:
+						'REPORTES SEMANALES, EVIDENCIAS DE ATENCIÓN Y ACTAS DE CONFORMIDAD.',
+					defCondicionesGeneralesContratacion:
+						'SUJETO A CONDICIONES ADMINISTRATIVAS Y TÉCNICAS ESTABLECIDAS EN LA REQUISICIÓN.',
 				},
 				{
 					id: partidaId(row.id, 2),
 					numeroPartida: 2,
-					tipo: 'SERVICIO',
+					unidadMedidaId: 'HRS',
+					unidadMedidaLabel: 'HORA',
 					cantidad: '8.0000',
+					defDescripcionGeneral: 'SERVICIO ESPECIALIZADO DE CAPACITACIÓN OPERATIVA.',
+					defDescripcionEspecifica:
+						'JORNADAS DE CAPACITACIÓN PARA USUARIOS CLAVE SOBRE PROCEDIMIENTOS INTERNOS.',
+					defLugarPeriodoEjecucion:
+						'SALA DE CAPACITACIÓN DEL ENTE; PERIODO SEGÚN CALENDARIO APROBADO.',
+					defPersonalRequerido: 'INSTRUCTOR CERTIFICADO Y PERSONAL DE APOYO LOGÍSTICO.',
+					defEntregablesAcreditacion:
+						'LISTAS DE ASISTENCIA, MATERIAL DIDÁCTICO Y REPORTE FINAL DE CAPACITACIÓN.',
+					defCondicionesGeneralesContratacion:
+						'LA PRESTACIÓN DEL SERVICIO DEBE AJUSTARSE A LOS TÉRMINOS DE REFERENCIA DEFINIDOS.',
 				},
 			],
 		};

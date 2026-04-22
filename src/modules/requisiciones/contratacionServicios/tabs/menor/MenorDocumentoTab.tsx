@@ -81,12 +81,15 @@ export function MenorDocumentoTab({
 						<p className="text-sm text-slate-500">Sin partidas registradas.</p>
 					) : (
 						<div className="overflow-x-auto rounded-lg border border-slate-100">
-							<table className="w-full min-w-[480px] border-collapse text-left text-sm">
+							<table className="w-full min-w-[960px] border-collapse text-left text-sm">
 								<thead>
 									<tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wide text-slate-600">
 										<th className="px-3 py-2">Partida</th>
-										<th className="px-3 py-2">Tipo</th>
 										<th className="px-3 py-2">Cantidad</th>
+										<th className="px-3 py-2">Unidad</th>
+										<th className="px-3 py-2">Desc. general</th>
+										<th className="px-3 py-2">Desc. específica</th>
+										<th className="px-3 py-2">Lugar / periodo</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -95,9 +98,20 @@ export function MenorDocumentoTab({
 											<td className="px-3 py-2 align-top font-medium text-slate-800">
 												{String(part.numeroPartida)}
 											</td>
-											<td className="px-3 py-2 align-top uppercase text-slate-800">{part.tipo}</td>
 											<td className="px-3 py-2 align-top whitespace-nowrap text-slate-800">
 												{formatCantidadPreview(part.cantidad) || '—'}
+											</td>
+											<td className="px-3 py-2 align-top uppercase text-slate-800">
+												{(part.unidadMedidaLabel || part.unidadMedidaId || '').trim() || '—'}
+											</td>
+											<td className="px-3 py-2 align-top uppercase text-slate-800 break-words max-w-xs">
+												{part.defDescripcionGeneral?.trim() || '—'}
+											</td>
+											<td className="px-3 py-2 align-top uppercase text-slate-800 break-words max-w-xs">
+												{part.defDescripcionEspecifica?.trim() || '—'}
+											</td>
+											<td className="px-3 py-2 align-top uppercase text-slate-800 break-words max-w-xs">
+												{part.defLugarPeriodoEjecucion?.trim() || '—'}
 											</td>
 										</tr>
 									))}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ServiciosMenorPartidasSection } from '../../partidas/ServiciosMenorPartidasSection';
+import { ServiciosMayorPartidasSection } from '../../partidas/ServiciosMayorPartidasSection';
 import type { ServiciosPartidaMenor } from '../../types';
 
 export function MenorPartidasTab({
@@ -11,11 +11,16 @@ export function MenorPartidasTab({
 	canEditSolicitanteFields: boolean;
 	onChange: (next: ServiciosPartidaMenor[]) => void;
 }) {
+	const handleChange = (next: ServiciosPartidaMenor[]) => {
+		onChange(next);
+	};
+
 	return (
-		<ServiciosMenorPartidasSection
+		<ServiciosMayorPartidasSection
 			partidas={partidas}
+			hideRevisorFields
 			canEditSolicitanteFields={canEditSolicitanteFields}
-			onChange={onChange}
+			onChange={handleChange}
 		/>
 	);
 }

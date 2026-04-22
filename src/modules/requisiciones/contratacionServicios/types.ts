@@ -94,12 +94,7 @@ export interface ServiciosPartidaMayor {
 	defCondicionesGeneralesContratacion: string;
 }
 
-export interface ServiciosPartidaMenor {
-	id: string;
-	numeroPartida: number;
-	tipo: 'SERVICIO';
-	cantidad: string;
-}
+export interface ServiciosPartidaMenor extends ServiciosPartidaMayor {}
 
 export interface MenorDetalleServicioValues {
 	descripcionGeneral: string;
