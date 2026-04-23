@@ -94,13 +94,6 @@ export function Sidebar({ isSidebarOpen }) {
 			</div>
 
 				<div className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-0.5 custom-scrollbar bg-brand-secondary/10">
-					<SidebarItem
-						icon={<LayoutDashboard className="w-4 h-4" />}
-						label="Dashboard"
-						onClick={() => handleNav("/")}
-						isActive={pathname === "/"}
-					/>
-
 					{showComponentesMenu ? (
 						<SidebarParentExpandable
 							icon={<LayoutDashboard className="w-4 h-4" />}
