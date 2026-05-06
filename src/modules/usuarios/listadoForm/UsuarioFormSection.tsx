@@ -11,13 +11,13 @@ import { formatDateToDDMMMYYYY } from "../../../utils/dateFormat";
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import type { InvitacionHistorialItem, UsuarioFormValues } from "./types";
 
-const TIPO_USUARIO_OPTIONS: { value: UsuarioFormValues["tipoPerfil"]; label: string }[] =
+const TIPO_USUARIO_OPTIONS: { value: UsuarioFormValues["tipoUsuario"]; label: string }[] =
 	[
 		{ value: "", label: "Seleccione…" },
-		{ value: "SOLICITANTE", label: "Solicitante" },
-		{ value: "REVISOR", label: "Revisor" },
-		{ value: "AUTORIZADOR", label: "Autorizador" },
-		{ value: "ADMINISTRADOR GENERAL", label: "Administrador General" },
+		{ value: "2", label: "Solicitante" },
+		{ value: "3", label: "Revisor" },
+		{ value: "4", label: "Autorizador" },
+		{ value: "1", label: "Administrador" },
 	];
 
 const HISTORIAL_COLUMNS: SimpleTableColumn<InvitacionHistorialItem>[] = [

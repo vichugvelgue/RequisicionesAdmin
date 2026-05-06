@@ -22,7 +22,7 @@ export interface InfiniteScrollTableSearchBarProps {
 	onDateRangeChange?: (value: SearchDateRangeValue | undefined) => void;
 }
 
-export interface InfiniteScrollTableProps<T extends Record<string, unknown>> {
+export interface InfiniteScrollTableProps<T extends object> {
 	/** Full list (already filtered/sorted by parent or raw for internal use) */
 	data: T[];
 	pageSize: number;
@@ -55,7 +55,7 @@ export interface InfiniteScrollTableProps<T extends Record<string, unknown>> {
 	showResultsInfo?: boolean;
 }
 
-export function InfiniteScrollTable<T extends Record<string, unknown>>({
+export function InfiniteScrollTable<T extends object>({
 	data,
 	pageSize,
 	resetKey,

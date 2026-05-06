@@ -5,7 +5,7 @@ export {
 	canAccessCatalogosUsuarios,
 	isRequisicionReadOnlyProfile,
 } from './permissions';
-export { signInWithMock } from './mockAuthService';
+export { signInWithAPI } from './apiAuthService';
 export {
 	readStoredSession,
 	writeStoredSession,

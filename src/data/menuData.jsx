@@ -30,6 +30,7 @@ export const REQUISICIONES_SUBMENU = [
 /** Submenú de Catálogos: id = activeView, label = texto en menú */
 export const CATALOGOS_SUBMENU = [
 	{ id: "CatalogosActividad", label: "Actividad" },
+	{ id: "CatalogosComponente", label: "Componente" },
 	{
 		id: "CatalogosClavePresupuestalObjetoGasto",
 		label: "Clave presupuestal / objeto gasto",

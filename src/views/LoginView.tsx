@@ -32,7 +32,8 @@ export function LoginView() {
 	const navigate = useNavigate();
 	const location = useLocation();
 
-	const [email, setEmail] = useState('');
+	const [correoTelefono, setCorreoTelefono] = useState('');
+	const [contrasena, setContrasena] = useState('');
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -54,16 +55,20 @@ export function LoginView() {
 		e.preventDefault();
 		setErrorMessage(null);
 		setIsSubmitting(true);
+		console.log('Submitting login with:', correoTelefono, contrasena);
 		try {
-			const result = await login({ email });
+			const result = await login({ correoTelefono, contrasena });
+			console.log('Login result:', result);
 			if (!result.ok) {
+				//console.log('Setting error message:', result.message);
 				setErrorMessage(result.message);
 				setIsSubmitting(false);
 				return;
 			}
 			const target = resolvePostLoginPath(from);
 			navigate(target, { replace: true });
-		} catch {
+		} catch (error) {
+			console.error('Unexpected error:', error);
 			setErrorMessage('No se pudo iniciar sesión. Intenta de nuevo.');
 			setIsSubmitting(false);
 		}
@@ -106,16 +111,32 @@ export function LoginView() {
 					) : null}
 
 					<div>
-						<Label htmlFor="login-email" required>
-							Correo
+						<Label htmlFor="login-correoTelefono" required>
+							Correo o Teléfono
 						</Label>
 						<Input
-							id="login-email"
-							type="email"
+							id="login-correoTelefono"
+							type="text"
 							autoComplete="username"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							placeholder="correo@ejemplo.gob.mx"
+							value={correoTelefono}
+							onChange={(e) => setCorreoTelefono(e.target.value)}
+							placeholder="correo@ejemplo.gob.mx o teléfono"
+							disabled={isSubmitting}
+							required
+						/>
+					</div>
+
+					<div>
+						<Label htmlFor="login-contrasena" required>
+							Contraseña
+						</Label>
+						<Input
+							id="login-contrasena"
+							type="password"
+							autoComplete="current-password"
+							value={contrasena}
+							onChange={(e) => setContrasena(e.target.value)}
+							placeholder="Ingresa tu contraseña"
 							disabled={isSubmitting}
 							required
 						/>

@@ -45,6 +45,7 @@ const REQUISICIONES_PATH_MAP = {
 
 const CATALOGOS_PATH_MAP = {
 	CatalogosActividad: "/catalogos/actividad",
+	CatalogosComponente: "/catalogos/componente",
 	CatalogosClavePresupuestalObjetoGasto: "/catalogos/clave-presupuestal-objeto-gasto",
 	CatalogosOrigenRecurso: "/catalogos/origen-recurso",
 	CatalogosTipoPrograma: "/catalogos/tipo-programa",

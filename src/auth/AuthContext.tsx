@@ -7,7 +7,7 @@ import React, {
 	useEffect,
 } from 'react';
 import type { AuthUser, LoginCredentials } from './types';
-import { signInWithMock } from './mockAuthService';
+import { signInWithAPI } from './apiAuthService';
 import {
 	readStoredSession,
 	writeStoredSession,
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	}, []);
 
 	const login = useCallback(async (credentials: LoginCredentials) => {
-		const result = await signInWithMock(credentials);
+		const result = await signInWithAPI(credentials);
 		if (!result.ok) {
 			return { ok: false as const, message: result.message };
 		}
