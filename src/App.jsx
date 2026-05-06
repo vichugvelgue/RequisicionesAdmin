@@ -27,6 +27,7 @@ import {
 import {
 	ActividadView,
 	ClavePresupuestalObjetoGastoView,
+	ComponenteView,
 	OrigenRecursoView,
 	TipoProgramaView,
 	UnidadMedidaView,
@@ -67,6 +68,7 @@ function App() {
 				<Route path="usuarios/nuevo" element={<UsuariosListadoFormView />} />
 				<Route path="usuarios/:id" element={<UsuariosListadoFormView />} />
 				<Route path="catalogos/actividad" element={<ActividadView />} />
+				<Route path="catalogos/componente" element={<ComponenteView />} />
 				<Route
 					path="catalogos/clave-presupuestal-objeto-gasto"
 					element={<ClavePresupuestalObjetoGastoView />}

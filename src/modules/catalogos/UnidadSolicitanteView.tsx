@@ -10,16 +10,11 @@ import {
 	Toast,
 	ViewHeader,
 } from "../../components/UI";
-import type { OptionItem } from "../../components/UI/types";
-import type { InlineInsertInfiniteColumn, SortConfig } from "../../components/UI";
+import type { OptionItem, SortConfig } from "../../components/UI/types";
+import type { InlineInsertInfiniteColumn } from "../../components/UI";
+import { unidadSolicitanteApi, type UnidadSolicitanteView } from "../../api";
 
-type CatalogStatus = "ACTIVO" | "INACTIVO";
-
-interface CatalogRow {
-	id: string;
-	descripcion: string;
-	estatus: CatalogStatus;
-}
+interface CatalogRow extends UnidadSolicitanteView {}
 
 const SEARCH_CRITERIA_OPTIONS: OptionItem[] = [
 	{ value: "Coincidencia", label: "Coincidencia" },
@@ -27,31 +22,23 @@ const SEARCH_CRITERIA_OPTIONS: OptionItem[] = [
 
 const COLUMNS: InlineInsertInfiniteColumn[] = [
 	{ key: "id", label: "ID", width: "w-24" },
-	{ key: "descripcion", label: "DESCRIPCION" },
+	{ key: "nombre", label: "NOMBRE" },
 	{ key: "estatus", label: "ESTATUS", width: "w-32" },
 	{ key: "_actions", label: "", width: "w-20", sortable: false, filterable: false },
 ];
 
-function normalizeText(value: string) {
-	return value.trim().toUpperCase();
-}
-
-const INITIAL_ROWS: CatalogRow[] = [
-	{ id: "1", descripcion: "DIRECCION GENERAL", estatus: "ACTIVO" },
-	{ id: "2", descripcion: "AREA ADMINISTRATIVA", estatus: "ACTIVO" },
-	{ id: "3", descripcion: "UNIDAD OPERATIVA", estatus: "INACTIVO" },
-];
+const normalizeText = (value: string) => value.trim().toUpperCase();
 
 export function UnidadSolicitanteView() {
-	const [rows, setRows] = useState<CatalogRow[]>(INITIAL_ROWS);
-	const [draftDescripcion, setDraftDescripcion] = useState("");
-	const [editingRowId, setEditingRowId] = useState<string | null>(null);
-	const [editingDescripcion, setEditingDescripcion] = useState("");
+	const [rows, setRows] = useState<CatalogRow[]>([]);
+	const [draftNombre, setDraftNombre] = useState("");
+	const [editingRowId, setEditingRowId] = useState<number | null>(null);
+	const [editingNombre, setEditingNombre] = useState("");
 	const [pendingDeleteRow, setPendingDeleteRow] = useState<CatalogRow | null>(null);
 	const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "id", direction: "asc" });
 	const [inlineFilters, setInlineFilters] = useState<Record<string, string>>({
 		id: "",
-		descripcion: "",
+		nombre: "",
 		estatus: "",
 	});
 	const [showInlineFilters, setShowInlineFilters] = useState(false);
@@ -62,19 +49,43 @@ export function UnidadSolicitanteView() {
 	const [toastVisible, setToastVisible] = useState(false);
 	const [toastTitle, setToastTitle] = useState("Registro");
 	const [toastMessage, setToastMessage] = useState("");
+	const [toastVariant, setToastVariant] = useState<"success" | "error">("success");
+	const [isLoading, setIsLoading] = useState(true);
+	const [loadError, setLoadError] = useState<string | null>(null);
+
+	const loadRows = async () => {
+		setIsLoading(true);
+		setLoadError(null);
+
+		try {
+			const data = await unidadSolicitanteApi.listar();
+			setRows(data);
+		} catch (error) {
+			console.error(error);
+			setLoadError("No se pudo cargar la unidad solicitante.");
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	useEffect(() => {
+		loadRows();
+	}, []);
 
 	const filteredAndSortedRows = useMemo(() => {
 		const globalTerm = appliedSearchText.trim().toLowerCase();
+
 		const filtered = rows.filter((row) => {
 			const matchesGlobalSearch =
 				!globalTerm ||
-				row.id.toLowerCase().includes(globalTerm) ||
-				row.descripcion.toLowerCase().includes(globalTerm) ||
+				String(row.id).toLowerCase().includes(globalTerm) ||
+				row.nombre.toLowerCase().includes(globalTerm) ||
 				row.estatus.toLowerCase().includes(globalTerm);
+
 			return (
 				matchesGlobalSearch &&
-				row.id.toLowerCase().includes(inlineFilters.id.toLowerCase()) &&
-				row.descripcion.toLowerCase().includes(inlineFilters.descripcion.toLowerCase()) &&
+				String(row.id).toLowerCase().includes(inlineFilters.id.toLowerCase()) &&
+				row.nombre.toLowerCase().includes(inlineFilters.nombre.toLowerCase()) &&
 				row.estatus.toLowerCase().includes(inlineFilters.estatus.toLowerCase())
 			);
 		});
@@ -82,37 +93,35 @@ export function UnidadSolicitanteView() {
 		return [...filtered].sort((a, b) => {
 			const key = sortConfig.key as keyof CatalogRow;
 			const direction = sortConfig.direction === "asc" ? 1 : -1;
-			return (
-				String(a[key]).localeCompare(String(b[key]), "es", { numeric: true }) * direction
-			);
+
+			return String(a[key]).localeCompare(String(b[key]), "es", { numeric: true }) * direction;
 		});
 	}, [appliedSearchText, inlineFilters, rows, sortConfig]);
 
 	const closeInsertRow = () => {
-		setDraftDescripcion("");
+		setDraftNombre("");
 		setShowInsertRow(false);
 	};
 
-	const showToast = (titleText: string, descriptionText: string) => {
+	const showToast = (titleText: string, descriptionText: string, variant: "success" | "error" = "success") => {
 		setToastTitle(titleText);
 		setToastMessage(descriptionText);
+		setToastVariant(variant);
 		setToastVisible(true);
 	};
 
-	const handleAddRow = () => {
-		const descripcion = normalizeText(draftDescripcion);
-		if (!descripcion) return;
+	const handleAddRow = async () => {
+		const nombre = normalizeText(draftNombre);
+		if (!nombre) return;
 
-		const nextId = String(
-			rows.reduce((maxId, row) => {
-				const parsed = Number.parseInt(row.id, 10);
-				return Number.isNaN(parsed) ? maxId : Math.max(maxId, parsed);
-			}, 0) + 1
-		);
-
-		setRows((prev) => [{ id: nextId, descripcion, estatus: "ACTIVO" }, ...prev]);
-		closeInsertRow();
-		showToast("Registro creado", `Registro ${nextId} creado correctamente.`);
+		try {
+			const created = await unidadSolicitanteApi.crear({ nombre });
+			setRows((prev) => [created, ...prev]);
+			closeInsertRow();
+			showToast("Registro creado", `Registro ${created.id} creado correctamente.`);
+		} catch (error) {			
+			showToast( "Error", error?.message || "No se pudo crear la unidad solicitante.", "error");
+		}
 	};
 
 	const handleInsertRowKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (event) => {
@@ -120,6 +129,7 @@ export function UnidadSolicitanteView() {
 			event.preventDefault();
 			handleAddRow();
 		}
+
 		if (event.key === "Escape") {
 			event.preventDefault();
 			closeInsertRow();
@@ -128,37 +138,51 @@ export function UnidadSolicitanteView() {
 
 	const startEditRow = (row: CatalogRow) => {
 		setEditingRowId(row.id);
-		setEditingDescripcion(row.descripcion);
+		setEditingNombre(row.nombre);
 	};
 
 	const cancelEditRow = () => {
 		setEditingRowId(null);
-		setEditingDescripcion("");
+		setEditingNombre("");
 	};
 
-	const saveEditRow = () => {
-		if (!editingRowId) return;
-		const descripcion = normalizeText(editingDescripcion);
-		if (!descripcion) return;
+	const saveEditRow = async () => {
+		if (editingRowId === null) return;
 
-		const currentEditingId = editingRowId;
-		setRows((prev) =>
-			prev.map((row) => (row.id === currentEditingId ? { ...row, descripcion } : row))
-		);
-		cancelEditRow();
-		showToast("Registro actualizado", `Registro ${currentEditingId} editado correctamente.`);
+		const nombre = normalizeText(editingNombre);
+		if (!nombre) return;
+
+		try {
+			const updated = await unidadSolicitanteApi.actualizar({
+				id: editingRowId,
+				nombre,
+			});
+
+			setRows((prev) => prev.map((row) => (row.id === updated.id ? updated : row)));
+			cancelEditRow();
+			showToast("Registro actualizado", `Registro ${updated.id} editado correctamente.`);
+		} catch (error) {						
+			showToast( "Error", error?.message || "No se pudo actualizar la unidad solicitante.", "error");
+		}
 	};
 
-	const confirmRemoveRow = () => {
+	const confirmRemoveRow = async () => {
 		if (!pendingDeleteRow) return;
-		const deletingId = pendingDeleteRow.id;
-		setRows((prev) => prev.filter((row) => row.id !== deletingId));
-		setPendingDeleteRow(null);
-		showToast("Registro eliminado", `Registro ${deletingId} eliminado correctamente.`);
+
+		try {
+			await unidadSolicitanteApi.eliminar(pendingDeleteRow.id);
+			setRows((prev) => prev.filter((row) => row.id !== pendingDeleteRow.id));
+			showToast("Registro eliminado", `Registro ${pendingDeleteRow.id} eliminado correctamente.`);
+			setPendingDeleteRow(null);
+		} catch (error) {
+			console.error(error);
+			showToast("Error", "No se pudo eliminar la unidad solicitante.");
+		}
 	};
 
 	useEffect(() => {
 		if (!toastVisible) return;
+
 		const timer = setTimeout(() => setToastVisible(false), 3000);
 		return () => clearTimeout(timer);
 	}, [toastVisible]);
@@ -181,6 +205,7 @@ export function UnidadSolicitanteView() {
 							) : null
 						}
 					/>
+
 					<div className="p-4 border-b border-slate-200">
 						<GlobalSearchBar
 							searchCriteria={searchCriteria}
@@ -191,110 +216,140 @@ export function UnidadSolicitanteView() {
 							onSearch={() => setAppliedSearchText(searchText)}
 						/>
 					</div>
+
 					<div className="p-4 flex-1 min-h-0">
-						<InlineInsertInfiniteTable<CatalogRow>
-							columns={COLUMNS}
-							data={filteredAndSortedRows}
-							pageSize={20}
-							sortConfig={sortConfig}
-							onSort={(key) =>
-								setSortConfig((prev) => ({
-									key,
-									direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
-								}))
-							}
-							inlineFilters={inlineFilters}
-							onInlineFilterChange={(key, value) =>
-								setInlineFilters((prev) => ({ ...prev, [key]: value }))
-							}
-							onToggleInlineFilters={() => setShowInlineFilters((prev) => !prev)}
-							showInlineFilters={showInlineFilters}
-							onClearInlineFilters={() =>
-								setInlineFilters({ id: "", descripcion: "", estatus: "" })
-							}
-							getRowKey={(row) => row.id}
-							insertRow={
-								showInsertRow ? (
-									<tr className="bg-blue-50/40 border-b border-blue-100">
-										<td className="px-2 py-2 border-r border-slate-100/70 text-[11px] text-slate-500">
-											AUTOGENERADO
-										</td>
-										<td className="px-2 py-2 border-r border-slate-100/70">
-											<Input
-												autoFocus
-												value={draftDescripcion}
-												onKeyDown={handleInsertRowKeyDown}
-												onChange={(e) => setDraftDescripcion(e.target.value.toUpperCase())}
-												placeholder="DESCRIPCION"
-											/>
-										</td>
-										<td className="px-2 py-2 border-r border-slate-100/70">
-											<span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-700">
-												ACTIVO
-											</span>
-										</td>
-										<td className="px-2 py-2 text-center text-[11px] text-slate-500">
-											ENTER = GUARDAR
-										</td>
-									</tr>
-								) : null
-							}
-							renderRow={(row, index) => {
-								const isEditing = editingRowId === row.id;
-								return (
-									<tr
-										key={row.id}
-										className={`border-b border-slate-100/60 ${index % 2 === 0 ? "bg-white" : "bg-slate-50/30"}`}
-									>
-										<td className="px-3 py-2 border-r border-slate-100/70 font-medium text-slate-700">
-											{row.id}
-										</td>
-										<td className="px-3 py-2 border-r border-slate-100/70 uppercase">
-											{isEditing ? (
+						{loadError ? (
+							<div className="text-sm text-red-700">{loadError}</div>
+						) : isLoading ? (
+							<div className="text-sm text-slate-500">Cargando registros...</div>
+						) : (
+							<InlineInsertInfiniteTable<CatalogRow>
+								columns={COLUMNS}
+								data={filteredAndSortedRows}
+								pageSize={20}
+								sortConfig={sortConfig}
+								onSort={(key) =>
+									setSortConfig((prev) => ({
+										key,
+										direction:
+											prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+									}))
+								}
+								inlineFilters={inlineFilters}
+								onInlineFilterChange={(key, value) =>
+									setInlineFilters((prev) => ({ ...prev, [key]: value }))
+								}
+								onToggleInlineFilters={() => setShowInlineFilters((prev) => !prev)}
+								showInlineFilters={showInlineFilters}
+								onClearInlineFilters={() =>
+									setInlineFilters({ id: "", nombre: "", estatus: "" })
+								}
+								getRowKey={(row) => row.id.toString()}
+								insertRow={
+									showInsertRow ? (
+										<tr className="bg-blue-50/40 border-b border-blue-100">
+											<td className="px-2 py-2 border-r border-slate-100/70 text-[11px] text-slate-500">
+												AUTOGENERADO
+											</td>
+											<td className="px-2 py-2 border-r border-slate-100/70">
 												<Input
-													value={editingDescripcion}
-													onChange={(e) => setEditingDescripcion(e.target.value.toUpperCase())}
-													placeholder="DESCRIPCION"
+													autoFocus
+													value={draftNombre}
+													onKeyDown={handleInsertRowKeyDown}
+													onChange={(e) => setDraftNombre(e.target.value.toUpperCase())}
+													placeholder="NOMBRE"
 												/>
-											) : (
-												row.descripcion
-											)}
-										</td>
-										<td className="px-3 py-2 border-r border-slate-100/70">
-											<span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-700">
-												{row.estatus}
-											</span>
-										</td>
-										<td className="px-2 py-2">
-											<div className="flex items-center justify-center gap-1">
+											</td>
+											<td className="px-2 py-2 border-r border-slate-100/70">
+												<span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-700">
+													ACTIVO
+												</span>
+											</td>
+											<td className="px-2 py-2 text-center text-[11px] text-slate-500">
+												ENTER = GUARDAR
+											</td>
+										</tr>
+									) : null
+								}
+								renderRow={(row, index) => {
+									const isEditing = editingRowId === row.id;
+
+									return (
+										<tr
+											key={row.id}
+											className={`border-b border-slate-100/60 ${
+												index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
+											}`}
+										>
+											<td className="px-3 py-2 border-r border-slate-100/70 font-medium text-slate-700">
+												{row.id}
+											</td>
+											<td className="px-3 py-2 border-r border-slate-100/70 uppercase">
 												{isEditing ? (
-													<>
-														<Button variant="iconSuccess" title="Guardar" onClick={saveEditRow}>
-															<Check className="w-4 h-4" />
-														</Button>
-														<Button variant="icon" title="Cancelar edición" onClick={cancelEditRow}>
-															<X className="w-4 h-4" />
-														</Button>
-													</>
+													<Input
+														value={editingNombre}
+														onChange={(e) =>
+															setEditingNombre(e.target.value.toUpperCase())
+														}
+														placeholder="NOMBRE"
+													/>
 												) : (
-													<>
-														<Button variant="iconAmber" title="Editar" onClick={() => startEditRow(row)}>
-															<Pencil className="w-4 h-4" />
-														</Button>
-														<Button variant="iconRed" title="Eliminar" onClick={() => setPendingDeleteRow(row)}>
-															<Trash2 className="w-4 h-4" />
-														</Button>
-													</>
+													row.nombre
 												)}
-											</div>
-										</td>
-									</tr>
-								);
-							}}
-						/>
+											</td>
+											<td className="px-3 py-2 border-r border-slate-100/70">
+												<span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-700">
+													{row.estatus}
+												</span>
+											</td>
+											<td className="px-2 py-2">
+												<div className="flex items-center justify-center gap-1">
+													{isEditing ? (
+														<>
+															<Button
+																variant="iconSuccess"
+																title="Guardar"
+																onClick={saveEditRow}
+															>
+																<Check className="w-4 h-4" />
+															</Button>
+															<Button
+																variant="icon"
+																title="Cancelar edición"
+																onClick={cancelEditRow}
+															>
+																<X className="w-4 h-4" />
+															</Button>
+														</>
+													) : (
+														<>
+															<Button
+																variant="iconAmber"
+																title="Editar"
+																onClick={() => startEditRow(row)}
+															>
+																<Pencil className="w-4 h-4" />
+															</Button>
+															<Button
+																variant="iconRed"
+																title="Eliminar"
+																onClick={() => setPendingDeleteRow(row)}
+															>
+																<Trash2 className="w-4 h-4" />
+															</Button>
+														</>
+													)}
+												</div>
+											</td>
+										</tr>
+									);
+								}}
+							/>
+						)}
 					</div>
 				</PageCard>
 			</div>
+
 			<ConfirmModal
 				open={Boolean(pendingDeleteRow)}
 				onClose={() => setPendingDeleteRow(null)}
@@ -306,13 +361,16 @@ export function UnidadSolicitanteView() {
 				cancelLabel="Cancelar"
 			>
 				<p className="text-sm text-slate-600">
-					¿Deseas eliminar el registro <strong>{pendingDeleteRow?.id ?? ""}</strong>?
+					¿Deseas eliminar el registro{" "}
+					<strong>{pendingDeleteRow?.nombre ?? ""}</strong>?
 				</p>
 			</ConfirmModal>
+
 			<Toast
 				visible={toastVisible}
 				title={toastTitle}
 				description={toastMessage}
+				variant={toastVariant}
 				icon={<Check className="w-3.5 h-3.5 text-white" />}
 			/>
 		</div>

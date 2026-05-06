@@ -33,6 +33,8 @@ import {
 	type TipoCompra,
 } from './types';
 import { createSeedDraftFromRequisicionRow } from './seedDraftFromRequisicionRow';
+import { requisicionApi, type RequisicionView } from '../../../api/requisicionBienesAPI';
+
 
 const BASE_PATH = '/requisiciones/adquisicion-bienes';
 
@@ -44,35 +46,6 @@ const SEARCH_CRITERIA_OPTIONS: OptionItem[] = [
 	{ value: 'Estatus', label: 'Estatus' },
 ];
 
-const INITIAL_ROWS: RequisicionRow[] = [
-	{
-		id: '1',
-		numero: 1,
-		monto: 120000,
-		tipoCompra: 'MAYOR',
-		solicitante: 'JUAN PEREZ LOPEZ',
-		estatus: 'PENDIENTE',
-		fechaSolicitudIso: '2026-03-10',
-	},
-	{
-		id: '2',
-		numero: 2,
-		monto: 15000.5,
-		tipoCompra: 'MENOR',
-		solicitante: 'MARIA GARCIA RAMOS',
-		estatus: 'APROBADA',
-		fechaSolicitudIso: '2026-02-01',
-	},
-	{
-		id: '3',
-		numero: 15,
-		monto: 56000,
-		tipoCompra: 'MAYOR',
-		solicitante: 'ANA TORRES RUIZ',
-		estatus: 'RECHAZADA',
-		fechaSolicitudIso: '2026-01-20',
-	},
-];
 
 const TABLE_COLUMNS: SimpleTableColumn<RequisicionRow>[] = [
 	{
@@ -121,6 +94,19 @@ const TABLE_COLUMNS: SimpleTableColumn<RequisicionRow>[] = [
 	},
 ];
 
+
+
+const mapRequisicionViewToRow = (item: RequisicionView): RequisicionRow => ({
+	id: String(item.id),
+	numero: item.id,
+	monto: Number(item.monto ?? 0),
+	tipoCompra: item.tipoMontoRequisicion as TipoCompra,
+	solicitante: item.solicitante ?? '',
+	estatus: item.estatus ?? '',
+	fechaSolicitudIso: item.fechaRegistro ?? '',
+});
+
+
 function matchesSearch(row: RequisicionRow, criteria: SearchCriteria, text: string): boolean {
 	const t = text.trim().toLowerCase();
 	if (!t) return true;
@@ -146,7 +132,9 @@ export function AdquisicionBienesListadoFormView() {
 	const location = useLocation();
 	const { id } = useParams();
 
-	const [rows, setRows] = useState<RequisicionRow[]>(INITIAL_ROWS);
+	const [rows, setRows] = useState<RequisicionRow[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [loadError, setLoadError] = useState<string | null>(null);
 	const [draftById, setDraftById] = useState<Record<string, AdquisicionDraft>>({});
 	const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'numero', direction: 'desc' });
 	const [showInlineFilters, setShowInlineFilters] = useState(false);
@@ -302,6 +290,27 @@ export function AdquisicionBienesListadoFormView() {
 		],
 		[pendingCriteria, pendingSearchText, pendingTipo, pendingEstatus]
 	);
+
+
+	
+const loadRequisiciones = async () => {
+	setIsLoading(true);
+	setLoadError(null);
+
+	try {
+		const data = await requisicionApi.listarPorSolicitante();
+		setRows(data.map(mapRequisicionViewToRow));
+	} catch (error) {
+		const message =
+			error instanceof Error
+				? error.message
+				: 'No se pudieron cargar las requisiciones.';
+
+		setLoadError(message);
+	} finally {
+		setIsLoading(false);
+	}
+};
 
 	const resetToListado = () => {
 		navigate(BASE_PATH);

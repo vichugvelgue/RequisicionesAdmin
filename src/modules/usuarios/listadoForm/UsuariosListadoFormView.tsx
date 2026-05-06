@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, MailPlus, Plus, Save, Trash2 } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useAuth } from "../../../auth";
@@ -26,44 +26,21 @@ import type {
 	UsuarioFormValues,
 	UsuarioRow,
 } from "./types";
+import { usuarioApi, type UsuarioView } from "../../../api";
 
 const BASE_PATH = "/usuarios";
-
-const INITIAL_ROWS: UsuarioRow[] = [
-	{
-		id: "1",
-		nombre: "JUAN PEREZ LOPEZ",
-		correo: "juan.perez@nexerp.com",
-		tipoUsuario: "ADMINISTRADOR GENERAL",
-		tipoPerfil: "ADMINISTRADOR GENERAL",
-		puesto: "JEFE DE AREA",
-		area: "SISTEMAS",
-	},
-	{
-		id: "2",
-		nombre: "MARIA GARCIA RAMOS",
-		correo: "maria.garcia@nexerp.com",
-		tipoUsuario: "SOLICITANTE",
-		tipoPerfil: "SOLICITANTE",
-		puesto: "ANALISTA",
-		area: "FINANZAS",
-	},
-];
 
 const SEARCH_CRITERIA_OPTIONS: OptionItem[] = [
 	{ value: "Coincidencia", label: "Coincidencia" },
 	{ value: "Nombre", label: "Nombre" },
 	{ value: "Correo", label: "Correo" },
 	{ value: "Tipo usuario", label: "Tipo usuario" },
-	{ value: "Tipo perfil", label: "Tipo perfil" },
-	{ value: "Puesto", label: "Puesto" },
-	{ value: "Area", label: "Area" },
 ];
 
-const TABLE_COLUMNS: SimpleTableColumn<UsuarioRow>[] = [
+const TABLE_COLUMNS: SimpleTableColumn<UsuarioView>[] = [
 	{ key: "id", label: "ID", sortable: true, width: "w-[8%]" },
 	{
-		key: "nombre",
+		key: "nombreCompleto",
 		label: "NOMBRE",
 		sortable: true,
 		width: "w-[20%]",
@@ -83,27 +60,6 @@ const TABLE_COLUMNS: SimpleTableColumn<UsuarioRow>[] = [
 		width: "w-[14%]",
 		cellClassName: "uppercase",
 	},
-	{
-		key: "tipoPerfil",
-		label: "TIPO PERFIL",
-		sortable: true,
-		width: "w-[14%]",
-		cellClassName: "uppercase",
-	},
-	{
-		key: "puesto",
-		label: "PUESTO",
-		sortable: true,
-		width: "w-[14%]",
-		cellClassName: "uppercase",
-	},
-	{
-		key: "area",
-		label: "AREA",
-		sortable: true,
-		width: "w-[10%]",
-		cellClassName: "uppercase",
-	},
 ];
 
 const EMPTY_VALUES: UsuarioFormValues = {
@@ -113,7 +69,6 @@ const EMPTY_VALUES: UsuarioFormValues = {
 	correo: "",
 	contrasena: "",
 	tipoUsuario: "",
-	tipoPerfil: "",
 	generarInvitacion: false,
 	puesto: "",
 	area: "",
@@ -131,15 +86,16 @@ const usuarioSchema = yup.object({
 	}),
 	tipoUsuario: yup
 		.string()
-		.oneOf(
-			["SOLICITANTE", "REVISOR", "AUTORIZADOR", "ADMINISTRADOR GENERAL"],
+		.oneOf([
+			"",
+			"1",
+			"2",
+			"3",
+			"4",
+		],
 			"*Requerido"
 		)
 		.required("*Requerido"),
-	tipoPerfil: yup
-		.string()
-		.oneOf(["", "SOLICITANTE", "REVISOR", "AUTORIZADOR", "ADMINISTRADOR GENERAL"])
-		.default(""),
 	generarInvitacion: yup.boolean().default(false),
 	puesto: yup.string().trim().required("*Requerido"),
 	area: yup.string().trim().required("*Requerido"),
@@ -149,7 +105,14 @@ function normalizeText(value: string) {
 	return value.trim().toUpperCase();
 }
 
-function toFormValues(row?: UsuarioRow): UsuarioFormValues {
+const TIPO_USUARIO_LABEL_TO_ID: Record<string, UsuarioFormValues["tipoUsuario"]> = {
+	Administrador: "1",
+	Solicitante: "2",
+	Revisor: "3",
+	Autorizador: "4",
+};
+
+function toFormValues(row?: UsuarioView): UsuarioFormValues {
 	if (!row) return EMPTY_VALUES;
 	const [nombres = "", apellidoPaterno = "", apellidoMaterno = ""] =
 		row.nombre.split(" ");
@@ -159,8 +122,7 @@ function toFormValues(row?: UsuarioRow): UsuarioFormValues {
 		apellidoMaterno,
 		correo: row.correo,
 		contrasena: "",
-		tipoUsuario: row.tipoPerfil,
-		tipoPerfil: row.tipoPerfil,
+		tipoUsuario: TIPO_USUARIO_LABEL_TO_ID[row.tipoUsuario] ?? "",
 		generarInvitacion: false,
 		puesto: row.puesto,
 		area: row.area,
@@ -168,7 +130,7 @@ function toFormValues(row?: UsuarioRow): UsuarioFormValues {
 }
 
 function matchesByCriteria(
-	row: UsuarioRow,
+	row: UsuarioView,
 	criteria: SearchCriteria,
 	searchTerm: string
 ) {
@@ -180,7 +142,6 @@ function matchesByCriteria(
 			row.nombre.toLowerCase().includes(term) ||
 			row.correo.toLowerCase().includes(term) ||
 			row.tipoUsuario.toLowerCase().includes(term) ||
-			row.tipoPerfil.toLowerCase().includes(term) ||
 			row.puesto.toLowerCase().includes(term) ||
 			row.area.toLowerCase().includes(term)
 		);
@@ -189,44 +150,23 @@ function matchesByCriteria(
 	if (criteria === "Correo") return row.correo.toLowerCase().includes(term);
 	if (criteria === "Tipo usuario")
 		return row.tipoUsuario.toLowerCase().includes(term);
-	if (criteria === "Tipo perfil")
-		return row.tipoPerfil.toLowerCase().includes(term);
 	if (criteria === "Puesto") return row.puesto.toLowerCase().includes(term);
 	return row.area.toLowerCase().includes(term);
 }
 
-const initialInvitacionesSeed = (): Record<string, InvitacionHistorialItem[]> => ({
-	"1": [
-		{
-			id: "seed-1",
-			fecha: new Date("2026-01-10T12:00:00").toISOString(),
-			estatus: "ENVIADA",
-			enviadaPor: "LUIS MENDOZA CASTRO",
-		},
-		{
-			id: "seed-exp",
-			fecha: new Date("2026-02-01T09:30:00").toISOString(),
-			estatus: "EXPIRADA",
-			enviadaPor: "ANA TORRES RUIZ",
-		},
-		{
-			id: "seed-acep",
-			fecha: new Date("2026-02-15T16:45:00").toISOString(),
-			estatus: "ACEPTADA",
-			enviadaPor: "CARLOS RAMIREZ NUÑEZ",
-		},
-	],
-});
+
 
 export function UsuariosListadoFormView() {
 	const { user } = useAuth();
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { id } = useParams();
-	const [rows, setRows] = useState<UsuarioRow[]>(INITIAL_ROWS);
+	const [rows, setRows] = useState<UsuarioView[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 	const [invitacionesHistorial, setInvitacionesHistorial] = useState<
-		Record<string, InvitacionHistorialItem[]>
-	>(initialInvitacionesSeed);
+	Record<string, InvitacionHistorialItem[]>
+>({});
 	const [sortConfig, setSortConfig] = useState<SortConfig>({
 		key: "id",
 		direction: "asc",
@@ -235,11 +175,12 @@ export function UsuariosListadoFormView() {
 	const [inlineFilters, setInlineFilters] = useState<Record<string, string>>({
 		id: "",
 		nombre: "",
+		nombreCompleto: "",
 		correo: "",
 		tipoUsuario: "",
-		tipoPerfil: "",
 		puesto: "",
-		area: "",
+	area: "",
+		
 	});
 	const [searchCriteria, setSearchCriteria] =
 		useState<SearchCriteria>("Coincidencia");
@@ -248,7 +189,7 @@ export function UsuariosListadoFormView() {
 		criteria: "Coincidencia" as SearchCriteria,
 		text: "",
 	});
-	const [pendingDeleteRow, setPendingDeleteRow] = useState<UsuarioRow | null>(
+	const [pendingDeleteRow, setPendingDeleteRow] = useState<UsuarioView | null>(
 		null
 	);
 	const [toastState, setToastState] = useState<{
@@ -261,6 +202,27 @@ export function UsuariosListadoFormView() {
 		variant: "success",
 	});
 
+	const loadUsuarios = async () => {
+		try {
+			setIsLoading(true);
+			setError(null);
+			const data = await usuarioApi.listar();
+			setRows(data);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Error al cargar usuarios");
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const showToast = ( title: string, message: string, variant: "success" | "error" = "success") => {
+	setToastState({
+		visible: true,
+		title: message,
+		variant,
+	});
+};
+
 	const isCreateMode = location.pathname.endsWith("/nuevo");
 	const editingRow = rows.find((row) => row.id === id) ?? null;
 	const isEditRoute = Boolean(id) && !isCreateMode;
@@ -269,6 +231,10 @@ export function UsuariosListadoFormView() {
 		: isEditRoute
 			? "form-edicion"
 			: "listado";
+
+	useEffect(() => {
+		loadUsuarios();
+	}, []);
 
 	useEffect(() => {
 		if (mode !== "form-edicion") return;
@@ -282,7 +248,7 @@ export function UsuariosListadoFormView() {
 		handleSubmit,
 		reset,
 		formState: { errors },
-	} = useForm<UsuarioFormValues>({
+	} = useForm({
 		resolver: yupResolver(usuarioSchema),
 		context: { isEditMode },
 		defaultValues: EMPTY_VALUES,
@@ -315,13 +281,18 @@ export function UsuariosListadoFormView() {
 	);
 
 	const handleEnviarInvitacionDesdeListado = useCallback(
-		(row: UsuarioRow) => {
-			registrarInvitacion(row.id);
+		async (row: UsuarioView) => {
+			try {
+				await usuarioApi.enviarInvitacion({ id: parseInt(row.id) });
+				registrarInvitacion(row.id);
+			} catch (err) {
+				showToast("Error", err instanceof Error ? err.message : "Error al enviar invitación", "error");
+			}
 		},
 		[registrarInvitacion]
 	);
 
-	const listadoCustomActions: SimpleTableCustomAction<UsuarioRow>[] = useMemo(
+	const listadoCustomActions: SimpleTableCustomAction<UsuarioView>[] = useMemo(
 		() => [
 			{
 				icon: <MailPlus className="w-4 h-4" />,
@@ -332,16 +303,18 @@ export function UsuariosListadoFormView() {
 		[handleEnviarInvitacionDesdeListado]
 	);
 
-	const handleEnviarInvitacionDesdeFormulario = useCallback(() => {
+	const handleEnviarInvitacionDesdeFormulario = useCallback(async () => {
 		if (!id || mode !== "form-edicion") {
-			setToastState({
-				visible: true,
-				title: "Guarde el usuario primero",
-				variant: "error",
-			});
+			showToast("Error", "Guarde el usuario primero", "error");
 			return;
 		}
-		registrarInvitacion(id);
+
+		try {
+			await usuarioApi.enviarInvitacion({ id: parseInt(id) });
+			registrarInvitacion(id);
+		} catch (err) {
+			showToast("Error", err instanceof Error ? err.message : "Error al enviar invitación", "error");
+		}
 	}, [id, mode, registrarInvitacion]);
 
 	const historialFormulario = useMemo(() => {
@@ -359,16 +332,11 @@ export function UsuariosListadoFormView() {
 			return (
 				matchesGlobal &&
 				row.id.toLowerCase().includes(inlineFilters.id.toLowerCase()) &&
-				row.nombre.toLowerCase().includes(inlineFilters.nombre.toLowerCase()) &&
+				row.nombreCompleto.toLowerCase().includes(inlineFilters.nombreCompleto.toLowerCase()) &&
 				row.correo.toLowerCase().includes(inlineFilters.correo.toLowerCase()) &&
 				row.tipoUsuario
 					.toLowerCase()
-					.includes(inlineFilters.tipoUsuario.toLowerCase()) &&
-				row.tipoPerfil
-					.toLowerCase()
-					.includes(inlineFilters.tipoPerfil.toLowerCase()) &&
-				row.puesto.toLowerCase().includes(inlineFilters.puesto.toLowerCase()) &&
-				row.area.toLowerCase().includes(inlineFilters.area.toLowerCase())
+					.includes(inlineFilters.tipoUsuario.toLowerCase())
 			);
 		});
 
@@ -391,57 +359,69 @@ export function UsuariosListadoFormView() {
 		navigate(`${BASE_PATH}/nuevo`);
 	};
 
-	const handleEditClick = (row: UsuarioRow) => {
+	const handleEditClick = (row: UsuarioView) => {
 		navigate(`${BASE_PATH}/${row.id}`);
 	};
 
-	const handleDeleteConfirm = () => {
+	const handleDeleteConfirm = async () => {
 		if (!pendingDeleteRow) return;
-		const deletedId = pendingDeleteRow.id;
-		setRows((prev) => prev.filter((row) => row.id !== deletedId));
-		setInvitacionesHistorial((prev) => {
-			const next = { ...prev };
-			delete next[deletedId];
-			return next;
-		});
-		setPendingDeleteRow(null);
-		setToastState({
-			visible: true,
-			title: "Registro eliminado correctamente",
-			variant: "success",
-		});
+
+		try {
+			await usuarioApi.eliminar(parseInt(pendingDeleteRow.id));
+			setRows((prev) => prev.filter((row) => row.id !== pendingDeleteRow.id));
+			setInvitacionesHistorial((prev) => {
+				const next = { ...prev };
+				delete next[pendingDeleteRow.id];
+				return next;
+			});
+			setPendingDeleteRow(null);
+			showToast("Registro eliminado", "Registro eliminado correctamente.");
+		} catch (err) {
+			console.error("Error deleting usuario:", err);
+			showToast("Error", err instanceof Error ? err.message : "Error al eliminar registro", "error");
+			setPendingDeleteRow(null);
+		}
 	};
 
-	const onSubmit = (values: UsuarioFormValues) => {
-		const nombreCompleto = normalizeText(
-			`${values.nombres} ${values.apellidoPaterno} ${values.apellidoMaterno}`
-		);
-		const payload: UsuarioRow = {
-			id:
-				id ??
-				String(
-					rows.reduce((maxId, row) => Math.max(maxId, Number(row.id) || 0), 0) + 1
-				),
-			nombre: nombreCompleto,
-			correo: values.correo.trim().toLowerCase(),
-			tipoUsuario: normalizeText(values.tipoUsuario),
-			tipoPerfil: normalizeText(values.tipoUsuario) as UsuarioRow["tipoPerfil"],
-			puesto: normalizeText(values.puesto),
-			area: normalizeText(values.area),
-		};
+	const onSubmit: SubmitHandler<UsuarioFormValues> = async (values) => {
+		try {
+			if (mode === "form-edicion" && id) {
+				// Actualizar usuario existente
+				const updatedUsuario = await usuarioApi.actualizar({
+					id: parseInt(id),
+					nombres: normalizeText(values.nombres),
+					apellidoPaterno: normalizeText(values.apellidoPaterno),
+					apellidoMaterno: normalizeText(values.apellidoMaterno),
+					correo: values.correo.trim().toLowerCase(),
+					idTipoUsuario: parseInt(values.tipoUsuario, 10),
+					puesto: normalizeText(values.puesto),
+					area: normalizeText(values.area),
+				});
 
-		if (mode === "form-edicion" && id) {
-			setRows((prev) => prev.map((row) => (row.id === id ? payload : row)));
-		} else {
-			setRows((prev) => [payload, ...prev]);
+				setRows((prev) => prev.map((row) => (row.id === id ? updatedUsuario : row)));
+				showToast("Registro actualizado", "Registro actualizado correctamente.");
+			} else {
+				// Crear nuevo usuario
+				const nuevoUsuario = await usuarioApi.crear({
+					nombres: normalizeText(values.nombres),
+					apellidoPaterno: normalizeText(values.apellidoPaterno),
+					apellidoMaterno: normalizeText(values.apellidoMaterno),
+					correo: values.correo.trim().toLowerCase(),
+					contrasena: values.contrasena,
+					idTipoUsuario: parseInt(values.tipoUsuario, 10),
+					puesto: normalizeText(values.puesto),
+					area: normalizeText(values.area),
+					generarInvitacion: values.generarInvitacion,
+				});
+
+				setRows((prev) => [nuevoUsuario, ...prev]);
+				showToast("Registro creado", "Registro creado correctamente.");
+			}
+
+			resetToListado();
+		} catch (err) {
+			showToast("Error", err instanceof Error ? err.message : "Error al guardar registro", "error");
 		}
-
-		setToastState({
-			visible: true,
-			title: "Guardado correctamente",
-			variant: "success",
-		});
-		resetToListado();
 	};
 
 	const onInvalidSubmit = () => {
@@ -451,6 +431,8 @@ export function UsuariosListadoFormView() {
 			variant: "error",
 		});
 	};
+
+	const handleFormSubmit = handleSubmit(onSubmit, onInvalidSubmit);
 
 	useEffect(() => {
 		if (!toastState.visible) return;
@@ -471,7 +453,7 @@ export function UsuariosListadoFormView() {
 	}, [mode, editingRow, reset]);
 
 	return (
-		<div className="flex flex-col h-full min-h-0 bg-slate-50 p-2 lg:p-3 overflow-hidden">
+		<div className="flex flex-col h-full min-h-0 bg-slate-50 p-2 lg:p-3 overflow-auto">
 			<div className="w-full min-h-0 flex-1 flex flex-col">
 				{mode !== "listado" ? (
 					<div className="flex items-center justify-between mb-4">
@@ -516,7 +498,7 @@ export function UsuariosListadoFormView() {
 										variant="success"
 										size="md"
 										leftIcon={<Save className="w-4 h-4" />}
-										onClick={handleSubmit(onSubmit, onInvalidSubmit)}
+										onClick={handleFormSubmit}
 									>
 										{mode === "form-edicion" ? "Guardar cambios" : "Guardar"}
 									</Button>
@@ -526,71 +508,76 @@ export function UsuariosListadoFormView() {
 					/>
 
 					{mode === "listado" ? (
-						<div className="flex-1 min-h-0">
-							<InfiniteScrollTable<UsuarioRow>
-								data={filteredAndSortedRows}
-								pageSize={30}
-								resetKey={JSON.stringify({
-									search: appliedSearch,
-									inlineFilters,
-									sortConfig,
-								})}
-								columns={TABLE_COLUMNS}
-								getRowKey={(row) => row.id}
-								sortConfig={sortConfig}
-								onSort={(key) =>
-									setSortConfig((prev) => ({
-										key,
-										direction:
-											prev.key === key && prev.direction === "asc"
-												? "desc"
-												: "asc",
-									}))
-								}
-								customActions={listadoCustomActions}
-								actionsColumnLabel=""
-								searchBar={{
-									searchCriteria,
-									onSearchCriteriaChange: (value) =>
-										setSearchCriteria(value as SearchCriteria),
-									criteriaOptions: SEARCH_CRITERIA_OPTIONS,
-									searchText,
-									onSearchTextChange: setSearchText,
-									onSearch: () =>
-										setAppliedSearch({
-											criteria: searchCriteria,
-											text: searchText,
-										}),
-								}}
-								showInlineFilters={showInlineFilters}
-								onToggleInlineFilters={() =>
-									setShowInlineFilters((prev) => !prev)
-								}
-								inlineFilters={inlineFilters}
-								onInlineFilterChange={(key, value) =>
-									setInlineFilters((prev) => ({ ...prev, [key]: value }))
-								}
-								onClearInlineFilters={() =>
-									setInlineFilters({
-										id: "",
-										nombre: "",
-										correo: "",
-										tipoUsuario: "",
-										tipoPerfil: "",
-										puesto: "",
-										area: "",
-									})
-								}
-								onEdit={handleEditClick}
-								onDelete={(row) => setPendingDeleteRow(row)}
-								showResultsInfo
-							/>
+						<div className="flex-1 min-h-0 flex flex-col">
+							{error ? (
+								<div className="text-sm text-red-700 p-4">{error}</div>
+							) : isLoading ? (
+								<div className="text-sm text-slate-500 p-4">Cargando usuarios...</div>
+							) : (
+								<InfiniteScrollTable
+									data={filteredAndSortedRows}
+									pageSize={30}
+									resetKey={JSON.stringify({
+										search: appliedSearch,
+										inlineFilters,
+										sortConfig,
+									})}
+									columns={TABLE_COLUMNS}
+									getRowKey={(row) => row.id}
+									sortConfig={sortConfig}
+									onSort={(key) =>
+										setSortConfig((prev) => ({
+											key,
+											direction:
+												prev.key === key && prev.direction === "asc"
+													? "desc"
+													: "asc",
+										}))
+									}
+									customActions={listadoCustomActions}
+									actionsColumnLabel=""
+									searchBar={{
+										searchCriteria,
+										onSearchCriteriaChange: (value) =>
+											setSearchCriteria(value as SearchCriteria),
+										criteriaOptions: SEARCH_CRITERIA_OPTIONS,
+										searchText,
+										onSearchTextChange: setSearchText,
+										onSearch: () =>
+											setAppliedSearch({
+												criteria: searchCriteria,
+												text: searchText,
+											}),
+									}}
+									showInlineFilters={showInlineFilters}
+									onToggleInlineFilters={() =>
+										setShowInlineFilters((prev) => !prev)
+									}
+									inlineFilters={inlineFilters}
+									onInlineFilterChange={(key, value) =>
+										setInlineFilters((prev) => ({ ...prev, [key]: value }))
+									}
+									onClearInlineFilters={() =>
+										setInlineFilters({
+											id: "",
+											nombreCompleto: "",
+											correo: "",
+											tipoUsuario: "",
+											puesto: "",
+											area: "",
+										})
+									}
+									onEdit={handleEditClick}
+									onDelete={(row) => setPendingDeleteRow(row)}
+									showResultsInfo
+								/>
+							)}
 						</div>
 					) : (
 						<UsuarioFormSection
 							register={register}
 							errors={errors}
-							onSubmit={handleSubmit(onSubmit, onInvalidSubmit)}
+							onSubmit={handleFormSubmit}
 							historialInvitaciones={historialFormulario}
 							showGenerarInvitacion={mode === "form-alta"}
 						/>

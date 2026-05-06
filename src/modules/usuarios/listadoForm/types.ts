@@ -3,15 +3,16 @@ export type SearchCriteria =
 	| "Nombre"
 	| "Correo"
 	| "Tipo usuario"
-	| "Tipo perfil"
 	| "Puesto"
 	| "Area";
 
-export type TipoPerfil =
-	| "SOLICITANTE"
-	| "REVISOR"
-	| "AUTORIZADOR"
-	| "ADMINISTRADOR GENERAL";
+export type TipoUsuarioLabel =
+	| "Solicitante"
+	| "Revisor"
+	| "Autorizador"
+	| "Administrador";
+
+export type TipoUsuarioValue = "1" | "2" | "3" | "4" | "";
 
 export interface InvitacionHistorialItem {
 	id: string;
@@ -26,8 +27,7 @@ export interface UsuarioRow {
 	id: string;
 	nombre: string;
 	correo: string;
-	tipoUsuario: string;
-	tipoPerfil: TipoPerfil;
+	tipoUsuario: TipoUsuarioLabel;
 	puesto: string;
 	area: string;
 }
@@ -38,8 +38,7 @@ export interface UsuarioFormValues {
 	apellidoMaterno: string;
 	correo: string;
 	contrasena: string;
-	tipoUsuario: string;
-	tipoPerfil: TipoPerfil | "";
+	tipoUsuario: TipoUsuarioValue;
 	generarInvitacion: boolean;
 	puesto: string;
 	area: string;

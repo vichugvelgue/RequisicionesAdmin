@@ -3,7 +3,7 @@ import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { Button, ConfirmModal, GlobalSearchBar, Input, InlineInsertInfiniteTable, PageCard, Toast, ViewHeader } from "../../components/UI";
 import type { OptionItem, SortConfig } from "../../components/UI/types";
 import type { InlineInsertInfiniteColumn } from "../../components/UI";
-import { actividadApi, type ActividadView } from "../../api";
+import { componenteApi, type ComponenteView } from "../../api";
 
 // Types
 
@@ -15,19 +15,20 @@ const SEARCH_CRITERIA_OPTIONS: OptionItem[] = [
 const COLUMNS: InlineInsertInfiniteColumn[] = [
 	{ key: "id", label: "ID", width: "w-24" },
 	{ key: "nombre", label: "NOMBRE" },
+	{ key: "estatus", label: "ESTATUS", width: "w-32" },
 	{ key: "_actions", label: "", width: "w-20", sortable: false, filterable: false }
 ];
 
 const normalizeText = (value: string) => value.trim().toUpperCase();
 
-export function ActividadView() {
-	const [rows, setRows] = useState<ActividadView[]>([]);
+export function ComponenteView() {
+	const [rows, setRows] = useState<ComponenteView[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [draftNombre, setDraftNombre] = useState("");
 	const [editingRowId, setEditingRowId] = useState<number | null>(null);
 	const [editingNombre, setEditingNombre] = useState("");
-	const [pendingDeleteRow, setPendingDeleteRow] = useState<ActividadView | null>(null);
+	const [pendingDeleteRow, setPendingDeleteRow] = useState<ComponenteView | null>(null);
 	const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "id", direction: "asc" });
 	const [inlineFilters, setInlineFilters] = useState<Record<string, string>>({ id: "", nombre: "", estatus: "" });
 	const [showInlineFilters, setShowInlineFilters] = useState(false);
@@ -41,7 +42,7 @@ export function ActividadView() {
 	const [toastVariant, setToastVariant] = useState<"success" | "error">("success");
 
 	useEffect(() => {
-		loadActividades();
+		loadComponentes();
 	}, []);
 
 	useEffect(() => {
@@ -50,14 +51,14 @@ export function ActividadView() {
 		return () => clearTimeout(timer);
 	}, [toastVisible]);
 
-	const loadActividades = async () => {
+	const loadComponentes = async () => {
 		try {
 			setIsLoading(true);
 			setError(null);
-			const data = await actividadApi.listar();			
+			const data = await componenteApi.listar();
 			setRows(data);
-		} catch (err) {			
-			setError(err instanceof Error ? err.message : "Error al cargar actividades");
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Error al cargar componentes");
 		} finally {
 			setIsLoading(false);
 		}
@@ -84,8 +85,8 @@ export function ActividadView() {
 			.filter(Boolean); // Elimina nulls/undefined restantes
 
 		return [...filtered].sort((a, b) => {
-			const aValue = a[sortConfig.key as keyof ActividadView];
-			const bValue = b[sortConfig.key as keyof ActividadView];
+			const aValue = a[sortConfig.key as keyof ComponenteView];
+			const bValue = b[sortConfig.key as keyof ComponenteView];
 			const aStr = typeof aValue === "number" ? aValue.toString() : String(aValue || "");
 			const bStr = typeof bValue === "number" ? bValue.toString() : String(bValue || "");
 			return aStr.localeCompare(bStr, "es", { numeric: true }) * (sortConfig.direction === "asc" ? 1 : -1);
@@ -97,7 +98,7 @@ export function ActividadView() {
 		setShowInsertRow(false);
 	};
 
-		const showToast = (titleText: string, descriptionText: string, variant: "success" | "error" = "success") => {
+	const showToast = (titleText: string, descriptionText: string, variant: "success" | "error" = "success") => {
 		setToastTitle(titleText);
 		setToastMessage(descriptionText);
 		setToastVariant(variant);
@@ -109,15 +110,15 @@ export function ActividadView() {
 		if (!nombre) return;
 
 		try {
-			const nuevaActividad = await actividadApi.crear({ nombre });
-			setRows((prev) => [nuevaActividad, ...prev]);
+			const nuevaComponente = await componenteApi.crear({ nombre });
+			setRows((prev) => [nuevaComponente, ...prev]);
 			closeInsertRow();
-			showToast("Registro creado", `Registro ${nuevaActividad.id} creado correctamente.`);
-		} catch (err) {			
+			showToast("Registro creado", `Registro ${nuevaComponente.id} creado correctamente.`);
+		} catch (err) {
 			const message =
 			err instanceof Error ? err.message : "Error al crear registro";
 
-		showToast("Error", message, "error");			
+		showToast("Error", message, "error");
 		}
 	};
 
@@ -132,7 +133,7 @@ export function ActividadView() {
 		}
 	};
 
-	const startEditRow = (row: ActividadView) => {
+	const startEditRow = (row: ComponenteView) => {
 		setEditingRowId(row.id);
 		setEditingNombre(row.nombre);
 	};
@@ -147,25 +148,26 @@ export function ActividadView() {
 		const nombre = normalizeText(editingNombre);
 		if (!nombre) return;
 
-		try {			
-			const updatedActividad = await actividadApi.actualizar({ id: editingRowId, nombre });			
-			
-			if (!updatedActividad || typeof updatedActividad !== "object" || !updatedActividad.id) {			
-				showToast("Error", "La respuesta del servidor es inválida", "error");
+		try {
+			const updatedComponente = await componenteApi.actualizar({ id: editingRowId, nombre });
+
+			if (!updatedComponente || typeof updatedComponente !== "object" || !updatedComponente.id) {
+				console.error("Respuesta inválida del servidor:", updatedComponente);
+				showToast("Error", "No se pudo procesar la respuesta del servidor", "error");
 				return;
-			}			
-			
+			}
+
 			setRows((prev) => {
-				const updated = prev.map((row) => 
-					row.id === editingRowId ? updatedActividad : row
-				);				
+				const updated = prev.map((row) =>
+					row.id === editingRowId ? updatedComponente : row
+				);
 				return updated;
 			});
-			
+
 			cancelEditRow();
 			showToast("Registro actualizado", `Registro ${editingRowId} editado correctamente.`);
-		} catch (err) {						
-			showToast( "Error", err?.message || "Error al actualizar registro", "error");
+		} catch (err) {
+			showToast("Error", err instanceof Error ? err.message : "Error al actualizar registro", "error");
 		}
 	};
 
@@ -173,12 +175,12 @@ export function ActividadView() {
 		if (!pendingDeleteRow) return;
 
 		try {
-			await actividadApi.eliminar(pendingDeleteRow.id);
+			await componenteApi.eliminar(pendingDeleteRow.id);
 			setRows((prev) => prev.filter((row) => row.id !== pendingDeleteRow.id));
 			setPendingDeleteRow(null);
 			showToast("Registro eliminado", `Registro ${pendingDeleteRow.id} eliminado correctamente.`);
 		} catch (err) {
-			console.error("Error deleting actividad:", err);
+			console.error("Error deleting componente:", err);
 			showToast("Error", err instanceof Error ? err.message : "Error al eliminar registro");
 			setPendingDeleteRow(null);
 		}
@@ -203,7 +205,7 @@ export function ActividadView() {
 		</tr>
 	);
 
-	const renderRow = (row: ActividadView, index: number) => {
+	const renderRow = (row: ComponenteView, index: number) => {
 		const isEditing = editingRowId === row.id;
 		return (
 			<tr key={row.id} className={`border-b border-slate-100/60 ${index % 2 === 0 ? "bg-white" : "bg-slate-50/30"}`}>
@@ -226,13 +228,21 @@ export function ActividadView() {
 					<div className="flex items-center justify-center gap-1">
 						{isEditing ? (
 							<>
-								<Button variant="iconSuccess" title="Guardar" onClick={saveEditRow}><Check className="w-4 h-4" /></Button>
-								<Button variant="icon" title="Cancelar edición" onClick={cancelEditRow}><X className="w-4 h-4" /></Button>
+								<Button variant="iconSuccess" title="Guardar" onClick={saveEditRow}>
+									<Check className="w-4 h-4" />
+								</Button>
+								<Button variant="icon" title="Cancelar edición" onClick={cancelEditRow}>
+									<X className="w-4 h-4" />
+								</Button>
 							</>
 						) : (
 							<>
-								<Button variant="iconAmber" title="Editar" onClick={() => startEditRow(row)}><Pencil className="w-4 h-4" /></Button>
-								<Button variant="iconRed" title="Eliminar" onClick={() => setPendingDeleteRow(row)}><Trash2 className="w-4 h-4" /></Button>
+								<Button variant="iconAmber" title="Editar" onClick={() => startEditRow(row)}>
+									<Pencil className="w-4 h-4" />
+								</Button>
+								<Button variant="iconRed" title="Eliminar" onClick={() => setPendingDeleteRow(row)}>
+									<Trash2 className="w-4 h-4" />
+								</Button>
 							</>
 						)}
 					</div>
@@ -246,10 +256,12 @@ export function ActividadView() {
 			<div className="w-full min-h-0 flex-1 flex flex-col">
 				<PageCard className="h-full min-h-0 flex-1 flex flex-col">
 					<ViewHeader
-						title="Actividad"
+						title="Componente"
 						action={
-							!showInsertRow && !isLoading ? (
-								<Button variant="primarySm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowInsertRow(true)}>Agregar</Button>
+							!showInsertRow ? (
+								<Button variant="primarySm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowInsertRow(true)}>
+									Agregar
+								</Button>
 							) : null
 						}
 					/>
@@ -264,47 +276,38 @@ export function ActividadView() {
 						/>
 					</div>
 					<div className="p-4 flex-1 min-h-0">
-						{isLoading ? (
-							<div className="flex items-center justify-center h-32"><div className="text-slate-500">Cargando actividades...</div></div>
-						) : error ? (
-							<div className="flex flex-col items-center justify-center h-32 space-y-2"><div className="text-red-500">{error}</div><Button variant="secondary" onClick={loadActividades}>Reintentar</Button></div>
+						{error ? (
+							<div className="text-sm text-red-700">{error}</div>
+						) : isLoading ? (
+							<div className="text-sm text-slate-500">Cargando registros...</div>
 						) : (
-							<InlineInsertInfiniteTable<ActividadView>
+							<InlineInsertInfiniteTable<ComponenteView>
 								columns={COLUMNS}
 								data={filteredAndSortedRows}
 								pageSize={20}
 								sortConfig={sortConfig}
-								onSort={(key) => setSortConfig((prev) => ({ key, direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc" }))}
+								onSort={(key) =>
+									setSortConfig((prev) => ({ key, direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc" }))
+								}
 								inlineFilters={inlineFilters}
 								onInlineFilterChange={(key, value) => setInlineFilters((prev) => ({ ...prev, [key]: value }))}
 								onToggleInlineFilters={() => setShowInlineFilters((prev) => !prev)}
 								showInlineFilters={showInlineFilters}
 								onClearInlineFilters={() => setInlineFilters({ id: "", nombre: "", estatus: "" })}
 								getRowKey={(row) => row.id.toString()}
-								insertRow={showInsertRow ? renderInsertRow() : null}
+								insertRow={
+									showInsertRow ? renderInsertRow() : null
+								}
 								renderRow={renderRow}
 							/>
 						)}
 					</div>
 				</PageCard>
 			</div>
-			<ConfirmModal
-				open={Boolean(pendingDeleteRow)}
-				onClose={() => setPendingDeleteRow(null)}
-				onConfirm={confirmRemoveRow}
-				title="Confirmar eliminación"
-				icon={<Trash2 className="w-5 h-5" />}
-				variant="danger"
-				confirmLabel="Eliminar"
-				cancelLabel="Cancelar"
-			>
+			<ConfirmModal open={Boolean(pendingDeleteRow)} onClose={() => setPendingDeleteRow(null)} onConfirm={confirmRemoveRow} title="Confirmar eliminación" icon={<Trash2 className="w-5 h-5" />} variant="danger" confirmLabel="Eliminar" cancelLabel="Cancelar">
 				<p className="text-sm text-slate-600">¿Deseas eliminar el registro <strong>{pendingDeleteRow?.nombre ?? ""}</strong>?</p>
 			</ConfirmModal>
-			<Toast visible={toastVisible} 
-			title={toastTitle} 
-			description={toastMessage} 
-			variant={toastVariant}
-			icon={<Check className="w-3.5 h-3.5 text-white" />} />
+			<Toast visible={toastVisible} title={toastTitle} description={toastMessage} icon={<Check className="w-3.5 h-3.5 text-white" />} variant={toastVariant} />
 		</div>
 	);
 }

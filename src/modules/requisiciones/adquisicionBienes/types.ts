@@ -16,7 +16,7 @@ export interface RequisicionRow extends Record<string, unknown> {
 	monto: number;
 	tipoCompra: TipoCompra;
 	solicitante: string;
-	estatus: RequisicionEstatus;
+	estatus: string;
 	/** yyyy-mm-dd para filtros */
 	fechaSolicitudIso: string;
 	/** Último comentario del revisor (mock local). */

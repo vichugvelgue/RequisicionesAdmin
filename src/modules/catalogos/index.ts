@@ -4,3 +4,4 @@ export { ClavePresupuestalObjetoGastoView } from "./ClavePresupuestalObjetoGasto
 export { ActividadView } from "./ActividadView";
 export { TipoProgramaView } from "./TipoProgramaView";
 export { UnidadMedidaView } from "./UnidadMedidaView";
+export { ComponenteView } from "./ComponenteView";
