@@ -1,0 +1,1 @@
+export { ReporteRequisicionesView } from "./ReporteRequisicionesView";

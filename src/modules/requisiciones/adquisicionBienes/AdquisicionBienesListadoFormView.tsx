@@ -32,8 +32,8 @@ import {
 	type SearchCriteria,
 	type TipoCompra,
 } from './types';
-import { createSeedDraftFromRequisicionRow } from './seedDraftFromRequisicionRow';
-import { requisicionApi, type RequisicionView } from '../../../api/requisicionBienesAPI';
+
+import { requisicionApi, RequisicionDetalle, type RequisicionView } from '../../../api/requisicionBienesAPI';
 
 
 const BASE_PATH = '/requisiciones/adquisicion-bienes';
@@ -100,12 +100,11 @@ const mapRequisicionViewToRow = (item: RequisicionView): RequisicionRow => ({
 	id: String(item.id),
 	numero: item.id,
 	monto: Number(item.monto ?? 0),
-	tipoCompra: item.tipoMontoRequisicion as TipoCompra,
-	solicitante: item.solicitante ?? '',
-	estatus: item.estatus ?? '',
-	fechaSolicitudIso: item.fechaRegistro ?? '',
+	tipoCompra: item.tipo?.toUpperCase() as TipoCompra,
+	solicitante: item.solicitante ?? "",
+	estatus: item.estatus ?? "",
+	fechaSolicitudIso: item.fechaSolicitud ?? "",
 });
-
 
 function matchesSearch(row: RequisicionRow, criteria: SearchCriteria, text: string): boolean {
 	const t = text.trim().toLowerCase();
@@ -130,7 +129,7 @@ export function AdquisicionBienesListadoFormView() {
 	const { user } = useAuth();
 	const navigate = useNavigate();
 	const location = useLocation();
-	const { id } = useParams();
+	const { id } = useParams();		
 
 	const [rows, setRows] = useState<RequisicionRow[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
@@ -171,8 +170,9 @@ export function AdquisicionBienesListadoFormView() {
 	const [revisorModal, setRevisorModal] = useState<'solicitar-cambios' | 'cancelar' | null>(null);
 	const [revisorModalText, setRevisorModalText] = useState('');
 
-	const isCreateMode = location.pathname.endsWith('/nuevo');
+	const isCreateMode = location.pathname.endsWith('/nuevo');	
 	const editingRow = rows.find((row) => row.id === id) ?? null;
+	const [editingRow1, setEditingRow] = useState<RequisicionRow | null>(null);
 	const isEditRoute = Boolean(id) && !isCreateMode;
 	const mode: 'listado' | 'form-alta' | 'form-edicion' = isCreateMode
 		? 'form-alta'
@@ -181,12 +181,24 @@ export function AdquisicionBienesListadoFormView() {
 			: 'listado';
 
 	const isNewRecord = Boolean(editingRow && newlyCreatedIds.includes(editingRow.id));
-	const isRevisorProfile = user?.tipoPerfil === 'REVISOR';
-	const isRequisicionReadOnly = isRequisicionReadOnlyProfile(user?.tipoPerfil);
+	//const isRevisorProfile = user?.tipoPerfil === 'REVISOR';
+	//const isRequisicionReadOnly = isRequisicionReadOnlyProfile(user?.tipoPerfil);
 	/** Solo el solicitante oculta bloques de revisor; `isNewRecord` no debe acortar el formulario al revisor al consultar. */
-	const hideRevisorFields = userHidesRevisorFields(user) || (isNewRecord && !isRevisorProfile);
+	//const hideRevisorFields = userHidesRevisorFields(user) || (isNewRecord && !isRevisorProfile);
+	
+	const perfil = (user?.tipoPerfil ?? '').trim().toUpperCase();
 
-	useEffect(() => {
+const isSolicitanteProfile = perfil === 'SOLICITANTE';
+const isRevisorProfile = perfil === 'REVISOR';
+const isAdministradorGeneralProfile = perfil === 'ADMINISTRADOR_GENERAL';
+
+const canEditSolicitanteFields = isSolicitanteProfile;
+const canEditRevisorFields = isRevisorProfile;
+const isRequisicionReadOnly = isAdministradorGeneralProfile;
+
+
+
+	/*useEffect(() => {
 		if (!isCreateMode) return;
 		if (isRevisorProfile) {
 			navigate(BASE_PATH, { replace: true });
@@ -211,7 +223,49 @@ export function AdquisicionBienesListadoFormView() {
 		if (mode !== 'form-edicion') return;
 		if (editingRow) return;
 		navigate(BASE_PATH, { replace: true });
-	}, [editingRow, mode, navigate]);
+	}, [editingRow, mode, navigate]);*/
+
+	useEffect(() => {
+	if (!isCreateMode) return;
+
+	if (isRevisorProfile) {
+		navigate(BASE_PATH, { replace: true });
+		setToastState({
+			visible: true,
+			title: 'Los revisores no crean requisiciones nuevas.',
+			variant: 'error',
+		});
+		return;
+	}
+
+	if (isRequisicionReadOnly) {
+		navigate(BASE_PATH, { replace: true });
+		setToastState({
+			visible: true,
+			title: 'El administrador general solo puede consultar requisiciones.',
+			variant: 'error',
+		});
+	}
+}, [isCreateMode, isRevisorProfile, isRequisicionReadOnly, navigate]);
+
+useEffect(() => {
+	if (mode !== 'form-edicion') return;
+
+	if (!editingRow) {
+		navigate(BASE_PATH, { replace: true });
+	}
+}, [editingRow, mode, navigate]);
+
+	useEffect(() => {
+		//No cargar si estás creando
+		if (isCreateMode) return;
+
+		//No cargar si estás editando
+		if (mode === "form-edicion") return;
+
+		loadRequisiciones();
+
+	}, [isCreateMode, mode]);
 
 	const applyFilters = useCallback(() => {
 		setAppliedSearch({
@@ -352,6 +406,7 @@ const loadRequisiciones = async () => {
 		navigate(`${BASE_PATH}/${row.id}`);
 	};
 
+
 	const handleMontoContinue = ({
 		montoStr,
 		tipoCompra,
@@ -483,18 +538,7 @@ const loadRequisiciones = async () => {
 		if (mode !== 'form-edicion') {
 			setActiveFormTabId('');
 		}
-	}, [mode]);
-
-	useEffect(() => {
-		if (mode !== 'form-edicion' || !editingRow) return;
-		setDraftById((prev) => {
-			if (prev[editingRow.id]) return prev;
-			return {
-				...prev,
-				[editingRow.id]: createSeedDraftFromRequisicionRow(editingRow),
-			};
-		});
-	}, [mode, editingRow]);
+	}, [mode]);	
 
 	const setDraftForId = useCallback((rowId: string, next: AdquisicionDraft) => {
 		setDraftById((prev) => ({ ...prev, [rowId]: next }));
@@ -648,7 +692,7 @@ const loadRequisiciones = async () => {
 							<AdquisicionBienesFormShell
 								key={editingRow.id}
 								tipoCompra={editingRow.tipoCompra}
-								hideRevisorFields={hideRevisorFields}
+								hideRevisorFields={canEditSolicitanteFields}
 								readOnly={isRequisicionReadOnly}
 								draft={draftForEdit}
 								onDraftChange={(next) => setDraftForId(editingRow.id, next)}

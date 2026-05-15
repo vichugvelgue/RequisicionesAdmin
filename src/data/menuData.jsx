@@ -27,6 +27,11 @@ export const REQUISICIONES_SUBMENU = [
 	{ id: "RequisicionesContratacionServicios", label: "Contratación de servicios" },
 ];
 
+/** Submenú de Reportes */
+export const REPORTES_SUBMENU = [
+	{ id: "ReportesRequisiciones", label: "Reporte de Requisiciones" },
+];
+
 /** Submenú de Catálogos: id = activeView, label = texto en menú */
 export const CATALOGOS_SUBMENU = [
 	{ id: "CatalogosActividad", label: "Actividad" },

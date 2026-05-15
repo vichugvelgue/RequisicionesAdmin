@@ -3,20 +3,26 @@ import { AdquisicionPartidasSection } from '../../partidas/AdquisicionPartidasSe
 import type { AdquisicionPartidaMayor } from '../../types';
 
 export function MayorPartidasTab({
+		idRequisicion,
+	idUsuario,
 	partidas,
 	canEditSolicitanteFields,
 	onChange,
 }: {
-	partidas: AdquisicionPartidaMayor[];
-	canEditSolicitanteFields: boolean;
-	onChange: (next: AdquisicionPartidaMayor[]) => void;
+	idRequisicion: number;
+		idUsuario: number;
+		partidas: AdquisicionPartidaMayor[];
+		canEditSolicitanteFields: boolean;
+		onChange: (next: AdquisicionPartidaMayor[]) => void;
 }) {
 	return (
 		<AdquisicionPartidasSection
-			tipoCompra="MAYOR"
-			partidas={partidas}
-			canEditSolicitanteFields={canEditSolicitanteFields}
-			onChange={(next) => onChange(next as AdquisicionPartidaMayor[])}
+			idRequisicion={idRequisicion}
+						idUsuario={idUsuario}
+						tipoCompra="MENOR"
+						partidas={partidas}
+						canEditSolicitanteFields={canEditSolicitanteFields}
+						onChange={(next) => onChange(next as AdquisicionPartidaMayor[])}
 		/>
 	);
 }

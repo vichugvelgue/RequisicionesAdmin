@@ -10,24 +10,27 @@ import {
 	Toast,
 	DecimalStringCellInput,
 } from '../../../../../components/UI';
-import {
-	MOCK_ACTIVIDAD,
-	MOCK_CLAVE_PRESUPUESTAL,
-	MOCK_COMPONENTE,
-	MOCK_ORIGEN_RECURSO,
-	MOCK_TIPO_PROGRAMA,
-} from '../../catalogMockOptions';
 import { FieldRoleLabel } from '../../fieldRoleLabel';
 import type { MayorDatosPresupuestalesValues } from '../../types';
+import { requisicionApi } from '../../../../../api';
+import { origenRecursoApi } from '../../../../../api';
+import { clavePresupuestalApi } from '../../../../../api';
+import { componenteApi } from '../../../../../api';
+import { actividadApi } from '../../../../../api';
+import { tipoProgramaApi } from '../../../../../api';
+import type { OptionItem } from '../../../../../components/UI/types';
+import type { Resolver } from 'react-hook-form';
 
-const schema = yup.object({
-	presupuestoAutorizado: yup.string().trim().required('*Requerido'),
-	clavePresupuestalId: yup.string().required('*Requerido'),
-	origenRecursoId: yup.string().required('*Requerido'),
-	componenteId: yup.string().required('*Requerido'),
-	actividadId: yup.string().required('*Requerido'),
-	tipoProgramaId: yup.string().required('*Requerido'),
-});
+const schema: yup.ObjectSchema<MayorDatosPresupuestalesValues> = yup
+	.object({
+		presupuestoAutorizado: yup.string().default('').defined(),
+		clavePresupuestalId: yup.string().default('').defined(),
+		origenRecursoId: yup.string().default('').defined(),
+		componenteId: yup.string().default('').defined(),
+		actividadId: yup.string().default('').defined(),
+		tipoProgramaId: yup.string().default('').defined(),
+	})
+	.required();
 
 const empty: MayorDatosPresupuestalesValues = {
 	presupuestoAutorizado: '',
@@ -40,9 +43,13 @@ const empty: MayorDatosPresupuestalesValues = {
 
 export function MayorDatosPresupuestalesTab({
 	initialValues,
+	idRequisicion,
+	idUsuario,
 	onSave,
 }: {
 	initialValues: Partial<MayorDatosPresupuestalesValues>;
+	idRequisicion: number;
+	idUsuario: number;
 	onSave: (data: MayorDatosPresupuestalesValues) => void;
 }) {
 	const [toast, setToast] = useState({
@@ -51,15 +58,24 @@ export function MayorDatosPresupuestalesTab({
 		variant: 'success' as 'success' | 'error',
 	});
 
+	const [saving, setSaving] = useState(false);
+
+	// Estados para los catálogos
+	const [origenesRecurso, setOrigenesRecurso] = useState<OptionItem[]>([]);
+	const [clavesPresupuestales, setClavesPresupuestales] = useState<OptionItem[]>([]);
+	const [componentes, setComponentes] = useState<OptionItem[]>([]);
+	const [actividades, setActividades] = useState<OptionItem[]>([]);
+	const [tiposPrograma, setTiposPrograma] = useState<OptionItem[]>([]);
+
 	const {
-		control,
-		handleSubmit,
-		reset,
-		formState: { errors },
-	} = useForm<MayorDatosPresupuestalesValues>({
-		resolver: yupResolver(schema),
-		defaultValues: { ...empty, ...initialValues },
-	});
+	control,
+	handleSubmit,
+	reset,
+	formState: { errors },
+} = useForm<MayorDatosPresupuestalesValues>({
+	resolver: yupResolver(schema) as Resolver<MayorDatosPresupuestalesValues>,
+	defaultValues: { ...empty, ...initialValues },
+});
 
 	useEffect(() => {
 		reset({ ...empty, ...initialValues });
@@ -71,27 +87,119 @@ export function MayorDatosPresupuestalesTab({
 		return () => clearTimeout(t);
 	}, [toast.visible]);
 
+	// Cargar catálogos
+	useEffect(() => {
+		const loadCatalogos = async () => {
+			try {
+				const [
+					origenesData,
+					clavesData,
+					componentesData,
+					actividadesData,
+					tiposProgramaData,
+				] = await Promise.all([
+					origenRecursoApi.listar(),
+					clavePresupuestalApi.listar(),
+					componenteApi.listar(),
+					actividadApi.listar(),
+					tipoProgramaApi.listar(),
+				]);
+
+				setOrigenesRecurso(
+					origenesData.map((item) => ({
+						value: String(item.id),
+						label: item.nombre,
+					}))
+				);
+
+				setClavesPresupuestales(
+					clavesData.map((item) => ({
+						value: String(item.id),
+						label: item.nombre,
+					}))
+				);
+
+				setComponentes(
+					componentesData.map((item) => ({
+						value: String(item.id),
+						label: item.nombre,
+					}))
+				);
+
+				setActividades(
+					actividadesData.map((item) => ({
+						value: String(item.id),
+						label: item.nombre,
+					}))
+				);
+
+				setTiposPrograma(
+					tiposProgramaData.map((item) => ({
+						value: String(item.id),
+						label: item.nombre,
+					}))
+				);
+			} catch (error) {
+				setToast({
+					visible: true,
+					title: 'Error al cargar catálogos',
+					variant: 'error',
+				});
+			}
+		};
+
+		loadCatalogos();
+	}, []);
+
+	const onSubmit = async (data: MayorDatosPresupuestalesValues) => {
+		try {
+			setSaving(true);
+
+			const payload = {
+				idRequisicion,
+				idUsuario,
+				presupuestoAutorizado: data.presupuestoAutorizado,
+				idClavePresupuestal: data.clavePresupuestalId ? Number(data.clavePresupuestalId) : null,
+				idOrigenRecurso: data.origenRecursoId ? Number(data.origenRecursoId) : null,
+				idComponente: data.componenteId ? Number(data.componenteId) : null,
+				idActividad: data.actividadId ? Number(data.actividadId) : null,
+				idTipoPrograma: data.tipoProgramaId ? Number(data.tipoProgramaId) : null,
+			};
+
+			await requisicionApi.guardarDatosPresupuestales(payload);
+
+			onSave(data);
+
+			setToast({
+				visible: true,
+				title: 'Datos presupuestales guardados',
+				variant: 'success',
+			});
+		} catch (error) {
+			setToast({
+				visible: true,
+				title: error instanceof Error ? error.message : 'Error al guardar datos presupuestales',
+				variant: 'error',
+			});
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	const onInvalid = () => {
+		setToast({
+			visible: true,
+			title: 'Faltan campos por capturar',
+			variant: 'error',
+		});
+	};
+
 	return (
 		<div className="p-4 flex-1 min-h-0 overflow-auto">
 			<FormSection>
 				<form
 					className="space-y-4"
-					onSubmit={handleSubmit(
-						(data) => {
-							onSave(data);
-							setToast({
-								visible: true,
-								title: 'Datos presupuestales guardados',
-								variant: 'success',
-							});
-						},
-						() =>
-							setToast({
-								visible: true,
-								title: 'Faltan campos por capturar',
-								variant: 'error',
-							})
-					)}
+					onSubmit={handleSubmit(onSubmit, onInvalid)}
 					noValidate
 				>
 					<div className="grid grid-cols-12 gap-4">
@@ -117,13 +225,13 @@ export function MayorDatosPresupuestalesTab({
 							) : null}
 						</div>
 						<div className="col-span-12 lg:col-span-4">
-							<FieldRoleLabel>Clave presupuestal / objeto de gasto</FieldRoleLabel>
+							<FieldRoleLabel>Clave presupuestal</FieldRoleLabel>
 							<Controller
 								name="clavePresupuestalId"
 								control={control}
 								render={({ field }) => (
 									<SearchableSelect
-										options={MOCK_CLAVE_PRESUPUESTAL}
+										options={clavesPresupuestales}
 										value={field.value}
 										onChange={field.onChange}
 										placeholder="Buscar…"
@@ -143,7 +251,7 @@ export function MayorDatosPresupuestalesTab({
 								control={control}
 								render={({ field }) => (
 									<SearchableSelect
-										options={MOCK_ORIGEN_RECURSO}
+										options={origenesRecurso}
 										value={field.value}
 										onChange={field.onChange}
 										placeholder="Buscar…"
@@ -161,7 +269,7 @@ export function MayorDatosPresupuestalesTab({
 								control={control}
 								render={({ field }) => (
 									<SearchableSelect
-										options={MOCK_COMPONENTE}
+										options={componentes}
 										value={field.value}
 										onChange={field.onChange}
 										placeholder="Buscar…"
@@ -179,7 +287,7 @@ export function MayorDatosPresupuestalesTab({
 								control={control}
 								render={({ field }) => (
 									<SearchableSelect
-										options={MOCK_ACTIVIDAD}
+										options={actividades}
 										value={field.value}
 										onChange={field.onChange}
 										placeholder="Buscar…"
@@ -197,7 +305,7 @@ export function MayorDatosPresupuestalesTab({
 								control={control}
 								render={({ field }) => (
 									<SearchableSelect
-										options={MOCK_TIPO_PROGRAMA}
+										options={tiposPrograma}
 										value={field.value}
 										onChange={field.onChange}
 										placeholder="Buscar…"
@@ -210,8 +318,14 @@ export function MayorDatosPresupuestalesTab({
 						</div>
 					</div>
 					<div className="flex justify-end pt-2">
-						<Button type="submit" variant="success" size="md" leftIcon={<Save className="w-4 h-4" />}>
-							Guardar sección
+						<Button
+							type="submit"
+							variant="success"
+							size="md"
+							leftIcon={<Save className="w-4 h-4" />}
+							disabled={saving}
+						>
+							{saving ? 'Guardando...' : 'Guardar sección'}
 						</Button>
 					</div>
 				</form>

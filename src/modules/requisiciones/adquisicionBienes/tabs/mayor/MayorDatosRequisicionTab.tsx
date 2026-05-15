@@ -6,12 +6,16 @@ import { Check, Save } from 'lucide-react';
 import { Button, FormSection, TextArea, Toast, Input } from '../../../../../components/UI';
 import { FieldRoleLabel } from '../../fieldRoleLabel';
 import type { MayorDatosRequisicionValues } from '../../types';
+import type { Resolver } from 'react-hook-form';
+import { requisicionApi } from '../../../../../api';
 
-const schema = yup.object({
-	descripcionGeneral: yup.string().trim().required('*Requerido'),
-	justificacionGasto: yup.string().trim().required('*Requerido'),
-	periodoGarantia: yup.string().trim().required('*Requerido'),
-});
+const schema: yup.ObjectSchema<MayorDatosRequisicionValues> = yup
+	.object({
+		descripcionGeneral: yup.string().trim().required('*Requerido').defined(),
+		justificacionGasto: yup.string().trim().required('*Requerido').defined(),
+		periodoGarantia: yup.string().trim().required('*Requerido').defined(),
+	})
+	.required();
 
 const empty: MayorDatosRequisicionValues = {
 	descripcionGeneral: '',
@@ -21,9 +25,13 @@ const empty: MayorDatosRequisicionValues = {
 
 export function MayorDatosRequisicionTab({
 	initialValues,
+	idRequisicion,
+	idUsuario,
 	onSave,
 }: {
 	initialValues: Partial<MayorDatosRequisicionValues>;
+	idRequisicion: number;
+	idUsuario: number;
 	onSave: (data: MayorDatosRequisicionValues) => void;
 }) {
 	const [toast, setToast] = useState({
@@ -33,14 +41,14 @@ export function MayorDatosRequisicionTab({
 	});
 
 	const {
-		register,
-		handleSubmit,
-		reset,
-		formState: { errors },
-	} = useForm<MayorDatosRequisicionValues>({
-		resolver: yupResolver(schema),
-		defaultValues: { ...empty, ...initialValues },
-	});
+	register,
+	handleSubmit,
+	reset,
+	formState: { errors },
+} = useForm<MayorDatosRequisicionValues>({
+	resolver: yupResolver(schema) as Resolver<MayorDatosRequisicionValues>,
+	defaultValues: { ...empty, ...initialValues },
+});
 
 	useEffect(() => {
 		reset({ ...empty, ...initialValues });
@@ -58,24 +66,40 @@ export function MayorDatosRequisicionTab({
 				<form
 					className="space-y-4"
 					onSubmit={handleSubmit(
-						(data) => {
-							onSave({
+						async (data) => {
+							const dataNormalizada: MayorDatosRequisicionValues = {
 								descripcionGeneral: data.descripcionGeneral.trim().toUpperCase(),
 								justificacionGasto: data.justificacionGasto.trim().toUpperCase(),
 								periodoGarantia: data.periodoGarantia.trim().toUpperCase(),
-							});
-							setToast({
-								visible: true,
-								title: 'Datos de la requisición guardados',
-								variant: 'success',
-							});
+							};
+
+							try {
+								await requisicionApi.guardarDatosRequisicion({
+									idRequisicion,
+									idUsuario,
+									descripcionGeneral: dataNormalizada.descripcionGeneral,
+									justificacionGasto: dataNormalizada.justificacionGasto,
+									periodoGarantia: dataNormalizada.periodoGarantia,
+								});
+
+								onSave(dataNormalizada);
+
+								setToast({
+									visible: true,
+									title: 'Datos de la requisición guardados',
+									variant: 'success',
+								});
+							} catch (error) {
+								setToast({
+									visible: true,
+									title:
+										error instanceof Error
+											? error.message
+											: 'Error al guardar datos de la requisición',
+									variant: 'error',
+								});
+							}
 						},
-						() =>
-							setToast({
-								visible: true,
-								title: 'Faltan campos por capturar',
-								variant: 'error',
-							})
 					)}
 					noValidate
 				>
