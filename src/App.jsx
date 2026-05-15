@@ -24,6 +24,7 @@ import {
 	AdquisicionBienesListadoFormView,
 	ContratacionServiciosListadoFormView,
 } from "./modules/requisiciones";
+import { ReporteRequisicionesView } from "./modules/reportes";
 import {
 	ActividadView,
 	ClavePresupuestalObjetoGastoView,
@@ -104,6 +105,10 @@ function App() {
 				<Route
 					path="requisiciones/contratacion-servicios/:id"
 					element={<ContratacionServiciosListadoFormView />}
+				/>
+				<Route
+					path="reportes/reporte-requisiciones"
+					element={<ReporteRequisicionesView />}
 				/>
 				</Route>
 			</Route>

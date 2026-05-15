@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ClipboardList, LayoutDashboard, Package, Users } from "lucide-react";
+import { ClipboardList, LayoutDashboard, Package, Users, BarChart3 } from "lucide-react";
 
 import {
 	SidebarSubmenuItem,
@@ -13,6 +13,7 @@ import {
 	EJEMPLOS_SUBMENU,
 	USUARIOS_SUBMENU,
 	REQUISICIONES_SUBMENU,
+	REPORTES_SUBMENU,
 } from "../../data/menuData";
 import { useAuth, canAccessCatalogosUsuarios } from "../../auth";
 
@@ -43,6 +44,10 @@ const REQUISICIONES_PATH_MAP = {
 	RequisicionesContratacionServicios: "/requisiciones/contratacion-servicios",
 };
 
+const REPORTES_PATH_MAP = {
+	ReportesRequisiciones: "/reportes/reporte-requisiciones",
+};
+
 const CATALOGOS_PATH_MAP = {
 	CatalogosActividad: "/catalogos/actividad",
 	CatalogosComponente: "/catalogos/componente",
@@ -65,12 +70,14 @@ export function Sidebar({ isSidebarOpen }) {
 	const [isCatalogosOpen, setIsCatalogosOpen] = useState(false);
 	const [isUsuariosOpen, setIsUsuariosOpen] = useState(false);
 	const [isRequisicionesOpen, setIsRequisicionesOpen] = useState(false);
+	const [isReportesOpen, setIsReportesOpen] = useState(false);
 
 	const isComponentesActive = pathname.startsWith("/componentes");
 	const isEjemplosActive = pathname.startsWith("/ejemplos");
 	const isUsuariosActive = pathname.startsWith("/usuarios");
 	const isRequisicionesActive = pathname.startsWith("/requisiciones");
 	const isCatalogosActive = pathname.startsWith("/catalogos");
+	const isReportesActive = pathname.startsWith("/reportes");
 	const showComponentesMenu = import.meta.env.VITE_SHOW_COMPONENTES === "true";
 	const showExamplesMenu = import.meta.env.VITE_SHOW_EXAMPLES === "true";
 
@@ -159,8 +166,28 @@ export function Sidebar({ isSidebarOpen }) {
 								/>
 							);
 						})}
+					</SidebarParentExpandable>				{showCatalogosUsuarios ? (
+					<SidebarParentExpandable
+						icon={<BarChart3 className="w-4 h-4" />}
+						label="Reportes"
+						open={isReportesOpen}
+						onToggle={() => setIsReportesOpen(!isReportesOpen)}
+						isActive={isReportesActive}
+					>
+						{REPORTES_SUBMENU.map((item) => {
+							const path = REPORTES_PATH_MAP[item.id];
+							return (
+								<SidebarSubmenuItem
+									key={item.id}
+									id={item.id}
+									label={item.label}
+									isActive={pathname === path}
+									onClick={() => path && handleNav(path)}
+								/>
+							);
+						})}
 					</SidebarParentExpandable>
-					{showCatalogosUsuarios ? (
+				) : null}					{showCatalogosUsuarios ? (
 						<SidebarParentExpandable
 							icon={<Package className="w-4 h-4" />}
 							label="Catálogos"

@@ -1,40 +1,72 @@
 import React, { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { get, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Check, Save } from 'lucide-react';
 import { Button, FormSection, TextArea, Toast } from '../../../../../components/UI';
 import { FieldRoleLabel } from '../../fieldRoleLabel';
+import { requisicionApi } from '../../../../../api/requisicionBienesAPI';
+import type { Resolver } from 'react-hook-form';
+import { useParams } from "react-router-dom";
 
-const schema = yup.object({
-	justificacionGasto: yup.string().trim().required('*Requerido'),
-});
+const schema = yup
+	.object({
+		justificacionGasto: yup.string().trim().required('*Requerido'),
+	})
+	.required();
+
+type MenorDatosRequisicionForm = {
+	justificacionGasto: string;
+};
+
+const getUsuarioId = (): number => {
+	try {
+		const session = JSON.parse(
+			localStorage.getItem('requisiciones_admin_auth_v1') || 'null'
+		);
+
+		return Number(session?.user?.id ?? 0);
+	} catch {
+		return 0;
+	}
+};
 
 export function MenorDatosRequisicionTab({
+	idRequisicion,
+	idUsuario,
 	initialValues,
 	onSave,
 }: {
-	initialValues: Partial<{ justificacionGasto: string }>;
-	onSave: (data: { justificacionGasto: string }) => void;
+	idRequisicion: number;
+	idUsuario: number;
+	initialValues: Partial<MenorDatosRequisicionForm>;
+	onSave: (data: MenorDatosRequisicionForm) => void;
 }) {
 	const [toast, setToast] = useState({
 		visible: false,
 		title: '',
 		variant: 'success' as 'success' | 'error',
 	});
+	const [isSaving, setIsSaving] = useState(false);
+	const { id } = useParams();
+	 idRequisicion = Number(id ?? 0);
 
 	const {
-		register,
-		handleSubmit,
-		reset,
-		formState: { errors },
-	} = useForm<{ justificacionGasto: string }>({
-		resolver: yupResolver(schema),
-		defaultValues: { justificacionGasto: initialValues.justificacionGasto ?? '' },
-	});
+	register,
+	handleSubmit,
+	reset,
+	formState: { errors },
+} = useForm<MenorDatosRequisicionForm>({
+	resolver: yupResolver(schema) as Resolver<MenorDatosRequisicionForm>,
+	defaultValues: {
+		justificacionGasto: initialValues.justificacionGasto ?? '',
+	},
+});
 
 	useEffect(() => {
-		reset({ justificacionGasto: initialValues.justificacionGasto ?? '' });
+		reset({
+			justificacionGasto: initialValues.justificacionGasto ?? '',
+		});
 	}, [initialValues.justificacionGasto, reset]);
 
 	useEffect(() => {
@@ -49,13 +81,39 @@ export function MenorDatosRequisicionTab({
 				<form
 					className="space-y-4"
 					onSubmit={handleSubmit(
-						(data) => {
-							onSave({ justificacionGasto: data.justificacionGasto.trim().toUpperCase() });
-							setToast({
-								visible: true,
-								title: 'Justificación guardada',
-								variant: 'success',
-							});
+						async (data) => {
+							try {
+								setIsSaving(true);
+
+								const justificacionGasto = data.justificacionGasto.trim().toUpperCase();
+								idUsuario = getUsuarioId();
+								await requisicionApi.guardarDatosRequisicion({
+									idRequisicion,
+									idUsuario,
+									descripcionGeneral: '',
+									justificacionGasto,
+									periodoGarantia: '',
+								});
+
+								onSave({ justificacionGasto });
+
+								setToast({
+									visible: true,
+									title: 'Justificación guardada',
+									variant: 'success',
+								});
+							} catch (error) {
+								setToast({
+									visible: true,
+									title:
+										error instanceof Error
+											? error.message
+											: 'No se pudo guardar la justificación',
+									variant: 'error',
+								});
+							} finally {
+								setIsSaving(false);
+							}
 						},
 						() =>
 							setToast({
@@ -71,19 +129,34 @@ export function MenorDatosRequisicionTab({
 							<FieldRoleLabel htmlFor="menor-just">
 								Justificación del gasto
 							</FieldRoleLabel>
-							<TextArea id="menor-just" rows={6} {...register('justificacionGasto')} className="uppercase" />
+							<TextArea
+								id="menor-just"
+								rows={6}
+								{...register('justificacionGasto')}
+								className="uppercase"
+							/>
 							{errors.justificacionGasto?.message ? (
-								<p className="text-[11px] mt-1 text-red-600">{errors.justificacionGasto.message}</p>
+								<p className="text-[11px] mt-1 text-red-600">
+									{errors.justificacionGasto.message}
+								</p>
 							) : null}
 						</div>
 					</div>
+
 					<div className="flex justify-end pt-2">
-						<Button type="submit" variant="success" size="md" leftIcon={<Save className="w-4 h-4" />}>
-							Guardar sección
+						<Button
+							type="submit"
+							variant="success"
+							size="md"
+							leftIcon={<Save className="w-4 h-4" />}
+							disabled={isSaving}
+						>
+							{isSaving ? 'Guardando...' : 'Guardar sección'}
 						</Button>
 					</div>
 				</form>
 			</FormSection>
+
 			<Toast
 				visible={toast.visible}
 				title={toast.title}

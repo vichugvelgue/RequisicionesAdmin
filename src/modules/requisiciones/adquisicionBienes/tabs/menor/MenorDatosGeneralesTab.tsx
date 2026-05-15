@@ -14,6 +14,11 @@ import {
 import { MOCK_UNIDAD_SOLICITANTE } from '../../catalogMockOptions';
 import { FieldRoleLabel } from '../../fieldRoleLabel';
 import { dateToInputValue } from '../../../../../utils/dateFormat';
+import { unidadSolicitanteApi } from '../../../../../api/unidadSolicitanteApi';
+import { requisicionApi, RequisicionDetalle } from '../../../../../api/requisicionBienesAPI';
+import { OptionItem } from '@/components/UI/types';
+import { useParams } from "react-router-dom";
+
 
 export interface MenorDatosGeneralesForm {
 	unidadSolicitanteId: string;
@@ -47,33 +52,79 @@ function withDefaultFecha(initialValues: Partial<MenorDatosGeneralesForm>): Meno
 	};
 }
 
-export function MenorDatosGeneralesTab({
-	initialValues,
-	onSave,
-}: {
+const getUsuarioId = (): number => {
+	try {
+		const session = JSON.parse(
+			localStorage.getItem('requisiciones_admin_auth_v1') || 'null'
+		);
+
+		return Number(session?.user?.id ?? 0);
+	} catch {
+		return 0;
+	}
+};
+
+export function MenorDatosGeneralesTab({idRequisicion,idUsuario,initialValues,onSave,}: {
+	idRequisicion: number;
+	idUsuario: number;
 	initialValues: Partial<MenorDatosGeneralesForm>;
 	onSave: (data: MenorDatosGeneralesForm) => void;
 }) {
-	const [toast, setToast] = useState({
-		visible: false,
-		title: '',
-		variant: 'success' as 'success' | 'error',
-	});
+	
+	const [toast, setToast] = useState({visible: false,title: '',variant: 'success' as 'success' | 'error',});
+	const [unidadesSolicitantes, setUnidadesSolicitantes] = useState<OptionItem[]>([]);
+	const [isSaving, setIsSaving] = useState(false);
+	const { id } = useParams();
+	 idRequisicion = Number(id ?? 0);
 
 	const {
-		register,
 		control,
+		register,
 		handleSubmit,
 		reset,
 		formState: { errors },
 	} = useForm<MenorDatosGeneralesForm>({
-		resolver: yupResolver(schema),
 		defaultValues: withDefaultFecha(initialValues),
 	});
 
-	useEffect(() => {
-		reset(withDefaultFecha(initialValues));
-	}, [initialValues, reset]);
+
+useEffect(() => {
+	reset({
+		unidadSolicitanteId: initialValues.unidadSolicitanteId ?? '',
+		nombreSolicitante: initialValues.nombreSolicitante ?? '',
+		cargo: initialValues.cargo ?? '',
+		fechaSolicitud: initialValues.fechaSolicitud ?? dateToInputValue(new Date()),
+	});
+}, [
+	initialValues.unidadSolicitanteId,
+	initialValues.nombreSolicitante,
+	initialValues.cargo,
+	initialValues.fechaSolicitud,
+	reset,
+]);
+
+
+	useEffect(() => {	
+		const loadUnidades = async () => {
+		try {
+			const data = await unidadSolicitanteApi.listar();
+			setUnidadesSolicitantes(
+				data.map((x) => ({
+					value: String(x.id),
+					label: x.nombre,
+				}))
+			);
+		} catch {
+			setToast({
+				visible: true,
+				title: 'No se pudo cargar unidad solicitante',
+				variant: 'error',
+			});
+		}
+	};
+	loadUnidades();
+}, []);
+
 
 	useEffect(() => {
 		if (!toast.visible) return;
@@ -87,25 +138,52 @@ export function MenorDatosGeneralesTab({
 				<form
 					className="space-y-4"
 					onSubmit={handleSubmit(
-						(data) => {
+					async (data) => {
+						try {
+							setIsSaving(true);
+							idUsuario = getUsuarioId();
+							await requisicionApi.guardarDatosGenerales({
+								idRequisicion,
+								idUsuario,
+								idUnidadSolicitante: Number(data.unidadSolicitanteId),
+								nombreSolicitante: data.nombreSolicitante.trim().toUpperCase(),
+								cargoSolicitante: data.cargo.trim().toUpperCase(),
+								fechaSolicitud: data.fechaSolicitud,
+
+								caracterProcedimiento: null,
+								modalidadContratacion: null,
+								articulo: null,
+								tipoProcedimiento: '',
+							});
+
 							onSave({
 								...data,
 								nombreSolicitante: data.nombreSolicitante.trim().toUpperCase(),
 								cargo: data.cargo.trim().toUpperCase(),
 							});
+
 							setToast({
 								visible: true,
 								title: 'Datos generales guardados',
 								variant: 'success',
 							});
-						},
-						() =>
+						} catch (err) {
 							setToast({
 								visible: true,
-								title: 'Faltan campos por capturar',
+								title: err instanceof Error ? err.message : 'No se pudieron guardar los datos generales',
 								variant: 'error',
-							})
-					)}
+							});
+						} finally {
+							setIsSaving(false);
+						}
+					},
+					() =>
+						setToast({
+							visible: true,
+							title: 'Faltan campos por capturar',
+							variant: 'error',
+						})
+				)}
 					noValidate
 				>
 					<div className="grid grid-cols-12 gap-4">
@@ -116,7 +194,7 @@ export function MenorDatosGeneralesTab({
 								control={control}
 								render={({ field }) => (
 									<SearchableSelect
-										options={MOCK_UNIDAD_SOLICITANTE}
+										options={unidadesSolicitantes}
 										value={field.value}
 										onChange={field.onChange}
 										placeholder="Buscar unidad…"

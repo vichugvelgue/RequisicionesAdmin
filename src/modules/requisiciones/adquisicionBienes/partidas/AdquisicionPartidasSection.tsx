@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pencil, Plus, Trash2, X } from 'lucide-react';
 import {
 	Button,
@@ -10,13 +10,18 @@ import {
 	TextArea,
 } from '../../../../components/UI';
 import type { SimpleTableColumn } from '../../../../components/UI/SimpleTable/SimpleTable';
-import { MOCK_UNIDAD_MEDIDA } from '../catalogMockOptions';
 import { FieldRoleLabel } from '../fieldRoleLabel';
 import type {
 	AdquisicionPartidaMayor,
 	AdquisicionPartidaMenor,
 	TipoCompra,
 } from '../types';
+
+import { Save } from 'lucide-react';
+import { requisicionApi } from '../../../../api/requisicionBienesAPI';
+
+import { unidadMedidaApi } from "../../../../api";
+import type { OptionItem } from '../../../../components/UI/types';
 
 type PartidaRow = AdquisicionPartidaMayor | AdquisicionPartidaMenor;
 
@@ -33,11 +38,15 @@ const EMPTY_FORM: DraftPartidaForm = {
 };
 
 export function AdquisicionPartidasSection({
+	idRequisicion,
+	idUsuario,
 	tipoCompra,
 	canEditSolicitanteFields,
 	partidas,
 	onChange,
 }: {
+	idRequisicion: number;
+	idUsuario: number;
 	tipoCompra: TipoCompra;
 	canEditSolicitanteFields: boolean;
 	partidas: PartidaRow[];
@@ -46,6 +55,8 @@ export function AdquisicionPartidasSection({
 	const [draft, setDraft] = useState<DraftPartidaForm>(EMPTY_FORM);
 	const [showErrors, setShowErrors] = useState(false);
 	const [editingId, setEditingId] = useState<string | null>(null);
+	const [isSavingPartidas, setIsSavingPartidas] = useState(false);
+	const [unidadesMedida, setUnidadesMedida] = useState<OptionItem[]>([]);
 
 	const nextNumeroPartida = useMemo(() => {
 		const max = partidas.reduce((acc, item) => Math.max(acc, item.numeroPartida), 0);
@@ -97,11 +108,61 @@ export function AdquisicionPartidasSection({
 		[editingId, partidas]
 	);
 
+	useEffect(() => {
+		const loadUnidadesMedida = async () => {
+			try {
+				const data = await unidadMedidaApi.listar();
+				setUnidadesMedida(
+					data.map((item) => ({
+						value: String(item.id),
+						label: item.nombre,
+					}))
+				);
+			} catch (error) {
+				console.error('Error al cargar unidades de medida:', error);
+			}
+		};
+
+		loadUnidadesMedida();
+			}, []);			
+
+
+	async function handleGuardarPartidasApi() {
+		console.log("handleGuardarPartidasApi called with partidas:", partidas);
+		if (!partidas.length) return;
+
+		try {
+			setIsSavingPartidas(true);
+
+			await requisicionApi.guardarPartidas({
+				idRequisicion,
+				idUsuario,
+				listaPartidas: partidas.map((p) => ({
+					idRequisicion,
+					descripcion: p.descripcion.trim().toUpperCase(),
+					idUnidadMedida: Number(p.unidadMedidaId),
+					cantidad: Number(String(p.cantidad).replace(/,/g, '.')),
+					unidadMedidaLabel: p.unidadMedidaLabel ?? "",
+					descripcionGeneral: '',
+					descripcionEspecifica: '',
+					lugarPeriodoEjecucionServicio: '',
+					personalRequerido: '',
+					entregablesNecesarios: '',
+					condicionesGeneralesContratacion: '',
+				})),
+			});
+		} finally {
+			setIsSavingPartidas(false);
+		}
+	}
+
+
+
 	function handleSavePartida() {
 		setShowErrors(true);
 		if (!draft.cantidad.trim() || !draft.unidadMedidaId || !draft.descripcion.trim()) return;
 
-		const unidadSeleccionada = MOCK_UNIDAD_MEDIDA.find((u) => u.value === draft.unidadMedidaId);
+		const unidadSeleccionada = unidadesMedida.find((u) => u.value === draft.unidadMedidaId);
 		const basePartida = {
 			cantidad: draft.cantidad,
 			unidadMedidaId: draft.unidadMedidaId,
@@ -197,7 +258,7 @@ export function AdquisicionPartidasSection({
 						<div className="col-span-12 lg:col-span-3">
 							<FieldRoleLabel>Unidad de medida</FieldRoleLabel>
 							<SearchableSelect
-								options={MOCK_UNIDAD_MEDIDA}
+								options={unidadesMedida}
 								value={draft.unidadMedidaId}
 								onChange={(value) => setDraft((prev) => ({ ...prev, unidadMedidaId: value }))}
 								placeholder="Buscar..."
@@ -206,6 +267,18 @@ export function AdquisicionPartidasSection({
 							{errors.unidadMedidaId ? (
 								<p className="text-[11px] mt-1 text-red-600">*Requerido</p>
 							) : null}
+						</div>
+						<div className="flex justify-end pt-2">
+							<Button
+	type="button"
+	variant="primary"
+	size="md"
+	className="!px-3 !py-1 text-xs h-8 min-h-0"
+	onClick={handleSavePartida}
+	disabled={!canEditSolicitanteFields}
+>
+	{editingId ? 'Actualizar partida' : 'Agregar partida'}
+</Button>
 						</div>
 					</div>
 
@@ -235,13 +308,11 @@ export function AdquisicionPartidasSection({
 								type="button"
 								variant="success"
 								size="md"
-								leftIcon={
-									editingId ? <Pencil className="w-4 h-4" /> : <Plus className="w-4 h-4" />
-								}
-								disabled={!canEditSolicitanteFields}
-								onClick={handleSavePartida}
+								leftIcon={<Save className="w-4 h-4" />}
+								disabled={!canEditSolicitanteFields || !partidas.length || isSavingPartidas}
+								onClick={handleGuardarPartidasApi}
 							>
-								{editingId ? 'Actualizar' : 'Guardar'}
+								{isSavingPartidas ? 'Guardando...' : 'Guardar partidas'}
 							</Button>
 							{editingId ? (
 								<Button

@@ -6,3 +6,4 @@ export * from './unidadMedidaApi';
 export * from './unidadSolicitanteApi';
 export * from './componenteApi';
 export * from './usuarioApi';
+export * from './requisicionBienesAPI';

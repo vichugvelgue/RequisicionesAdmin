@@ -15,6 +15,7 @@ import { MenorDatosRequisicionTab } from './tabs/menor/MenorDatosRequisicionTab'
 import { MenorPartidasTab } from './tabs/menor/MenorPartidasTab';
 import { MenorDocumentoTab } from './tabs/menor/MenorDocumentoTab';
 import type { RequisicionRow } from './types';
+import { requisicionApi, RequisicionDetalle } from '../../../api/requisicionBienesAPI';
 
 /** Id de la pestaña "Documento" (última) en el flujo MAYOR. */
 export const ADQUISICION_BIENES_TAB_DOCUMENTO_MAYOR = 'g8';
@@ -66,6 +67,9 @@ export function AdquisicionBienesFormShell({
 		onActiveTabChange?.(tab);
 	}, [tab, onActiveTabChange]);
 	const AUTO_ADVANCE_DELAY_MS = 900;
+	const idRequisicion = Number(editingRow.id);
+	const [requisicionDetalle, setRequisicionDetalle] = useState<RequisicionDetalle | null>(null);
+const [isLoadingDetalle, setIsLoadingDetalle] = useState(false);
 	const goToNextTab = (currentTabId: string, orderedTabIds: string[]) => {
 		if (!isNewRecord) return;
 		const currentIndex = orderedTabIds.indexOf(currentTabId);
@@ -88,6 +92,23 @@ export function AdquisicionBienesFormShell({
 			? (draft.menorDatosGenerales.nombreSolicitante ?? editingRow.solicitante)
 			: (draft.mayorDatosGenerales.nombreTitular ?? editingRow.solicitante);
 
+	useEffect(() => {
+	if (!editingRow?.id) return;
+
+	const loadDetalle = async () => {
+		setIsLoadingDetalle(true);
+
+		try {
+			const data = await requisicionApi.obtenerPorId(Number(editingRow.id));			
+			setRequisicionDetalle(data);			
+		} finally {
+			setIsLoadingDetalle(false);
+		}
+	};
+
+	loadDetalle();
+	}, [editingRow?.id]);
+
 	if (tipoCompra === 'MAYOR') {
 		let step = 0;
 		const tabsList: { id: string; label: React.ReactNode; panel: React.ReactNode }[] = [
@@ -96,13 +117,70 @@ export function AdquisicionBienesFormShell({
 				label: <StepperTabLabel step={++step} title="Datos generales" />,
 				panel: (
 					<MayorDatosGeneralesTab
+						idRequisicion={Number(editingRow.id)}	
 						hideRevisorFields={hideRevisorFields}
-						initialValues={draft.mayorDatosGenerales}
+						initialValues={{
+							unidadSolicitanteId: requisicionDetalle?.idUnidadSolicitante
+								? String(requisicionDetalle.idUnidadSolicitante)
+								: '',
+
+							nombreTitular: requisicionDetalle?.nombreSolicitante ?? '',
+
+							cargoSolicitante: requisicionDetalle?.cargoSolicitante ?? '',
+
+							fechaSolicitud: requisicionDetalle?.fechaSolicitud
+								? requisicionDetalle.fechaSolicitud.substring(0, 10)
+								: '',
+
+							caracterProcedimiento: requisicionDetalle?.caracterProcedimiento
+								? String(requisicionDetalle.caracterProcedimiento)
+								: '',
+
+							modalidadContratacion: requisicionDetalle?.modalidadContratacion
+								? String(requisicionDetalle.modalidadContratacion)
+								: '',
+
+							/*articulo: requisicionDetalle?.articulo
+								? String(requisicionDetalle.articulo)
+								: '',*/
+
+							tipoProcedimiento: requisicionDetalle?.tipoProcedimiento ?? '',
+						}}
 						onSave={(data) => {
+							setRequisicionDetalle((prev) =>
+								prev
+									? {
+											...prev,
+											idUnidadSolicitante: Number(data.unidadSolicitanteId),
+											nombreSolicitante: data.nombreTitular,
+											cargoSolicitante: data.cargoSolicitante,
+											fechaSolicitud: data.fechaSolicitud,
+
+											caracterProcedimiento: data.caracterProcedimiento
+												? Number(data.caracterProcedimiento)
+												: null,
+
+											modalidadContratacion: data.modalidadContratacion
+												? Number(data.modalidadContratacion)
+												: null,
+
+											/*articulo: data.articulo
+												? Number(data.articulo)
+												: null,*/
+
+											tipoProcedimiento: data.tipoProcedimiento,
+									}
+									: prev
+							);
+
 							onDraftChange({
 								...draft,
-								mayorDatosGenerales: { ...draft.mayorDatosGenerales, ...data },
+								mayorDatosGenerales: {
+									...draft.mayorDatosGenerales,
+									...data,
+								},
 							});
+
 							onPatchRow({ solicitante: data.nombreTitular });
 						}}
 					/>
@@ -113,14 +191,67 @@ export function AdquisicionBienesFormShell({
 				label: <StepperTabLabel step={++step} title="Datos presupuestales" />,
 				panel: (
 					<MayorDatosPresupuestalesTab
-						initialValues={draft.mayorDatosPresupuestales}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorDatosPresupuestales: { ...draft.mayorDatosPresupuestales, ...data },
-							});
-						}}
-					/>
+	idRequisicion={Number(editingRow.id)}
+	idUsuario={Number(editingRow.idUsuario ?? 0)}
+	initialValues={{
+		presupuestoAutorizado: requisicionDetalle?.presupuestoAutorizado ?? '',
+
+		clavePresupuestalId: requisicionDetalle?.idClavePresupuestal
+			? String(requisicionDetalle.idClavePresupuestal)
+			: '',
+
+		origenRecursoId: requisicionDetalle?.idOrigenRecurso
+			? String(requisicionDetalle.idOrigenRecurso)
+			: '',
+
+		componenteId: requisicionDetalle?.idComponente
+			? String(requisicionDetalle.idComponente)
+			: '',
+
+		actividadId: requisicionDetalle?.idActividad
+			? String(requisicionDetalle.idActividad)
+			: '',
+
+		tipoProgramaId: requisicionDetalle?.idTipoPrograma
+			? String(requisicionDetalle.idTipoPrograma)
+			: '',
+	}}
+	onSave={(data) => {
+		setRequisicionDetalle((prev) =>
+			prev
+				? {
+						...prev,
+						presupuestoAutorizado: data.presupuestoAutorizado,
+						idClavePresupuestal: data.clavePresupuestalId
+							? Number(data.clavePresupuestalId)
+							: null,
+						idOrigenRecurso: data.origenRecursoId
+							? Number(data.origenRecursoId)
+							: null,
+						idComponente: data.componenteId
+							? Number(data.componenteId)
+							: null,
+						idActividad: data.actividadId
+							? Number(data.actividadId)
+							: null,
+						idTipoPrograma: data.tipoProgramaId
+							? Number(data.tipoProgramaId)
+							: null,
+				  }
+				: prev
+		);
+
+		onDraftChange({
+			...draft,
+			mayorDatosPresupuestales: {
+				...draft.mayorDatosPresupuestales,
+				...data,
+			},
+		});
+
+		goToNextTab('g2', orderedTabIds);
+	}}
+/>
 				),
 			},
 			{
@@ -128,12 +259,34 @@ export function AdquisicionBienesFormShell({
 				label: <StepperTabLabel step={++step} title="Datos requisición" />,
 				panel: (
 					<MayorDatosRequisicionTab
-						initialValues={draft.mayorDatosRequisicion}
+						idRequisicion={Number(editingRow.id)}
+						idUsuario={Number(editingRow.idUsuario ?? 0)}
+						initialValues={{
+							descripcionGeneral: requisicionDetalle?.descripcionGeneral ?? '',
+							justificacionGasto: requisicionDetalle?.justificacionGasto ?? '',
+							periodoGarantia: requisicionDetalle?.periodoGarantia ?? '',
+						}}
 						onSave={(data) => {
+							setRequisicionDetalle((prev) =>
+								prev
+									? {
+											...prev,
+											descripcionGeneral: data.descripcionGeneral,
+											justificacionGasto: data.justificacionGasto,
+											periodoGarantia: data.periodoGarantia,
+									}
+									: prev
+							);
+
 							onDraftChange({
 								...draft,
-								mayorDatosRequisicion: { ...draft.mayorDatosRequisicion, ...data },
+								mayorDatosRequisicion: {
+									...draft.mayorDatosRequisicion,
+									...data,
+								},
 							});
+
+							goToNextTab('g3', orderedTabIds);
 						}}
 					/>
 				),
@@ -143,14 +296,38 @@ export function AdquisicionBienesFormShell({
 				label: <StepperTabLabel step={++step} title="Partidas" />,
 				panel: (
 					<MayorPartidasTab
-						partidas={draft.mayorPartidas}
+						idRequisicion={Number(editingRow.id)}
+						idUsuario={Number(editingRow.idUsuario ?? 0)}
+						partidas={
+							requisicionDetalle?.partidas?.map((p) => ({
+								id: crypto.randomUUID(),
+								numeroPartida: p.numeroPartida,
+								cantidad: String(p.cantidad ?? ''),
+								unidadMedidaId: String(p.idUnidadMedida ?? ''),
+								unidadMedidaLabel: p.unidadMedidaLabel ?? '',
+								descripcion: p.descripcion ?? '',
+							})) ?? []
+						}
 						canEditSolicitanteFields={hideRevisorFields}
 						onChange={(partidas) => {
 							onDraftChange({
 								...draft,
-								mayorPartidas: partidas,
+								menorPartidas: partidas,
 							});
-						}}
+
+							setRequisicionDetalle((prev) => ({
+							...prev,
+							partidas: partidas.map((p) => ({
+								id: Number(p.id ?? 0),
+								numeroPartida: Number(p.numeroPartida ?? 0),
+								cantidad: Number(p.cantidad ?? 0),
+								idUnidadMedida: Number(p.unidadMedidaId ?? 0),
+								unidadMedidaLabel: p.unidadMedidaLabel ?? '',
+								descripcion: p.descripcion ?? '',
+								idRequisicion: Number(editingRow.id),
+							})),
+						}));
+					}}
 					/>
 				),
 			},
@@ -180,14 +357,31 @@ export function AdquisicionBienesFormShell({
 				label: <StepperTabLabel step={++step} title="Representantes" />,
 				panel: (
 					<MayorRepresentantesTab
-						initialValues={draft.mayorRepresentantes}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorRepresentantes: { ...draft.mayorRepresentantes, ...data },
-							});
-						}}
-					/>
+	idRequisicion={Number(editingRow.id)}
+	idUsuario={Number(editingRow.idUsuario ?? 0)}
+	initialValues={{
+		nombre: requisicionDetalle?.bienDetalle?.nombreRepresentante ?? '',
+						cargo: requisicionDetalle?.bienDetalle?.cargoRepresentante ?? '',
+						correo: requisicionDetalle?.bienDetalle?.correoRepresentante ?? '',
+						telefono: requisicionDetalle?.bienDetalle?.telefonoRepresentante ?? '',
+	}}
+	onSave={(data) => {
+		setRequisicionDetalle((prev) =>
+			prev
+				? {
+						...prev,
+						bienDetalle: {
+							...prev.bienDetalle,
+							nombreRepresentante: data.nombre,
+							cargoRepresentante: data.cargo,
+							correoRepresentante: data.correo,
+							telefonoRepresentante: data.telefono,
+						}
+				  }
+				: prev
+		);
+	}}
+/>
 				),
 			},
 			{
@@ -195,12 +389,29 @@ export function AdquisicionBienesFormShell({
 				label: <StepperTabLabel step={++step} title="Administrador contrato" />,
 				panel: (
 					<MayorAdministradorContratoTab
-						initialValues={draft.mayorAdministradorContrato}
+						idRequisicion={Number(editingRow.id)}
+						idUsuario={Number(editingRow.idUsuario ?? 0)}
+						initialValues={{
+							nombre: requisicionDetalle?.bienDetalle?.nombreAdministradorContrato ?? '',
+							cargo: requisicionDetalle?.bienDetalle?.cargoAdministradorContrato ?? '',
+							correo: requisicionDetalle?.bienDetalle?.correoAdministradorContrato ?? '',
+							telefono: requisicionDetalle?.bienDetalle?.telefonoAdministradorContrato ?? '',
+						}}
 						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorAdministradorContrato: { ...draft.mayorAdministradorContrato, ...data },
-							});
+							setRequisicionDetalle((prev) =>
+								prev
+									? {
+											...prev,
+											bienDetalle: {
+												...(prev.bienDetalle),
+												nombreAdministradorContrato: data.nombre,
+												cargoAdministradorContrato: data.cargo,
+												correoAdministradorContrato: data.correo,
+												telefonoAdministradorContrato: data.telefono,
+											},
+									}
+									: prev
+							);
 						}}
 					/>
 				),
@@ -221,38 +432,167 @@ export function AdquisicionBienesFormShell({
 		const orderedTabIds = tabsList.map((t) => t.id);
 		tabsList[0].panel = (
 			<MayorDatosGeneralesTab
-				hideRevisorFields={hideRevisorFields}
-				initialValues={draft.mayorDatosGenerales}
-				onSave={(data) => {
-					onDraftChange({
-						...draft,
-						mayorDatosGenerales: { ...draft.mayorDatosGenerales, ...data },
-					});
-					onPatchRow({ solicitante: data.nombreTitular });
-					goToNextTab('g1', orderedTabIds);
-				}}
-			/>
+						idRequisicion={Number(editingRow.id)}	
+						hideRevisorFields={hideRevisorFields}
+						initialValues={{
+							unidadSolicitanteId: requisicionDetalle?.idUnidadSolicitante
+								? String(requisicionDetalle.idUnidadSolicitante)
+								: '',
+
+							nombreTitular: requisicionDetalle?.nombreSolicitante ?? '',
+
+							cargoSolicitante: requisicionDetalle?.cargoSolicitante ?? '',
+
+							fechaSolicitud: requisicionDetalle?.fechaSolicitud
+								? requisicionDetalle.fechaSolicitud.substring(0, 10)
+								: '',
+
+							caracterProcedimiento: requisicionDetalle?.caracterProcedimiento
+								? String(requisicionDetalle.caracterProcedimiento)
+								: '',
+
+							modalidadContratacion: requisicionDetalle?.modalidadContratacion
+								? String(requisicionDetalle.modalidadContratacion)
+								: '',
+
+							/*articulo: requisicionDetalle?.articulo
+								? String(requisicionDetalle.articulo)
+								: '',*/
+
+							tipoProcedimiento: requisicionDetalle?.tipoProcedimiento ?? '',
+						}}
+						onSave={(data) => {
+							setRequisicionDetalle((prev) =>
+								prev
+									? {
+											...prev,
+											idUnidadSolicitante: Number(data.unidadSolicitanteId),
+											nombreSolicitante: data.nombreTitular,
+											cargoSolicitante: data.cargoSolicitante,
+											fechaSolicitud: data.fechaSolicitud,
+
+											caracterProcedimiento: data.caracterProcedimiento
+												? Number(data.caracterProcedimiento)
+												: null,
+
+											modalidadContratacion: data.modalidadContratacion
+												? Number(data.modalidadContratacion)
+												: null,
+
+											/*articulo: data.articulo
+												? Number(data.articulo)
+												: null,*/
+
+											tipoProcedimiento: data.tipoProcedimiento,
+									}
+									: prev
+							);
+
+							onDraftChange({
+								...draft,
+								mayorDatosGenerales: {
+									...draft.mayorDatosGenerales,
+									...data,
+								},
+							});
+
+							onPatchRow({ solicitante: data.nombreTitular });
+						}}
+					/>
 		);
 		tabsList[1].panel = (
 			<MayorDatosPresupuestalesTab
-				initialValues={draft.mayorDatosPresupuestales}
-				onSave={(data) => {
-					onDraftChange({
-						...draft,
-						mayorDatosPresupuestales: { ...draft.mayorDatosPresupuestales, ...data },
-					});
-					goToNextTab('g2', orderedTabIds);
-				}}
-			/>
+	idRequisicion={Number(editingRow.id)}
+	idUsuario={Number(editingRow.idUsuario ?? 0)}
+	initialValues={{
+		presupuestoAutorizado: requisicionDetalle?.presupuestoAutorizado ?? '',
+
+		clavePresupuestalId: requisicionDetalle?.idClavePresupuestal
+			? String(requisicionDetalle.idClavePresupuestal)
+			: '',
+
+		origenRecursoId: requisicionDetalle?.idOrigenRecurso
+			? String(requisicionDetalle.idOrigenRecurso)
+			: '',
+
+		componenteId: requisicionDetalle?.idComponente
+			? String(requisicionDetalle.idComponente)
+			: '',
+
+		actividadId: requisicionDetalle?.idActividad
+			? String(requisicionDetalle.idActividad)
+			: '',
+
+		tipoProgramaId: requisicionDetalle?.idTipoPrograma
+			? String(requisicionDetalle.idTipoPrograma)
+			: '',
+	}}
+	onSave={(data) => {
+		setRequisicionDetalle((prev) =>
+			prev
+				? {
+						...prev,
+						presupuestoAutorizado: data.presupuestoAutorizado,
+						idClavePresupuestal: data.clavePresupuestalId
+							? Number(data.clavePresupuestalId)
+							: null,
+						idOrigenRecurso: data.origenRecursoId
+							? Number(data.origenRecursoId)
+							: null,
+						idComponente: data.componenteId
+							? Number(data.componenteId)
+							: null,
+						idActividad: data.actividadId
+							? Number(data.actividadId)
+							: null,
+						idTipoPrograma: data.tipoProgramaId
+							? Number(data.tipoProgramaId)
+							: null,
+				  }
+				: prev
+		);
+
+		onDraftChange({
+			...draft,
+			mayorDatosPresupuestales: {
+				...draft.mayorDatosPresupuestales,
+				...data,
+			},
+		});
+
+		goToNextTab('g2', orderedTabIds);
+	}}
+/>
 		);
 		tabsList[2].panel = (
 			<MayorDatosRequisicionTab
-				initialValues={draft.mayorDatosRequisicion}
+				idRequisicion={Number(editingRow.id)}
+				idUsuario={Number(editingRow.idUsuario ?? 0)}
+				initialValues={{
+					descripcionGeneral: requisicionDetalle?.descripcionGeneral ?? '',
+					justificacionGasto: requisicionDetalle?.justificacionGasto ?? '',
+					periodoGarantia: requisicionDetalle?.periodoGarantia ?? '',
+				}}
 				onSave={(data) => {
+					setRequisicionDetalle((prev) =>
+						prev
+							? {
+									...prev,
+									descripcionGeneral: data.descripcionGeneral,
+									justificacionGasto: data.justificacionGasto,
+									periodoGarantia: data.periodoGarantia,
+							}
+							: prev
+					);
+
 					onDraftChange({
 						...draft,
-						mayorDatosRequisicion: { ...draft.mayorDatosRequisicion, ...data },
+						mayorDatosRequisicion: {
+							...draft.mayorDatosRequisicion,
+							...data,
+						},
 					});
+
 					goToNextTab('g3', orderedTabIds);
 				}}
 			/>
@@ -278,13 +618,29 @@ export function AdquisicionBienesFormShell({
 		if (representantesIdx >= 0) {
 			tabsList[representantesIdx].panel = (
 				<MayorRepresentantesTab
-					initialValues={draft.mayorRepresentantes}
+					idRequisicion={Number(editingRow.id)}
+					idUsuario={Number(editingRow.idUsuario ?? 0)}
+					initialValues={{
+						nombre: requisicionDetalle?.bienDetalle?.nombreRepresentante ?? '',
+						cargo: requisicionDetalle?.bienDetalle?.cargoRepresentante ?? '',
+						correo: requisicionDetalle?.bienDetalle?.correoRepresentante ?? '',
+						telefono: requisicionDetalle?.bienDetalle?.telefonoRepresentante ?? '',
+					}}
 					onSave={(data) => {
-						onDraftChange({
-							...draft,
-							mayorRepresentantes: { ...draft.mayorRepresentantes, ...data },
-						});
-						goToNextTab('g6', orderedTabIds);
+						setRequisicionDetalle((prev) =>
+							prev
+								? {
+										...prev,
+										bienDetalle: {
+										...prev.bienDetalle,
+										nombreRepresentante: data.nombre,
+										cargoRepresentante: data.cargo,
+										correoRepresentante: data.correo,
+										telefonoRepresentante: data.telefono,
+									}
+								}
+								: prev
+						);
 					}}
 				/>
 			);
@@ -293,13 +649,29 @@ export function AdquisicionBienesFormShell({
 		if (administradorIdx >= 0) {
 			tabsList[administradorIdx].panel = (
 				<MayorAdministradorContratoTab
-					initialValues={draft.mayorAdministradorContrato}
+					idRequisicion={Number(editingRow.id)}
+					idUsuario={Number(editingRow.idUsuario ?? 0)}
+					initialValues={{
+						nombre: requisicionDetalle?.bienDetalle?.nombreAdministradorContrato ?? '',
+						cargo: requisicionDetalle?.bienDetalle?.cargoAdministradorContrato ?? '',
+						correo: requisicionDetalle?.bienDetalle?.correoAdministradorContrato ?? '',
+						telefono: requisicionDetalle?.bienDetalle?.telefonoAdministradorContrato ?? '',
+					}}
 					onSave={(data) => {
-						onDraftChange({
-							...draft,
-							mayorAdministradorContrato: { ...draft.mayorAdministradorContrato, ...data },
-						});
-						goToNextTab('g7', orderedTabIds);
+						setRequisicionDetalle((prev) =>
+							prev
+								? {
+										...prev,
+										bienDetalle: {
+											...(prev.bienDetalle),
+											nombreAdministradorContrato: data.nombre,
+											cargoAdministradorContrato: data.cargo,
+											correoAdministradorContrato: data.correo,
+											telefonoAdministradorContrato: data.telefono,
+										},
+								}
+								: prev
+						);
 					}}
 				/>
 			);
@@ -321,20 +693,37 @@ export function AdquisicionBienesFormShell({
 		);
 	}
 
-	/* MENOR */
+	/* MENOR */	
 	const menorTabs = [
 		{
 			id: 'm1',
 			label: <StepperTabLabel step={1} title="Datos generales" />,
 			panel: (
 				<MenorDatosGeneralesTab
-					initialValues={draft.menorDatosGenerales}
+					idRequisicion={Number(editingRow.id)}
+					idUsuario={Number(editingRow.idUsuario ?? 0)}
+					initialValues={{
+						unidadSolicitanteId: requisicionDetalle?.idUnidadSolicitante
+							? String(requisicionDetalle.idUnidadSolicitante)
+							: '',
+						nombreSolicitante: requisicionDetalle?.nombreSolicitante ?? '',
+						cargo: requisicionDetalle?.cargoSolicitante ?? '',
+						fechaSolicitud: requisicionDetalle?.fechaSolicitud
+							? requisicionDetalle.fechaSolicitud.substring(0, 10)
+							: '',
+					}}
 					onSave={(data) => {
-						onDraftChange({
-							...draft,
-							menorDatosGenerales: { ...draft.menorDatosGenerales, ...data },
-						});
-						onPatchRow({ solicitante: data.nombreSolicitante });
+						setRequisicionDetalle((prev) =>
+							prev
+								? {
+										...prev,
+										idUnidadSolicitante: Number(data.unidadSolicitanteId),
+										nombreSolicitante: data.nombreSolicitante,
+										cargoSolicitante: data.cargo,
+										fechaSolicitud: data.fechaSolicitud,
+								}
+								: prev
+						);
 					}}
 				/>
 			),
@@ -344,11 +733,23 @@ export function AdquisicionBienesFormShell({
 			label: <StepperTabLabel step={2} title="Datos requisición" />,
 			panel: (
 				<MenorDatosRequisicionTab
-					initialValues={draft.menorDatosRequisicion}
+					idRequisicion={Number(editingRow.id)}
+					idUsuario={Number(editingRow.idUsuario ?? 0)}
+					initialValues={{
+						justificacionGasto: requisicionDetalle?.justificacionGasto ?? '',
+					}}
 					onSave={(data) => {
+						setRequisicionDetalle((prev) =>
+							prev
+								? { ...prev, justificacionGasto: data.justificacionGasto }
+								: prev
+						);
 						onDraftChange({
 							...draft,
-							menorDatosRequisicion: { ...draft.menorDatosRequisicion, ...data },
+							menorDatosRequisicion: {
+								...draft.menorDatosRequisicion,
+								...data,
+							},
 						});
 					}}
 				/>
@@ -359,13 +760,37 @@ export function AdquisicionBienesFormShell({
 			label: <StepperTabLabel step={3} title="Partidas" />,
 			panel: (
 				<MenorPartidasTab
-					partidas={draft.menorPartidas}
+					idRequisicion={Number(editingRow.id)}
+					idUsuario={Number(editingRow.idUsuario ?? 0)}
+					partidas={
+						requisicionDetalle?.partidas?.map((p) => ({
+							id: crypto.randomUUID(),
+							numeroPartida: p.numeroPartida,
+							cantidad: String(p.cantidad ?? ''),
+							unidadMedidaId: String(p.idUnidadMedida ?? ''),
+							unidadMedidaLabel: p.unidadMedidaLabel ?? '',
+							descripcion: p.descripcion ?? '',
+						})) ?? []
+					}
 					canEditSolicitanteFields={hideRevisorFields}
 					onChange={(partidas) => {
 						onDraftChange({
 							...draft,
 							menorPartidas: partidas,
 						});
+
+						setRequisicionDetalle((prev) => ({
+						...prev,
+						partidas: partidas.map((p) => ({
+							id: Number(p.id ?? 0),
+							numeroPartida: Number(p.numeroPartida ?? 0),
+							cantidad: Number(p.cantidad ?? 0),
+							idUnidadMedida: Number(p.unidadMedidaId ?? 0),
+							unidadMedidaLabel: p.unidadMedidaLabel ?? '',
+							descripcion: p.descripcion ?? '',
+							idRequisicion: Number(editingRow.id),
+						})),
+					}));
 					}}
 				/>
 			),
@@ -381,28 +806,55 @@ export function AdquisicionBienesFormShell({
 	const menorTabIds = menorTabs.map((t) => t.id);
 	menorTabs[0].panel = (
 		<MenorDatosGeneralesTab
-			initialValues={draft.menorDatosGenerales}
-			onSave={(data) => {
-				onDraftChange({
-					...draft,
-					menorDatosGenerales: { ...draft.menorDatosGenerales, ...data },
-				});
-				onPatchRow({ solicitante: data.nombreSolicitante });
-				goToNextTab('m1', menorTabIds);
-			}}
-		/>
+				idRequisicion={Number(editingRow.id)}
+				idUsuario={Number(editingRow.idUsuario ?? 0)}
+				initialValues={{
+					unidadSolicitanteId: requisicionDetalle?.idUnidadSolicitante
+						? String(requisicionDetalle.idUnidadSolicitante)
+						: '',
+					nombreSolicitante: requisicionDetalle?.nombreSolicitante ?? '',
+					cargo: requisicionDetalle?.cargoSolicitante ?? '',
+					fechaSolicitud: requisicionDetalle?.fechaSolicitud
+						? requisicionDetalle.fechaSolicitud.substring(0, 10)
+						: '',
+				}}
+				onSave={(data) => {
+					setRequisicionDetalle((prev) =>
+						prev
+							? {
+									...prev,
+									idUnidadSolicitante: Number(data.unidadSolicitanteId),
+									nombreSolicitante: data.nombreSolicitante,
+									cargoSolicitante: data.cargo,
+									fechaSolicitud: data.fechaSolicitud,
+							}
+							: prev
+					);
+				}}
+			/>
 	);
 	menorTabs[1].panel = (
 		<MenorDatosRequisicionTab
-			initialValues={draft.menorDatosRequisicion}
-			onSave={(data) => {
-				onDraftChange({
-					...draft,
-					menorDatosRequisicion: { ...draft.menorDatosRequisicion, ...data },
-				});
-				goToNextTab('m2', menorTabIds);
-			}}
-		/>
+				idRequisicion={Number(editingRow.id)}
+				idUsuario={Number(editingRow.idUsuario ?? 0)}
+				initialValues={{
+					justificacionGasto: requisicionDetalle?.justificacionGasto ?? '',
+				}}
+				onSave={(data) => {
+					setRequisicionDetalle((prev) =>
+						prev
+							? { ...prev, justificacionGasto: data.justificacionGasto }
+							: prev
+					);
+					onDraftChange({
+						...draft,
+						menorDatosRequisicion: {
+							...draft.menorDatosRequisicion,
+							...data,
+						},
+					});
+				}}
+			/>
 	);
 
 	return (

@@ -118,7 +118,24 @@ export function createEmptyDraft(): AdquisicionDraft {
 	};
 }
 
+
+
+export function normalizePerfil(user: AuthUser | null): string {
+	return (user?.tipoPerfil ?? '').trim().toUpperCase();
+}
+
+export function isSolicitanteProfile(user: AuthUser | null): boolean {
+	return normalizePerfil(user) === 'SOLICITANTE';
+}
+
+export function isRevisorProfileUser(user: AuthUser | null): boolean {
+	return normalizePerfil(user) === 'REVISOR';
+}
+
+export function isAdministradorGeneralProfile(user: AuthUser | null): boolean {
+	return normalizePerfil(user) === 'ADMINISTRADOR_GENERAL';
+}
+
 export function userHidesRevisorFields(user: AuthUser | null): boolean {
-	const p = user?.tipoPerfil ?? 'SOLICITANTE';
-	return p === 'SOLICITANTE';
+	return isSolicitanteProfile(user);
 }

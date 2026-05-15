@@ -7,7 +7,7 @@ import {
 	Button,
 	FormSection,
 	Input,
-	RadioGroup,
+	RadioGroup,	
 	SearchableSelect,
 	Toast,
 	DateInputWithClear,
@@ -16,6 +16,10 @@ import { MOCK_UNIDAD_SOLICITANTE } from '../../catalogMockOptions';
 import { FieldRoleLabel } from '../../fieldRoleLabel';
 import type { MayorDatosGeneralesValues } from '../../types';
 import { dateToInputValue } from '../../../../../utils/dateFormat';
+import { requisicionApi, RequisicionDetalle, type GuardarDatosGeneralesRequest } from '../../../../../api';
+import { unidadSolicitanteApi } from '../../../../../api';
+import { useAuth } from '../../../../../auth';
+import type { OptionItem } from '../../../../../components/UI/types';
 
 const schemaSolicitante = yup.object({
 	unidadSolicitanteId: yup.string().required('*Requerido'),
@@ -53,10 +57,12 @@ function withDefaultFecha(initialValues: Partial<MayorDatosGeneralesValues>): Ma
 export function MayorDatosGeneralesTab({
 	initialValues,
 	hideRevisorFields,
+	idRequisicion,
 	onSave,
 }: {
 	initialValues: Partial<MayorDatosGeneralesValues>;
 	hideRevisorFields: boolean;
+	idRequisicion: number;
 	onSave: (data: MayorDatosGeneralesValues) => void;
 }) {
 	const [toast, setToast] = useState<{
@@ -66,6 +72,9 @@ export function MayorDatosGeneralesTab({
 	}>({ visible: false, title: '', variant: 'success' });
 
 	const resolver = yupResolver(hideRevisorFields ? schemaSolicitante : schemaFull);
+	const { user } = useAuth();
+	const [saving, setSaving] = useState(false);
+	const [unidadesSolicitantes, setUnidadesSolicitantes] = useState<OptionItem[]>([]);
 
 	const {
 		register,
@@ -80,27 +89,106 @@ export function MayorDatosGeneralesTab({
 	});
 
 	useEffect(() => {
-		reset(withDefaultFecha(initialValues));
-	}, [initialValues, reset]);
+	reset({
+		unidadSolicitanteId: initialValues.unidadSolicitanteId ?? '',
+		nombreTitular: initialValues.nombreTitular ?? '',
+		cargoSolicitante: initialValues.cargoSolicitante ?? '',
+		fechaSolicitud: initialValues.fechaSolicitud ?? dateToInputValue(new Date()),
+		caracterProcedimiento: initialValues.caracterProcedimiento ?? '',
+		modalidadContratacion: initialValues.modalidadContratacion ?? '',
+		tipoProcedimiento: initialValues.tipoProcedimiento ?? '',
+	});
+}, [
+	initialValues.unidadSolicitanteId,
+	initialValues.nombreTitular,
+	initialValues.cargoSolicitante,
+	initialValues.fechaSolicitud,
+	initialValues.caracterProcedimiento,
+	initialValues.modalidadContratacion,
+	initialValues.tipoProcedimiento,
+	reset,
+]);
 
-	const onSubmit = (data: MayorDatosGeneralesValues) => {
+	useEffect(() => {
+		const loadUnidades = async () => {
+			try {
+				const data = await unidadSolicitanteApi.listar();
+
+				setUnidadesSolicitantes(
+					data.map((x) => ({
+						value: String(x.id),
+						label: x.nombre,
+					}))
+				);
+			} catch {
+				setToast({
+					visible: true,
+					title: 'No se pudo cargar unidad solicitante',
+					variant: 'error',
+				});
+			}
+		};
+
+		loadUnidades();
+	}, []);
+
+	const onSubmit = async (data: MayorDatosGeneralesValues) => {
 		const fechaSolicitud = hideRevisorFields
-			? (initialValues.fechaSolicitud ?? '').trim()
+			? (initialValues.fechaSolicitud ?? dateToInputValue(new Date())).trim()
 			: (data.fechaSolicitud ?? '').trim();
-		onSave({
+
+		const dataNormalizada: MayorDatosGeneralesValues = {
 			...data,
 			fechaSolicitud,
 			nombreTitular: data.nombreTitular.trim().toUpperCase(),
 			cargoSolicitante: data.cargoSolicitante.trim().toUpperCase(),
 			tipoProcedimiento: data.tipoProcedimiento.trim().toUpperCase(),
-		});
-		setToast({
-			visible: true,
-			title: 'Datos generales guardados',
-			variant: 'success',
-		});
-	};
+		};
 
+		const payload: GuardarDatosGeneralesRequest = {
+			idRequisicion,
+			idUsuario: Number(user?.id ?? 0),
+			idUnidadSolicitante: Number(data.unidadSolicitanteId),
+			nombreSolicitante: dataNormalizada.nombreTitular,
+			cargoSolicitante: dataNormalizada.cargoSolicitante,
+			fechaSolicitud: dataNormalizada.fechaSolicitud,
+
+			caracterProcedimiento: data.caracterProcedimiento
+				? Number(data.caracterProcedimiento)
+				: null,
+
+			modalidadContratacion: data.modalidadContratacion
+				? Number(data.modalidadContratacion)
+				: null,
+
+			tipoProcedimiento: dataNormalizada.tipoProcedimiento,
+		};
+
+		try {
+			setSaving(true);
+
+			await requisicionApi.guardarDatosGenerales(payload);
+
+			onSave(dataNormalizada);
+
+			setToast({
+				visible: true,
+				title: 'Datos generales guardados',
+				variant: 'success',
+			});
+		} catch (error) {
+			setToast({
+				visible: true,
+				title:
+					error instanceof Error
+						? error.message
+						: 'Error al guardar datos generales',
+				variant: 'error',
+			});
+		} finally {
+			setSaving(false);
+		}
+	};
 	const onInvalid = () => {
 		setToast({
 			visible: true,
@@ -132,7 +220,7 @@ export function MayorDatosGeneralesTab({
 									control={control}
 									render={({ field }) => (
 										<SearchableSelect
-											options={MOCK_UNIDAD_SOLICITANTE}
+											options={unidadesSolicitantes}
 											value={field.value}
 											onChange={field.onChange}
 											placeholder="Buscar unidad…"
@@ -204,34 +292,34 @@ export function MayorDatosGeneralesTab({
 									) : null}
 								</div>
 							) : null}
-							<Controller
-								name="caracterProcedimiento"
-								control={control}
-								render={({ field }) => (
-									<RadioGroup
-										label="Carácter del procedimiento (solicitante)"
-										name="caracterProc"
-										value={field.value}
-										onChange={(e) => field.onChange(e.target.value)}
-										options={[
-											{ value: 'NACIONAL', label: 'Nacional' },
-											{ value: 'INTERNACIONAL', label: 'Internacional' },
-										]}
-									/>
-								)}
-							/>
+						<Controller
+							name="caracterProcedimiento"
+							control={control}
+							render={({ field }) => (
+								<RadioGroup
+									label="Carácter del procedimiento"
+									name={field.name}
+									value={field.value}
+									onChange={field.onChange}
+									options={[
+										{ value: '1', label: 'Nacional' },
+										{ value: '2', label: 'Internacional' },
+									]}
+								/>
+							)}
+						/>
 							<Controller
 								name="modalidadContratacion"
 								control={control}
 								render={({ field }) => (
 									<RadioGroup
-										label="Modalidad de contratación (solicitante)"
-										name="modalidad"
+										label="Modalidad de contratación"
+										name={field.name}
 										value={field.value}
-										onChange={(e) => field.onChange(e.target.value)}
+										onChange={field.onChange}
 										options={[
-											{ value: 'FIJA', label: 'Fija' },
-											{ value: 'ABIERTA', label: 'Abierta' },
+											{ value: '1', label: 'Fija' },
+											{ value: '2', label: 'Abierta' },
 										]}
 									/>
 								)}
@@ -239,8 +327,14 @@ export function MayorDatosGeneralesTab({
 						</div>
 					</div>
 					<div className="flex justify-end pt-2">
-						<Button type="submit" variant="success" size="md" leftIcon={<Save className="w-4 h-4" />}>
-							Guardar sección
+						<Button
+							type="submit"
+							variant="success"
+							size="md"
+							leftIcon={<Save className="w-4 h-4" />}
+							disabled={saving}
+						>
+							{saving ? 'Guardando...' : 'Guardar sección'}
 						</Button>
 					</div>
 				</form>
