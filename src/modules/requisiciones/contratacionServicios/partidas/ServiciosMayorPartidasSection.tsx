@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, Pencil, Plus, Trash2, X } from 'lucide-react';
 import {
 	Button,
@@ -10,6 +10,7 @@ import {
 	TabsPanel,
 	TabsTab,
 	TextArea,
+	Toast,
 } from '../../../../components/UI';
 import { MOCK_UNIDAD_MEDIDA } from '../catalogMockOptions';
 import { FieldRoleLabel } from '../fieldRoleLabel';
@@ -17,6 +18,9 @@ import {
 	createEmptyServiciosPartidaMayor,
 	type ServiciosPartidaMayor,
 } from '../types';
+import { requisicionApi, type PartidaRequest, unidadMedidaApi } from '../../../../api';
+import type { OptionItem } from '../../../../components/UI/types';
+
 
 function upper(s: string) {
 	return s.trim().toUpperCase();
@@ -41,22 +45,72 @@ export function ServiciosMayorPartidasSection({
 	hideRevisorFields,
 	canEditSolicitanteFields,
 	onChange,
+	idRequisicion,
+	idUsuario,
 }: {
 	partidas: ServiciosPartidaMayor[];
 	hideRevisorFields: boolean;
 	canEditSolicitanteFields: boolean;
 	onChange: (next: ServiciosPartidaMayor[]) => void;
+	idRequisicion?: number;
+	idUsuario?: number;
 }) {
 	const [modalOpen, setModalOpen] = useState(false);
+	const [isSaving, setIsSaving] = useState(false);
 	const [modalDraft, setModalDraft] = useState<ServiciosPartidaMayor | null>(null);
 	const [modalError, setModalError] = useState('');
 	const [modalTab, setModalTab] = useState('base');
 	const [expandedById, setExpandedById] = useState<Record<string, boolean>>({});
+	const [saving, setSaving] = useState(false);
+	const [toast, setToast] = useState<{ visible: boolean; title: string; variant: 'success' | 'error' }>({ visible: false, title: '', variant: 'success' });
+	const [unidadesMedida, setUnidadesMedida] = useState<OptionItem[]>([]);	
 
 	const nextNumeroPartida = useMemo(() => {
 		const max = partidas.reduce((acc, item) => Math.max(acc, item.numeroPartida), 0);
 		return max + 1;
 	}, [partidas]);
+
+	// Cargar unidades de medida desde la API
+	useEffect(() => {
+		const loadUnidades = async () => {
+			try {
+				const data = await unidadMedidaApi.listar();
+				setUnidadesMedida(
+					data.map((item) => ({
+						value: String(item.id),
+						label: item.nombre,
+					}))
+				);
+			} catch (error) {
+				console.error('Error cargando unidades de medida:', error);
+				// Fallback a mock data si falla la API
+				setUnidadesMedida(MOCK_UNIDAD_MEDIDA);
+			}
+		};
+
+		loadUnidades();
+	}, []);
+
+	// Cargar unidades de medida desde la API
+	useEffect(() => {
+		const loadUnidades = async () => {
+			try {
+				const data = await unidadMedidaApi.listar();
+				setUnidadesMedida(
+					data.map((item) => ({
+						value: String(item.id),
+						label: item.nombre,
+					}))
+				);
+			} catch (error) {
+				console.error('Error cargando unidades de medida:', error);
+				// Fallback a mock data si falla la API
+				setUnidadesMedida(MOCK_UNIDAD_MEDIDA);
+			}
+		};
+
+		loadUnidades();
+	}, []);
 
 	function openNew() {
 		const id = crypto.randomUUID();
@@ -79,14 +133,14 @@ export function ServiciosMayorPartidasSection({
 		setModalError('');
 	}
 
-	function handleSaveModal() {
+	const handleSaveModal = async () => {
 		if (!modalDraft) return;
 		const err = validatePartida(modalDraft);
 		if (err) {
 			setModalError(err);
 			return;
 		}
-		const um = MOCK_UNIDAD_MEDIDA.find((u) => u.value === modalDraft.unidadMedidaId);
+		const um = unidadesMedida.find((u) => u.value === modalDraft.unidadMedidaId);
 		const label = (um?.label ?? modalDraft.unidadMedidaId).toUpperCase();
 		const normalized: ServiciosPartidaMayor = {
 			...modalDraft,
@@ -104,12 +158,96 @@ export function ServiciosMayorPartidasSection({
 		} else {
 			onChange([...partidas, normalized]);
 		}
-		closeModal();
-	}
 
-	function handleDelete(row: ServiciosPartidaMayor) {
-		onChange(partidas.filter((p) => p.id !== row.id));
-	}
+
+		closeModal();
+	};
+
+
+
+	const handleGuardarSeccion = async () => {
+		
+		try {
+			setSaving(true);
+			const listaPartidas: PartidaRequest[] = partidas.map((p) => ({
+				id: p.id ? Number(p.id) : undefined,
+				descripcion: p.defDescripcionGeneral,
+				descripcionGeneral: p.defDescripcionGeneral,
+				descripcionEspecifica: p.defDescripcionEspecifica,
+				lugarPeriodoEjecucionServicio: p.defLugarPeriodoEjecucion,
+				personalRequerido: p.defPersonalRequerido,
+				entregablesNecesarios: p.defEntregablesAcreditacion,
+				condicionesGeneralesContratacion: p.defCondicionesGeneralesContratacion,
+				idUnidadMedida: Number(p.unidadMedidaId),
+				idRequisicion,
+				cantidad: Number(p.cantidad),
+				unidadMedidaLabel: p.unidadMedidaLabel,
+			}));
+
+			await requisicionApi.guardarPartidas({
+				idRequisicion,
+				idUsuario,
+				listaPartidas,
+			});
+
+			setToast({
+				visible: true,
+				title: 'Sección de partidas guardada correctamente',
+				variant: 'success',
+			});
+		} catch (error) {
+			setToast({
+				visible: true,
+				title: error instanceof Error ? error.message : 'Error al guardar partidas',
+				variant: 'error',
+			});
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	const handleDelete = async (row: ServiciosPartidaMayor) => {
+		const updatedPartidas = partidas.filter((p) => p.id !== row.id);
+		onChange(updatedPartidas);
+
+		// Eliminar de API si se proporcionan los parámetros
+		if (idRequisicion && idUsuario) {
+			try {
+				const listaPartidas: PartidaRequest[] = updatedPartidas.map((p) => ({
+					id: p.id ? Number(p.id) : undefined,
+					descripcion: p.defDescripcionGeneral,
+					descripcionGeneral: p.defDescripcionGeneral,
+					descripcionEspecifica: p.defDescripcionEspecifica,
+					lugarPeriodoEjecucionServicio: p.defLugarPeriodoEjecucion,
+					personalRequerido: p.defPersonalRequerido,
+					entregablesNecesarios: p.defEntregablesAcreditacion,
+					condicionesGeneralesContratacion: p.defCondicionesGeneralesContratacion,
+					idUnidadMedida: Number(p.unidadMedidaId),
+					idRequisicion: idRequisicion,
+					cantidad: Number(p.cantidad),
+					unidadMedidaLabel: p.unidadMedidaLabel,
+				}));
+
+				await requisicionApi.guardarPartidas({
+					idRequisicion,
+					idUsuario,
+					listaPartidas,
+				});
+
+				setToast({
+					visible: true,
+					title: 'Partida eliminada correctamente',
+					variant: 'success',
+				});
+			} catch (error) {
+				setToast({
+					visible: true,
+					title: error instanceof Error ? error.message : 'Error al eliminar partida',
+					variant: 'error',
+				});
+			}
+		}
+	};
 
 	const canEditRows = canEditSolicitanteFields || !hideRevisorFields;
 	const sortedPartidas = useMemo(
@@ -199,8 +337,7 @@ export function ServiciosMayorPartidasSection({
 										{canEditRows ? (
 											<div className="ml-auto flex shrink-0 items-center gap-1">
 												<Button
-													type="button"
-													size="sm"
+													type="button"													
 													variant="iconAmber"
 													title="Editar"
 													onClick={() => openEdit(row)}
@@ -208,8 +345,7 @@ export function ServiciosMayorPartidasSection({
 													<Pencil className="w-4 h-4" />
 												</Button>
 												<Button
-													type="button"
-													size="sm"
+													type="button"													
 													variant="iconRed"
 													title="Eliminar"
 													onClick={() => handleDelete(row)}
@@ -274,6 +410,17 @@ export function ServiciosMayorPartidasSection({
 					</div>
 				)}
 			</div>
+			<div className="flex justify-end pt-4">
+	<Button
+		type="button"
+		variant="success"
+		size="md"
+		disabled={isSaving || partidas.length === 0}		
+		onClick={handleGuardarSeccion}
+	>
+		{isSaving ? 'Guardando...' : 'Guardar partidas'}
+	</Button>
+</div>
 
 			{modalOpen && modalDraft ? (
 				<div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
@@ -314,7 +461,7 @@ export function ServiciosMayorPartidasSection({
 											<div className="col-span-12 sm:col-span-4">
 												<FieldRoleLabel>Unidad de medida</FieldRoleLabel>
 												<SearchableSelect
-													options={MOCK_UNIDAD_MEDIDA}
+												options={unidadesMedida.length > 0 ? unidadesMedida : MOCK_UNIDAD_MEDIDA}
 													value={modalDraft.unidadMedidaId}
 													onChange={(v) =>
 														setModalDraft((d) => (d ? { ...d, unidadMedidaId: v } : d))
@@ -387,6 +534,12 @@ export function ServiciosMayorPartidasSection({
 					</div>
 				</div>
 			) : null}
+
+			<Toast
+				visible={toast.visible}
+				title={toast.title}
+				variant={toast.variant}				
+			/>
 		</div>
 	);
 }

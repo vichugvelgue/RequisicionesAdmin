@@ -16,7 +16,7 @@ export interface ContratacionServiciosRow extends Record<string, unknown> {
 	monto: number;
 	tipoCompra: TipoCompraServicios;
 	solicitante: string;
-	estatus: ContratacionServiciosEstatus;
+	estatus: string;
 	fechaSolicitudIso: string;
 }
 
