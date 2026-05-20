@@ -30,7 +30,12 @@ import {
 	type ContratacionServiciosSearchCriteria,
 	type TipoCompraServicios,
 } from './types';
-import { createSeedDraftFromContratacionRow } from './seedDraftFromContratacionRow';
+import {
+	requisicionApi,
+	type RequisicionView,
+	type RequisicionDetalle,
+} from '../../../api/requisicionBienesAPI';
+import { TipoCompra } from '../adquisicionBienes/types';
 
 const BASE_PATH = '/requisiciones/contratacion-servicios';
 
@@ -40,36 +45,6 @@ const SEARCH_CRITERIA_OPTIONS: OptionItem[] = [
 	{ value: 'Solicitante', label: 'Solicitante' },
 	{ value: 'Tipo', label: 'Tipo' },
 	{ value: 'Estatus', label: 'Estatus' },
-];
-
-const INITIAL_ROWS: ContratacionServiciosRow[] = [
-	{
-		id: 'cs-1',
-		numero: 101,
-		monto: 120000,
-		tipoCompra: 'MAYOR',
-		solicitante: 'LUIS MENDOZA RIVERA',
-		estatus: 'PENDIENTE',
-		fechaSolicitudIso: '2026-03-12',
-	},
-	{
-		id: 'cs-2',
-		numero: 102,
-		monto: 15000.5,
-		tipoCompra: 'MENOR',
-		solicitante: 'CARLA NUÑEZ ORTEGA',
-		estatus: 'APROBADA',
-		fechaSolicitudIso: '2026-02-05',
-	},
-	{
-		id: 'cs-3',
-		numero: 115,
-		monto: 56000,
-		tipoCompra: 'MAYOR',
-		solicitante: 'PEDRO SALINAS FLORES',
-		estatus: 'RECHAZADA',
-		fechaSolicitudIso: '2026-01-22',
-	},
 ];
 
 const TABLE_COLUMNS: SimpleTableColumn<ContratacionServiciosRow>[] = [
@@ -119,6 +94,16 @@ const TABLE_COLUMNS: SimpleTableColumn<ContratacionServiciosRow>[] = [
 	},
 ];
 
+const mapRequisicionViewToRow = (item: RequisicionView): ContratacionServiciosRow => ({
+	id: String(item.id),
+	numero: item.id,
+	monto: Number(item.monto ?? 0),
+	tipoCompra: item.tipo?.toUpperCase() as TipoCompraServicios,
+	solicitante: item.solicitante ?? '',
+	estatus: item.estatus ?? "",
+	fechaSolicitudIso: item.fechaSolicitud ?? '',
+});
+
 function matchesSearch(
 	row: ContratacionServiciosRow,
 	criteria: ContratacionServiciosSearchCriteria,
@@ -148,7 +133,10 @@ export function ContratacionServiciosListadoFormView() {
 	const location = useLocation();
 	const { id } = useParams();
 
-	const [rows, setRows] = useState<ContratacionServiciosRow[]>(INITIAL_ROWS);
+	const [rows, setRows] = useState<ContratacionServiciosRow[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [loadError, setLoadError] = useState<string | null>(null);
+	const [requisicionDetalle, setRequisicionDetalle] = useState<RequisicionDetalle | null>(null);
 	const [draftById, setDraftById] = useState<Record<string, ContratacionServiciosDraft>>({});
 	const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'numero', direction: 'desc' });
 	const [showInlineFilters, setShowInlineFilters] = useState(false);
@@ -183,8 +171,22 @@ export function ContratacionServiciosListadoFormView() {
 	}>({ visible: false, title: '', variant: 'success' });
 
 	const isCreateMode = location.pathname.endsWith('/nuevo');
-	const editingRow = rows.find((row) => row.id === id) ?? null;
 	const isEditRoute = Boolean(id) && !isCreateMode;
+	const editingRowFromRows = rows.find((row) => row.id === id) ?? null;
+
+const editingRow =
+	editingRowFromRows ??
+	(isEditRoute && id
+		? {
+				id: String(id),
+				numero: Number(id),
+				monto: 0,
+				tipoCompra: 'MAYOR' as TipoCompra,
+				solicitante: '',
+				estatus: 'REGISTRADA',
+				fechaSolicitudIso: '',
+		  }
+		: null);	
 	const mode: 'listado' | 'form-alta' | 'form-edicion' = isCreateMode
 		? 'form-alta'
 		: isEditRoute
@@ -223,6 +225,64 @@ export function ContratacionServiciosListadoFormView() {
 		if (editingRow) return;
 		navigate(BASE_PATH, { replace: true });
 	}, [editingRow, mode, navigate]);
+
+	useEffect(() => {
+	if (isCreateMode) {
+		setIsLoading(false);
+		return;
+	}
+
+	const loadRequisiciones = async () => {
+		try {
+			setIsLoading(true);
+			setLoadError(null);
+
+			const data = await requisicionApi.listarPorSolicitante({ tipoObjeto: 2 });
+			console.log('Requisiciones de servicios cargadas:', data);
+
+			const rowsServicios = data
+				.filter((x) => Number(x.tipoObjetoRequisicion ?? 0) === 2)
+				.map(mapRequisicionViewToRow);
+
+			setRows(rowsServicios);
+		} catch (error) {
+			setLoadError(
+				error instanceof Error
+					? error.message
+					: 'Error al cargar requisiciones de servicios'
+			);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	loadRequisiciones();
+}, [isCreateMode]);
+
+useEffect(() => {
+	if (mode !== 'form-edicion' || !editingRow) {
+		setRequisicionDetalle(null);
+		return;
+	}
+
+	const loadDetalle = async () => {
+		try {
+			const detalle = await requisicionApi.obtenerPorId(Number(editingRow.id));
+			setRequisicionDetalle(detalle);
+		} catch (error) {
+			setToastState({
+				visible: true,
+				title:
+					error instanceof Error
+						? error.message
+						: 'Error al cargar detalle de requisición',
+				variant: 'error',
+			});
+		}
+	};
+
+	loadDetalle();
+}, [mode, editingRow?.id]);
 
 	const applyFilters = useCallback(() => {
 		setAppliedSearch({
@@ -343,47 +403,63 @@ export function ContratacionServiciosListadoFormView() {
 		navigate(`${BASE_PATH}/${row.id}`);
 	};
 
-	const handleMontoContinue = ({
-		montoStr,
-		tipoCompra,
-	}: {
-		montoStr: string;
-		tipoCompra: TipoCompraServicios;
-	}) => {
+	const handleMontoContinue = async ({
+	montoStr,
+	tipoCompra,
+}: {
+	montoStr: string;
+	tipoCompra: TipoCompraServicios;
+}) => {
+	try {
 		const monto = parseFloat(montoStr) || 0;
-		const nextNum = rows.reduce((max, r) => Math.max(max, r.numero || 0), 0) + 1;
-		const newId = `cs-${rows.reduce((max, r) => Math.max(max, Number(String(r.id).replace(/\D/g, '')) || 0), 0) + 1}`;
-		const solicitante = (
-			user?.displayName?.trim() ||
-			user?.email?.trim() ||
-			'SOLICITANTE'
-		).toUpperCase();
+
+		const nueva = await requisicionApi.crear({
+			idUsuarioSolicitante: Number(user?.id ?? 0),
+			monto,
+			tipoObjetoRequisicion: 2,
+			tipoMontoRequisicion: tipoCompra === 'MAYOR' ? 1 : 2,
+		});
+
 		const newRow: ContratacionServiciosRow = {
-			id: newId,
-			numero: nextNum,
+			id: String(nueva.id),
+			numero: nueva.id,
 			monto,
 			tipoCompra,
-			solicitante,
-			estatus: 'PENDIENTE',
+			solicitante: user?.displayName?.toUpperCase() ?? '',
+			estatus: 'REGISTRADA',
 			fechaSolicitudIso: new Date().toISOString().slice(0, 10),
 		};
+
 		setRows((prev) => [newRow, ...prev]);
+
 		setDraftById((prev) => ({
 			...prev,
-			[newId]: {
+			[newRow.id]: {
 				...createEmptyDraft(),
 				monto: monto.toFixed(2),
 				tipoCompra,
 			},
 		}));
-		setNewlyCreatedIds((prev) => (prev.includes(newId) ? prev : [...prev, newId]));
-		navigate(`${BASE_PATH}/${newId}`, { replace: true });
+
+		setNewlyCreatedIds((prev) => [...prev, newRow.id]);
+		navigate(`${BASE_PATH}/${newRow.id}`, { replace: true });
+
 		setToastState({
 			visible: true,
 			title: 'Requisición creada. Complete las pestañas.',
 			variant: 'success',
 		});
-	};
+	} catch (error) {
+		setToastState({
+			visible: true,
+			title:
+				error instanceof Error
+					? error.message
+					: 'Error al crear requisición',
+			variant: 'error',
+		});
+	}
+};
 
 	const handleDeleteConfirm = () => {
 		if (!pendingDeleteRow) return;
@@ -422,7 +498,11 @@ export function ContratacionServiciosListadoFormView() {
 			if (prev[editingRow.id]) return prev;
 			return {
 				...prev,
-				[editingRow.id]: createSeedDraftFromContratacionRow(editingRow),
+				[editingRow.id]: {
+					...createEmptyDraft(),
+					monto: editingRow.monto.toFixed(2),
+					tipoCompra: editingRow.tipoCompra,
+				},
 			};
 		});
 	}, [mode, editingRow]);
@@ -496,6 +576,15 @@ export function ContratacionServiciosListadoFormView() {
 								className="shrink-0"
 							/>
 							<div className="flex-1 min-h-0">
+								{isLoading ? (
+									<div className="flex items-center justify-center h-80">
+										<p>Cargando requisiciones...</p>
+									</div>
+								) : loadError ? (
+									<div className="flex items-center justify-center h-80">
+										<p className="text-red-600">{loadError}</p>
+									</div>
+								) : (
 								<InfiniteScrollTable<ContratacionServiciosRow>
 									data={filteredAndSortedRows}
 									pageSize={30}
@@ -537,6 +626,7 @@ export function ContratacionServiciosListadoFormView() {
 										})
 									}
 								/>
+								)}
 							</div>
 						</div>
 					) : mode === 'form-alta' ? (

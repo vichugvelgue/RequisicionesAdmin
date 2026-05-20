@@ -14,6 +14,7 @@ import { MenorDatosGeneralesTab } from './tabs/menor/MenorDatosGeneralesTab';
 import { MenorDatosRequisicionTab } from './tabs/menor/MenorDatosRequisicionTab';
 import { MenorPartidasTab } from './tabs/menor/MenorPartidasTab';
 import { MenorDocumentoTab } from './tabs/menor/MenorDocumentoTab';
+import { BienesMenorDocumentoWordPreview } from './documento/BienesMenorDocumentoWordPreview';
 import type { RequisicionRow } from './types';
 import { requisicionApi, RequisicionDetalle } from '../../../api/requisicionBienesAPI';
 
@@ -69,7 +70,12 @@ export function AdquisicionBienesFormShell({
 	const AUTO_ADVANCE_DELAY_MS = 900;
 	const idRequisicion = Number(editingRow.id);
 	const [requisicionDetalle, setRequisicionDetalle] = useState<RequisicionDetalle | null>(null);
-const [isLoadingDetalle, setIsLoadingDetalle] = useState(false);
+	const [isLoadingDetalle, setIsLoadingDetalle] = useState(false);
+	const [documentoBienes, setDocumentoBienes] = useState<any>(null);
+	const [loadingDocumento, setLoadingDocumento] = useState(false);
+	const [documentoBienesCargado, setDocumentoBienesCargado] = useState(false);
+
+	const [activeStep, setActiveStep] = useState('g1');
 	const goToNextTab = (currentTabId: string, orderedTabIds: string[]) => {
 		if (!isNewRecord) return;
 		const currentIndex = orderedTabIds.indexOf(currentTabId);
@@ -82,6 +88,33 @@ const [isLoadingDetalle, setIsLoadingDetalle] = useState(false);
 		}
 	};
 
+
+	const cargarDocumentoBienes = async () => {
+		if (documentoBienesCargado) return;
+
+		try {
+			const data = await requisicionApi.obtenerInformacionBienesDocumento(
+				requisicionDetalle.id
+			);
+
+			console.log('Documento de bienes cargado:', data);
+			setDocumentoBienes(data);
+			setDocumentoBienesCargado(true);
+		} catch (error) {
+			console.error('Error al cargar documento de bienes:', error);
+		}
+	};
+
+	useEffect(() => {
+		console.log('Active step changed:', activeStep);
+		console.log('Requisicion detalle:', editingRow.id);		
+		console.log('Documento bienes cargado:', documentoBienesCargado);
+		if (activeStep === 'g8' && !documentoBienesCargado) {
+			cargarDocumentoBienes();
+		}
+	}, [activeStep, documentoBienesCargado]);
+
+
 	const numeroLabel = useMemo(
 		() => String(editingRow.numero).padStart(7, '0'),
 		[editingRow.numero]
@@ -93,18 +126,18 @@ const [isLoadingDetalle, setIsLoadingDetalle] = useState(false);
 			: (draft.mayorDatosGenerales.nombreTitular ?? editingRow.solicitante);
 
 	useEffect(() => {
-	if (!editingRow?.id) return;
+		if (!editingRow?.id) return;
 
-	const loadDetalle = async () => {
-		setIsLoadingDetalle(true);
+		const loadDetalle = async () => {
+			setIsLoadingDetalle(true);
 
-		try {
-			const data = await requisicionApi.obtenerPorId(Number(editingRow.id));			
-			setRequisicionDetalle(data);			
-		} finally {
-			setIsLoadingDetalle(false);
-		}
-	};
+			try {
+				const data = await requisicionApi.obtenerPorId(Number(editingRow.id));			
+				setRequisicionDetalle(data);			
+			} finally {
+				setIsLoadingDetalle(false);
+			}
+		};
 
 	loadDetalle();
 	}, [editingRow?.id]);
@@ -418,14 +451,23 @@ const [isLoadingDetalle, setIsLoadingDetalle] = useState(false);
 			},
 			{
 				id: 'g8',
-				label: <StepperTabLabel step={++step} title="Documento" />,
+				label: (
+					<div onClick={cargarDocumentoBienes}>
+						<StepperTabLabel step={++step} title="Documento" />
+					</div>
+				),
 				panel: (
-					<MayorDocumentoTab
-						draft={draft}
-						numeroLabel={numeroLabel}
-						solicitanteLabel={solicitantePreview}
-						hideRevisorFields={hideRevisorFields}
-					/>
+					<>
+						{loadingDocumento ? (
+							<div>Cargando documento...</div>
+						) : (
+							<BienesMenorDocumentoWordPreview
+								requisicionDetalle={documentoBienes}
+								bienDetalle={documentoBienes?.bienDetalle}
+								partidas={documentoBienes?.partidas ?? []}
+							/>
+						)}
+					</>
 				),
 			}
 		);
@@ -799,7 +841,12 @@ const [isLoadingDetalle, setIsLoadingDetalle] = useState(false);
 			id: 'm4',
 			label: <StepperTabLabel step={4} title="Documento" />,
 			panel: (
-				<MenorDocumentoTab draft={draft} numeroLabel={numeroLabel} solicitanteLabel={solicitantePreview} />
+				//<MenorDocumentoTab draft={draft} numeroLabel={numeroLabel} solicitanteLabel={solicitantePreview} />
+				<BienesMenorDocumentoWordPreview
+				requisicionDetalle={requisicionDetalle}
+				bienDetalle={requisicionDetalle?.bienDetalle}
+				partidas={requisicionDetalle?.partidas}
+			/>
 			),
 		},
 	];

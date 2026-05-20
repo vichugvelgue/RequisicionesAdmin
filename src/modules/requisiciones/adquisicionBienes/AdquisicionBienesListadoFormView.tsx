@@ -36,6 +36,7 @@ import {
 import { requisicionApi, RequisicionDetalle, type RequisicionView } from '../../../api/requisicionBienesAPI';
 
 
+
 const BASE_PATH = '/requisiciones/adquisicion-bienes';
 
 const SEARCH_CRITERIA_OPTIONS: OptionItem[] = [
@@ -352,8 +353,19 @@ const loadRequisiciones = async () => {
 	setLoadError(null);
 
 	try {
-		const data = await requisicionApi.listarPorSolicitante();
-		setRows(data.map(mapRequisicionViewToRow));
+
+		if (isRevisorProfile) {
+			const data = await requisicionApi.listarPorRevisor({ tipoObjeto: 1 });			
+			setRows(data.map(mapRequisicionViewToRow));
+		} else if (isSolicitanteProfile) {
+			const data = await requisicionApi.listarPorSolicitante({ tipoObjeto: 1 });
+			setRows(data.map(mapRequisicionViewToRow));
+		} else if (isAdministradorGeneralProfile) {
+		
+		}
+
+
+		
 	} catch (error) {
 		const message =
 			error instanceof Error

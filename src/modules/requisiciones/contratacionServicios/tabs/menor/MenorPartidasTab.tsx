@@ -6,10 +6,14 @@ export function MenorPartidasTab({
 	partidas,
 	canEditSolicitanteFields,
 	onChange,
+	idRequisicion,
+	idUsuario,
 }: {
 	partidas: ServiciosPartidaMenor[];
 	canEditSolicitanteFields: boolean;
 	onChange: (next: ServiciosPartidaMenor[]) => void;
+	idRequisicion?: number;
+	idUsuario?: number;
 }) {
 	const handleChange = (next: ServiciosPartidaMenor[]) => {
 		onChange(next);
@@ -21,6 +25,8 @@ export function MenorPartidasTab({
 			hideRevisorFields
 			canEditSolicitanteFields={canEditSolicitanteFields}
 			onChange={handleChange}
+			idRequisicion={idRequisicion}
+			idUsuario={idUsuario}
 		/>
 	);
 }

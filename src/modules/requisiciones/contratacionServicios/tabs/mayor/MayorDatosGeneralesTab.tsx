@@ -16,6 +16,10 @@ import { MOCK_UNIDAD_SOLICITANTE } from '../../catalogMockOptions';
 import { FieldRoleLabel } from '../../fieldRoleLabel';
 import type { ServiciosMayorDatosGeneralesValues } from '../../types';
 import { dateToInputValue } from '../../../../../utils/dateFormat';
+import { requisicionApi } from '../../../../../api/requisicionBienesAPI';
+import { unidadSolicitanteApi } from '../../../../../api/unidadSolicitanteApi';
+import { OptionItem } from '@/components/UI/types';
+import { useParams } from 'react-router-dom';
 
 const schemaSolicitante = yup.object({
 	unidadSolicitanteId: yup.string().required('*Requerido'),
@@ -45,6 +49,18 @@ const empty: ServiciosMayorDatosGeneralesValues = {
 	tipoProcedimiento: '',
 };
 
+const getUsuarioId = (): number => {
+	try {
+		const session = JSON.parse(
+			localStorage.getItem('requisiciones_admin_auth_v1') || 'null'
+		);
+
+		return Number(session?.user?.id ?? 0);
+	} catch {
+		return 0;
+	}
+};
+
 function withDefaultFecha(
 	initialValues: Partial<ServiciosMayorDatosGeneralesValues>
 ): ServiciosMayorDatosGeneralesValues {
@@ -59,10 +75,14 @@ function withDefaultFecha(
 }
 
 export function MayorDatosGeneralesTab({
+	idRequisicion,
+	idUsuario,
 	initialValues,
 	hideRevisorFields,
 	onSave,
 }: {
+	idRequisicion: number;
+	idUsuario: number;
 	initialValues: Partial<ServiciosMayorDatosGeneralesValues>;
 	hideRevisorFields: boolean;
 	onSave: (data: ServiciosMayorDatosGeneralesValues) => void;
@@ -72,6 +92,15 @@ export function MayorDatosGeneralesTab({
 		title: '',
 		variant: 'success' as 'success' | 'error',
 	});
+	const [unidadesSolicitantes, setUnidadesSolicitantes] = useState<OptionItem[]>([]);
+	const [isSaving, setIsSaving] = useState(false);
+
+	const { id } = useParams();
+	const requisicionIdFinal = Number(id ?? idRequisicion ?? 0);
+	const caracterProcedimientoMap: Record<string, number> = {
+	NACIONAL: 0,
+	INTERNACIONAL: 1,
+};
 
 	const resolver = yupResolver(hideRevisorFields ? schemaSolicitante : schemaFull);
 
@@ -88,20 +117,49 @@ export function MayorDatosGeneralesTab({
 	});
 
 	useEffect(() => {
+	const loadUnidades = async () => {
+		try {
+			const data = await unidadSolicitanteApi.listar();
+
+			setUnidadesSolicitantes(
+				data.map((x) => ({
+					value: String(x.id),
+					label: x.nombre,
+				}))
+			);
+		} catch {
+			setToast({
+				visible: true,
+				title: 'No se pudo cargar unidad solicitante',
+				variant: 'error',
+			});
+		}
+	};
+
+	loadUnidades();
+}, []);
+
+	useEffect(() => {
 		reset(withDefaultFecha(initialValues));
 	}, [initialValues, reset]);
 
-	const onSubmit = (data: ServiciosMayorDatosGeneralesValues) => {
+	const onSubmit = async (data: ServiciosMayorDatosGeneralesValues) => {
+	try {
+		setIsSaving(true);
+
 		const fechaSolicitud = hideRevisorFields
-			? (initialValues.fechaSolicitud ?? '').trim()
+			? (initialValues.fechaSolicitud ?? data.fechaSolicitud ?? '').trim()
 			: (data.fechaSolicitud ?? '').trim();
+
 		const modalidadContratacion = hideRevisorFields
-			? (initialValues.modalidadContratacion ?? data.modalidadContratacion)
+			? initialValues.modalidadContratacion ?? data.modalidadContratacion
 			: data.modalidadContratacion;
+
 		const articuloConformidad = hideRevisorFields
-			? (initialValues.articuloConformidad ?? data.articuloConformidad)
+			? initialValues.articuloConformidad ?? data.articuloConformidad
 			: data.articuloConformidad;
-		onSave({
+
+		const payloadFinal: ServiciosMayorDatosGeneralesValues = {
 			...data,
 			fechaSolicitud,
 			modalidadContratacion,
@@ -109,13 +167,56 @@ export function MayorDatosGeneralesTab({
 			nombreTitular: data.nombreTitular.trim().toUpperCase(),
 			cargoSolicitante: data.cargoSolicitante.trim().toUpperCase(),
 			tipoProcedimiento: data.tipoProcedimiento.trim().toUpperCase(),
-		});
+		};
+
+		const usuarioIdFinal = getUsuarioId() || Number(idUsuario ?? 0);
+
+		await requisicionApi.guardarDatosGenerales({
+			idRequisicion: requisicionIdFinal,
+			idUsuario: usuarioIdFinal,
+
+			idUnidadSolicitante: Number(payloadFinal.unidadSolicitanteId),
+			nombreSolicitante: payloadFinal.nombreTitular,
+			cargoSolicitante: payloadFinal.cargoSolicitante,
+			fechaSolicitud: payloadFinal.fechaSolicitud,
+
+			caracterProcedimiento:
+			payloadFinal.caracterProcedimiento === 'NACIONAL'
+			? 0
+			: payloadFinal.caracterProcedimiento === 'INTERNACIONAL'
+				? 1
+				: null,
+
+			modalidadContratacion: payloadFinal.modalidadContratacion
+				? Number(payloadFinal.modalidadContratacion)
+				: null,
+
+			articulo: payloadFinal.articuloConformidad
+				? Number(payloadFinal.articuloConformidad)
+				: null,
+
+			tipoProcedimiento: payloadFinal.tipoProcedimiento,
+		});		
+		onSave(payloadFinal);
+
 		setToast({
 			visible: true,
 			title: 'Datos generales guardados',
 			variant: 'success',
 		});
-	};
+	} catch (error) {
+		setToast({
+			visible: true,
+			title:
+				error instanceof Error
+					? error.message
+					: 'No se pudieron guardar los datos generales',
+			variant: 'error',
+		});
+	} finally {
+		setIsSaving(false);
+	}
+};
 
 	const onInvalid = () => {
 		setToast({
@@ -144,7 +245,7 @@ export function MayorDatosGeneralesTab({
 									control={control}
 									render={({ field }) => (
 										<SearchableSelect
-											options={MOCK_UNIDAD_SOLICITANTE}
+											options={unidadesSolicitantes}
 											value={field.value}
 											onChange={field.onChange}
 											placeholder="Buscar unidad…"
@@ -264,8 +365,14 @@ export function MayorDatosGeneralesTab({
 						</div>
 					</div>
 					<div className="flex justify-end pt-2">
-						<Button type="submit" variant="success" size="md" leftIcon={<Save className="w-4 h-4" />}>
-							Guardar sección
+						<Button
+							type="submit"
+							variant="success"
+							size="md"
+							disabled={isSaving}
+							leftIcon={<Save className="w-4 h-4" />}
+						>
+							{isSaving ? 'Guardando...' : 'Guardar sección'}
 						</Button>
 					</div>
 				</form>

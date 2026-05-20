@@ -17,6 +17,7 @@ import { MenorDatosGeneralesTab } from './tabs/menor/MenorDatosGeneralesTab';
 import { MenorDatosRequisicionTab } from './tabs/menor/MenorDatosRequisicionTab';
 import { MenorPartidasTab } from './tabs/menor/MenorPartidasTab';
 import { MenorDocumentoTab } from './tabs/menor/MenorDocumentoTab';
+import { requisicionApi, RequisicionDetalle } from '../../../api/requisicionBienesAPI';
 
 export const CONTRATACION_SERVICIOS_TAB_DOCUMENTO_MAYOR = 'cs-g11';
 export const CONTRATACION_SERVICIOS_TAB_DOCUMENTO_MENOR = 'cs-m4';
@@ -60,14 +61,139 @@ export function ContratacionServiciosFormShell({
 	isNewRecord: boolean;
 	onActiveTabChange?: (tabId: string) => void;
 }) {
+
+	useEffect(() => {
+	if (!editingRow?.id) return;
+
+	const loadDetalle = async () => {
+			setIsLoadingDetalle(true);
+
+			try {
+				const data = await requisicionApi.obtenerPorId(Number(editingRow.id));
+				setRequisicionDetalle(data);
+			} finally {
+				setIsLoadingDetalle(false);
+			}
+		};
+
+		loadDetalle();
+	}, [editingRow?.id]);
+
 	const [tab, setTab] = useState(() => (tipoCompra === 'MAYOR' ? 'cs-g1' : 'cs-m1'));
 
 	useEffect(() => {
 		onActiveTabChange?.(tab);
 	}, [tab, onActiveTabChange]);
+	
 
 	const AUTO_ADVANCE_DELAY_MS = 900;
-	const goToNextTab = (currentTabId: string, orderedTabIds: string[]) => {
+	const idRequisicion = Number(editingRow.id);
+	const [requisicionDetalle, setRequisicionDetalle] = useState<RequisicionDetalle | null>(null);
+	const [isLoadingDetalle, setIsLoadingDetalle] = useState(false);
+
+	useEffect(() => {
+		if (!requisicionDetalle) return;
+
+		const shouldFillMayores = tipoCompra === 'MAYOR';
+		const draftIsEmpty =
+			Object.keys(draft.mayorDatosGenerales).length === 0 &&
+			Object.keys(draft.mayorDatosPresupuestales).length === 0 &&
+			Object.keys(draft.mayorDatosRequisicion).length === 0 &&
+			draft.mayorPartidas.length === 0;
+		const draftIsEmptyMenor =
+			Object.keys(draft.menorDatosGenerales).length === 0 &&
+			Object.keys(draft.menorDatosRequisicion).length === 0 &&
+			draft.menorPartidas.length === 0;
+
+		if (shouldFillMayores && !draftIsEmpty) return;
+		if (!shouldFillMayores && !draftIsEmptyMenor) return;
+
+		const nextDraft = { ...draft };
+
+		if (tipoCompra === 'MAYOR') {
+			nextDraft.mayorDatosGenerales = {
+				unidadSolicitanteId: requisicionDetalle.idUnidadSolicitante
+					? String(requisicionDetalle.idUnidadSolicitante)
+					: '',
+				nombreTitular: requisicionDetalle.nombreSolicitante ?? '',
+				cargoSolicitante: requisicionDetalle.cargoSolicitante ?? '',
+				fechaSolicitud: requisicionDetalle.fechaSolicitud
+					? requisicionDetalle.fechaSolicitud.substring(0, 10)
+					: '',
+				caracterProcedimiento: requisicionDetalle.caracterProcedimiento
+					? String(requisicionDetalle.caracterProcedimiento)
+					: '',
+				modalidadContratacion: requisicionDetalle.modalidadContratacion
+					? String(requisicionDetalle.modalidadContratacion)
+					: '',
+				articuloConformidad: requisicionDetalle.articulo
+					? String(requisicionDetalle.articulo)
+					: '',
+				tipoProcedimiento: requisicionDetalle.tipoProcedimiento ?? '',
+			};
+			nextDraft.mayorDatosPresupuestales = {
+				presupuestoAutorizado: requisicionDetalle.presupuestoAutorizado ?? '',
+				clavePresupuestalId: requisicionDetalle.idClavePresupuestal ? String(requisicionDetalle.idClavePresupuestal) : '',
+				origenRecursoId: requisicionDetalle.idOrigenRecurso ? String(requisicionDetalle.idOrigenRecurso) : '',
+				componenteId: requisicionDetalle.idComponente ? String(requisicionDetalle.idComponente) : '',
+				actividadId: requisicionDetalle.idActividad ? String(requisicionDetalle.idActividad) : '',
+				tipoProgramaId: requisicionDetalle.idTipoPrograma ? String(requisicionDetalle.idTipoPrograma) : '',
+			};
+			nextDraft.mayorDatosRequisicion = {
+				descripcionGeneral: requisicionDetalle.descripcionGeneral ?? '',
+				justificacionGasto: requisicionDetalle.justificacionGasto ?? '',
+				periodoGarantia: requisicionDetalle.periodoGarantia ?? '',
+			};
+			if (requisicionDetalle.partidas?.length) {
+				nextDraft.mayorPartidas = requisicionDetalle.partidas.map((partida, index) => ({
+					id: partida.id ? String(partida.id) : `api-part-${index}`,
+					numeroPartida: index + 1,
+					unidadMedidaId: String(partida.idUnidadMedida),
+					unidadMedidaLabel: partida.unidadMedidaLabel ?? '',
+					cantidad: String(partida.cantidad),
+					defDescripcionGeneral: partida.descripcionGeneral ?? partida.descripcion ?? '',
+					defDescripcionEspecifica: partida.descripcionEspecifica ?? '',
+					defLugarPeriodoEjecucion: partida.lugarPeriodoEjecucionServicio ?? '',
+					defPersonalRequerido: partida.personalRequerido ?? '',
+					defEntregablesAcreditacion: partida.entregablesNecesarios ?? '',
+					defCondicionesGeneralesContratacion:
+						partida.condicionesGeneralesContratacion ?? '',
+				}));
+			}
+		} else {
+			nextDraft.menorDatosGenerales = {
+				unidadSolicitanteId: requisicionDetalle.idUnidadSolicitante
+					? String(requisicionDetalle.idUnidadSolicitante)
+					: '',
+				nombreSolicitante: requisicionDetalle.nombreSolicitante ?? '',
+				cargo: requisicionDetalle.cargoSolicitante ?? '',
+				fechaSolicitud: requisicionDetalle.fechaSolicitud
+					? requisicionDetalle.fechaSolicitud.substring(0, 10)
+					: '',
+			};
+			nextDraft.menorDatosRequisicion = {
+				justificacionGasto: requisicionDetalle.justificacionGasto ?? '',
+			};
+			if (requisicionDetalle.partidas?.length) {
+				nextDraft.menorPartidas = requisicionDetalle.partidas.map((partida, index) => ({
+					id: partida.id ? String(partida.id) : `api-part-${index}`,
+					numeroPartida: index + 1,
+					unidadMedidaId: String(partida.idUnidadMedida),
+					unidadMedidaLabel: partida.unidadMedidaLabel ?? '',
+					cantidad: String(partida.cantidad),
+					defDescripcionGeneral: partida.descripcionGeneral ?? partida.descripcion ?? '',
+					defDescripcionEspecifica: partida.descripcionEspecifica ?? '',
+					defLugarPeriodoEjecucion: partida.lugarPeriodoEjecucionServicio ?? '',
+					defPersonalRequerido: partida.personalRequerido ?? '',
+					defEntregablesAcreditacion: partida.entregablesNecesarios ?? '',
+					defCondicionesGeneralesContratacion:
+						partida.condicionesGeneralesContratacion ?? '',
+				}));
+			}
+		}
+
+		onDraftChange(nextDraft);
+	}, [requisicionDetalle, draft, onDraftChange, tipoCompra]);	const goToNextTab = (currentTabId: string, orderedTabIds: string[]) => {
 		if (!isNewRecord) return;
 		const currentIndex = orderedTabIds.indexOf(currentTabId);
 		if (currentIndex < 0) return;
@@ -125,28 +251,122 @@ export function ContratacionServiciosFormShell({
 				<TabsPanel value="cs-g1" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 					<RequisicionTabPanelFieldset readOnly={readOnly}>
 						<MayorDatosGeneralesTab
-							hideRevisorFields={hideRevisorFields}
-							initialValues={draft.mayorDatosGenerales}
-							onSave={(data) => {
-								onDraftChange({
-									...draft,
-									mayorDatosGenerales: { ...draft.mayorDatosGenerales, ...data },
-								});
-								onPatchRow({ solicitante: data.nombreTitular });
-								goToNextTab('cs-g1', orderedTabIds);
-							}}
-						/>
+						idRequisicion={Number(editingRow.id)}
+						idUsuario={Number(editingRow.idUsuario ?? 0)}
+						hideRevisorFields={hideRevisorFields}
+						initialValues={{
+							unidadSolicitanteId: requisicionDetalle?.idUnidadSolicitante
+								? String(requisicionDetalle.idUnidadSolicitante)
+								: '',
+
+							nombreTitular: requisicionDetalle?.nombreSolicitante ?? '',
+
+							cargoSolicitante: requisicionDetalle?.cargoSolicitante ?? '',
+
+							fechaSolicitud: requisicionDetalle?.fechaSolicitud
+								? requisicionDetalle.fechaSolicitud.substring(0, 10)
+								: '',
+
+							caracterProcedimiento:
+								requisicionDetalle?.caracterProcedimiento === 0
+									? 'NACIONAL'
+									: requisicionDetalle?.caracterProcedimiento === 1
+										? 'INTERNACIONAL'
+										: 'NACIONAL',
+
+							modalidadContratacion: requisicionDetalle?.modalidadContratacion
+								? String(requisicionDetalle.modalidadContratacion)
+								: '',
+
+							articuloConformidad: requisicionDetalle?.articulo
+								? String(requisicionDetalle.articulo)
+								: '',
+
+							tipoProcedimiento: requisicionDetalle?.tipoProcedimiento ?? '',
+						}}
+						onSave={(data) => {
+							setRequisicionDetalle((prev) =>
+								prev
+									? {
+											...prev,
+											idUnidadSolicitante: Number(data.unidadSolicitanteId),
+											nombreSolicitante: data.nombreTitular,
+											cargoSolicitante: data.cargoSolicitante,
+											fechaSolicitud: data.fechaSolicitud,
+											caracterProcedimiento: data.caracterProcedimiento
+												? Number(data.caracterProcedimiento)
+												: null,
+											modalidadContratacion: data.modalidadContratacion
+												? Number(data.modalidadContratacion)
+												: null,
+											articulo: data.articuloConformidad
+												? Number(data.articuloConformidad)
+												: null,
+											tipoProcedimiento: data.tipoProcedimiento,
+									}
+									: prev
+							);
+
+							onDraftChange({
+								...draft,
+								mayorDatosGenerales: {
+									...draft.mayorDatosGenerales,
+									...data,
+								},
+							});
+
+							onPatchRow({ solicitante: data.nombreTitular });
+							goToNextTab('cs-g1', orderedTabIds);
+						}}
+					/>
 					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g2" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 					<RequisicionTabPanelFieldset readOnly={readOnly}>
 						<MayorDatosPresupuestalesTab
-							initialValues={draft.mayorDatosPresupuestales}
+							idRequisicion={Number(editingRow.id)}
+							idUsuario={Number(editingRow.idUsuario ?? 0)}
+							initialValues={{
+								presupuestoAutorizado:
+									requisicionDetalle?.presupuestoAutorizado != null
+										? String(requisicionDetalle.presupuestoAutorizado)
+										: '',
+								clavePresupuestalId: requisicionDetalle?.idClavePresupuestal
+									? String(requisicionDetalle.idClavePresupuestal)
+									: '',
+								origenRecursoId: requisicionDetalle?.idOrigenRecurso
+									? String(requisicionDetalle.idOrigenRecurso)
+									: '',
+								componenteId: requisicionDetalle?.idComponente
+									? String(requisicionDetalle.idComponente)
+									: '',
+								actividadId: requisicionDetalle?.idActividad
+									? String(requisicionDetalle.idActividad)
+									: '',
+								tipoProgramaId: requisicionDetalle?.idTipoPrograma
+									? String(requisicionDetalle.idTipoPrograma)
+									: '',
+							}}
 							onSave={(data) => {
+								setRequisicionDetalle((prev) =>
+									prev
+										? {
+												...prev,
+												presupuestoAutorizado: data.presupuestoAutorizado,
+												idClavePresupuestal: Number(data.clavePresupuestalId),
+												idOrigenRecurso: Number(data.origenRecursoId),
+												idComponente: Number(data.componenteId),
+												idActividad: Number(data.actividadId),
+												idTipoPrograma: Number(data.tipoProgramaId),
+										}
+										: prev
+								);
+
 								onDraftChange({
 									...draft,
-									mayorDatosPresupuestales: { ...draft.mayorDatosPresupuestales, ...data },
+									mayorDatosPresupuestales: data,
 								});
+
 								goToNextTab('cs-g2', orderedTabIds);
 							}}
 						/>
@@ -155,15 +375,33 @@ export function ContratacionServiciosFormShell({
 				<TabsPanel value="cs-g3" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 					<RequisicionTabPanelFieldset readOnly={readOnly}>
 						<MayorDatosRequisicionTab
-							initialValues={draft.mayorDatosRequisicion}
-							onSave={(data) => {
-								onDraftChange({
-									...draft,
-									mayorDatosRequisicion: { ...draft.mayorDatosRequisicion, ...data },
-								});
-								goToNextTab('cs-g3', orderedTabIds);
-							}}
-						/>
+						idRequisicion={Number(editingRow.id)}
+						idUsuario={Number(editingRow.idUsuario ?? 0)}
+						initialValues={{
+							descripcionGeneral: requisicionDetalle?.descripcionGeneral ?? '',
+							justificacionGasto: requisicionDetalle?.justificacionGasto ?? '',
+							periodoGarantia: requisicionDetalle?.periodoGarantia ?? '',
+						}}
+						onSave={(data) => {
+							setRequisicionDetalle((prev) =>
+								prev
+									? {
+											...prev,
+											descripcionGeneral: data.descripcionGeneral,
+											justificacionGasto: data.justificacionGasto,
+											periodoGarantia: data.periodoGarantia,
+									}
+									: prev
+							);
+
+							onDraftChange({
+								...draft,
+								mayorDatosRequisicion: data,
+							});
+
+							goToNextTab('cs-g3', orderedTabIds);
+						}}
+					/>
 					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g4" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
@@ -174,8 +412,8 @@ export function ContratacionServiciosFormShell({
 							canEditSolicitanteFields={canEditSolicitanteFields}
 							onChange={(partidas) => {
 								onDraftChange({ ...draft, mayorPartidas: partidas });
-							}}
-						/>
+							}}						idRequisicion={Number(editingRow.id)}
+						idUsuario={Number(editingRow.idUsuario ?? 0)}						/>
 					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g5" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
@@ -292,14 +530,30 @@ export function ContratacionServiciosFormShell({
 			<TabsPanel value="cs-m1" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 				<RequisicionTabPanelFieldset readOnly={readOnly}>
 					<MenorDatosGeneralesTab
-						initialValues={draft.menorDatosGenerales}
+						idRequisicion={Number(editingRow.id)}
+						idUsuario={Number(editingRow.idUsuario ?? 0)}
+						initialValues={{
+							unidadSolicitanteId: requisicionDetalle?.idUnidadSolicitante
+								? String(requisicionDetalle.idUnidadSolicitante)
+								: '',
+							nombreSolicitante: requisicionDetalle?.nombreSolicitante ?? '',
+							cargo: requisicionDetalle?.cargoSolicitante ?? '',
+							fechaSolicitud: requisicionDetalle?.fechaSolicitud
+								? requisicionDetalle.fechaSolicitud.substring(0, 10)
+								: '',
+						}}
 						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								menorDatosGenerales: { ...draft.menorDatosGenerales, ...data },
-							});
-							onPatchRow({ solicitante: data.nombreSolicitante });
-							goToNextTab('cs-m1', menorTabIds);
+							setRequisicionDetalle((prev) =>
+								prev
+									? {
+											...prev,
+											idUnidadSolicitante: Number(data.unidadSolicitanteId),
+											nombreSolicitante: data.nombreSolicitante,
+											cargoSolicitante: data.cargo,
+											fechaSolicitud: data.fechaSolicitud,
+									}
+									: prev
+							);
 						}}
 					/>
 				</RequisicionTabPanelFieldset>
@@ -307,15 +561,26 @@ export function ContratacionServiciosFormShell({
 			<TabsPanel value="cs-m2" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 				<RequisicionTabPanelFieldset readOnly={readOnly}>
 					<MenorDatosRequisicionTab
-						initialValues={draft.menorDatosRequisicion}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								menorDatosRequisicion: { ...draft.menorDatosRequisicion, ...data },
-							});
-							goToNextTab('cs-m2', menorTabIds);
-						}}
-					/>
+										idRequisicion={Number(editingRow.id)}
+										idUsuario={Number(editingRow.idUsuario ?? 0)}
+										initialValues={{
+											justificacionGasto: requisicionDetalle?.justificacionGasto ?? '',
+										}}
+										onSave={(data) => {
+											setRequisicionDetalle((prev) =>
+												prev
+													? { ...prev, justificacionGasto: data.justificacionGasto }
+													: prev
+											);
+											onDraftChange({
+												...draft,
+												menorDatosRequisicion: {
+													...draft.menorDatosRequisicion,
+													...data,
+												},
+											});
+										}}
+									/>
 				</RequisicionTabPanelFieldset>
 			</TabsPanel>
 			<TabsPanel value="cs-m3" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
@@ -326,6 +591,8 @@ export function ContratacionServiciosFormShell({
 						onChange={(partidas) => {
 							onDraftChange({ ...draft, menorPartidas: partidas });
 						}}
+						idRequisicion={Number(editingRow.id)}
+						idUsuario={Number(editingRow.idUsuario ?? 0)}
 					/>
 				</RequisicionTabPanelFieldset>
 			</TabsPanel>

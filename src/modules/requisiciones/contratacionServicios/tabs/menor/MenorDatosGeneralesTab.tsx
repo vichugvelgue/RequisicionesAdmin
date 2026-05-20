@@ -11,9 +11,12 @@ import {
 	Toast,
 	DateInputWithClear,
 } from '../../../../../components/UI';
-import { MOCK_UNIDAD_SOLICITANTE } from '../../catalogMockOptions';
 import { FieldRoleLabel } from '../../fieldRoleLabel';
 import { dateToInputValue } from '../../../../../utils/dateFormat';
+import { unidadSolicitanteApi } from '../../../../../api/unidadSolicitanteApi';
+import { requisicionApi } from '../../../../../api/requisicionBienesAPI';
+import { OptionItem } from '@/components/UI/types';
+import { useParams } from 'react-router-dom';
 
 export interface MenorServiciosDatosGeneralesForm {
 	unidadSolicitanteId: string;
@@ -22,7 +25,7 @@ export interface MenorServiciosDatosGeneralesForm {
 	fechaSolicitud: string;
 }
 
-const schema = yup.object({
+const schema: yup.ObjectSchema<MenorServiciosDatosGeneralesForm> = yup.object({
 	unidadSolicitanteId: yup.string().required('*Requerido'),
 	nombreSolicitante: yup.string().trim().required('*Requerido'),
 	cargo: yup.string().trim().required('*Requerido'),
@@ -40,6 +43,7 @@ function withDefaultFecha(
 	initialValues: Partial<MenorServiciosDatosGeneralesForm>
 ): MenorServiciosDatosGeneralesForm {
 	const todayIso = dateToInputValue(new Date());
+
 	return {
 		...empty,
 		...initialValues,
@@ -49,10 +53,26 @@ function withDefaultFecha(
 	};
 }
 
+const getUsuarioId = (): number => {
+	try {
+		const session = JSON.parse(
+			localStorage.getItem('requisiciones_admin_auth_v1') || 'null'
+		);
+
+		return Number(session?.user?.id ?? 0);
+	} catch {
+		return 0;
+	}
+};
+
 export function MenorDatosGeneralesTab({
+	idRequisicion,
+	idUsuario,
 	initialValues,
 	onSave,
 }: {
+	idRequisicion: number;
+	idUsuario: number;
 	initialValues: Partial<MenorServiciosDatosGeneralesForm>;
 	onSave: (data: MenorServiciosDatosGeneralesForm) => void;
 }) {
@@ -62,24 +82,58 @@ export function MenorDatosGeneralesTab({
 		variant: 'success' as 'success' | 'error',
 	});
 
-	const {
-		register,
-		control,
-		handleSubmit,
-		reset,
-		formState: { errors },
-	} = useForm<MenorServiciosDatosGeneralesForm>({
-		resolver: yupResolver(schema),
-		defaultValues: withDefaultFecha(initialValues),
-	});
+	const [unidadesSolicitantes, setUnidadesSolicitantes] = useState<OptionItem[]>([]);
+	const [isSaving, setIsSaving] = useState(false);
+
+	const { id } = useParams();
+	const requisicionIdFinal = Number(id ?? idRequisicion ?? 0);
+
+const {
+	register,
+	control,
+	handleSubmit,
+	reset,
+	formState: { errors },
+} = useForm<MenorServiciosDatosGeneralesForm>({
+	resolver: yupResolver(schema) as any,
+	defaultValues: withDefaultFecha(initialValues),
+});
 
 	useEffect(() => {
 		reset(withDefaultFecha(initialValues));
 	}, [initialValues, reset]);
 
 	useEffect(() => {
+		const loadUnidades = async () => {
+			try {
+				const data = await unidadSolicitanteApi.listar();
+
+				setUnidadesSolicitantes(
+					data.map((x) => ({
+						value: String(x.id),
+						label: x.nombre,
+					}))
+				);
+			} catch {
+				setToast({
+					visible: true,
+					title: 'No se pudo cargar unidad solicitante',
+					variant: 'error',
+				});
+			}
+		};
+
+		loadUnidades();
+	}, []);
+
+	useEffect(() => {
 		if (!toast.visible) return;
-		const t = setTimeout(() => setToast((s) => ({ ...s, visible: false })), 2800);
+
+		const t = setTimeout(
+			() => setToast((s) => ({ ...s, visible: false })),
+			2800
+		);
+
 		return () => clearTimeout(t);
 	}, [toast.visible]);
 
@@ -89,17 +143,49 @@ export function MenorDatosGeneralesTab({
 				<form
 					className="space-y-4"
 					onSubmit={handleSubmit(
-						(data) => {
-							onSave({
-								...data,
-								nombreSolicitante: data.nombreSolicitante.trim().toUpperCase(),
-								cargo: data.cargo.trim().toUpperCase(),
-							});
-							setToast({
-								visible: true,
-								title: 'Datos generales guardados',
-								variant: 'success',
-							});
+						async (data) => {
+							try {
+								setIsSaving(true);
+
+								const usuarioIdFinal = getUsuarioId() || Number(idUsuario ?? 0);
+
+								await requisicionApi.guardarDatosGenerales({
+									idRequisicion: requisicionIdFinal,
+									idUsuario: usuarioIdFinal,
+									idUnidadSolicitante: Number(data.unidadSolicitanteId),
+									nombreSolicitante: data.nombreSolicitante.trim().toUpperCase(),
+									cargoSolicitante: data.cargo.trim().toUpperCase(),
+									fechaSolicitud: data.fechaSolicitud,
+
+									caracterProcedimiento: null,
+									modalidadContratacion: null,
+									articulo: null,
+									tipoProcedimiento: '',
+								});
+
+								onSave({
+									...data,
+									nombreSolicitante: data.nombreSolicitante.trim().toUpperCase(),
+									cargo: data.cargo.trim().toUpperCase(),
+								});
+
+								setToast({
+									visible: true,
+									title: 'Datos generales guardados',
+									variant: 'success',
+								});
+							} catch (err) {
+								setToast({
+									visible: true,
+									title:
+										err instanceof Error
+											? err.message
+											: 'No se pudieron guardar los datos generales',
+									variant: 'error',
+								});
+							} finally {
+								setIsSaving(false);
+							}
 						},
 						() =>
 							setToast({
@@ -118,7 +204,7 @@ export function MenorDatosGeneralesTab({
 								control={control}
 								render={({ field }) => (
 									<SearchableSelect
-										options={MOCK_UNIDAD_SOLICITANTE}
+										options={unidadesSolicitantes}
 										value={field.value}
 										onChange={field.onChange}
 										placeholder="Buscar unidad…"
@@ -131,41 +217,71 @@ export function MenorDatosGeneralesTab({
 								</p>
 							) : null}
 						</div>
+
 						<div className="col-span-12 lg:col-span-3">
-							<FieldRoleLabel htmlFor="cs-menor-nom">Nombre del solicitante</FieldRoleLabel>
-							<Input id="cs-menor-nom" {...register('nombreSolicitante')} className="uppercase" />
+							<FieldRoleLabel htmlFor="cs-menor-nom">
+								Nombre del solicitante
+							</FieldRoleLabel>
+							<Input
+								id="cs-menor-nom"
+								{...register('nombreSolicitante')}
+								className="uppercase"
+							/>
 							{errors.nombreSolicitante?.message ? (
-								<p className="text-[11px] mt-1 text-red-600">{errors.nombreSolicitante.message}</p>
+								<p className="text-[11px] mt-1 text-red-600">
+									{errors.nombreSolicitante.message}
+								</p>
 							) : null}
 						</div>
+
 						<div className="col-span-12 lg:col-span-3">
 							<FieldRoleLabel htmlFor="cs-menor-car">Cargo</FieldRoleLabel>
-							<Input id="cs-menor-car" {...register('cargo')} className="uppercase" />
+							<Input
+								id="cs-menor-car"
+								{...register('cargo')}
+								className="uppercase"
+							/>
 							{errors.cargo?.message ? (
-								<p className="text-[11px] mt-1 text-red-600">{errors.cargo.message}</p>
+								<p className="text-[11px] mt-1 text-red-600">
+									{errors.cargo.message}
+								</p>
 							) : null}
 						</div>
+
 						<div className="col-span-12 lg:col-span-3">
-							<FieldRoleLabel>Fecha</FieldRoleLabel>
+							<FieldRoleLabel>Fecha de solicitud</FieldRoleLabel>
 							<Controller
 								name="fechaSolicitud"
 								control={control}
 								render={({ field }) => (
-									<DateInputWithClear value={field.value ?? ''} onChange={field.onChange} />
+									<DateInputWithClear
+										value={field.value ?? ''}
+										onChange={field.onChange}
+									/>
 								)}
 							/>
 							{errors.fechaSolicitud?.message ? (
-								<p className="text-[11px] mt-1 text-red-600">{errors.fechaSolicitud.message}</p>
+								<p className="text-[11px] mt-1 text-red-600">
+									{errors.fechaSolicitud.message}
+								</p>
 							) : null}
 						</div>
 					</div>
+
 					<div className="flex justify-end pt-2">
-						<Button type="submit" variant="success" size="md" leftIcon={<Save className="w-4 h-4" />}>
-							Guardar sección
+						<Button
+							type="submit"
+							variant="success"
+							size="md"
+							disabled={isSaving}
+							leftIcon={<Save className="w-4 h-4" />}
+						>
+							{isSaving ? 'Guardando...' : 'Guardar sección'}
 						</Button>
 					</div>
 				</form>
 			</FormSection>
+
 			<Toast
 				visible={toast.visible}
 				title={toast.title}
