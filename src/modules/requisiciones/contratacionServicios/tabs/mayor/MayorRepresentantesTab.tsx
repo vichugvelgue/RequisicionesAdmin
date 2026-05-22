@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import { Check, Save } from 'lucide-react';
 import { Button, FormSection, Input, Toast } from '../../../../../components/UI';
 import { FieldRoleLabel } from '../../fieldRoleLabel';
 import type { ServiciosPersonaContactoValues } from '../../types';
+import { PersonaContactoValues } from '@/modules/requisiciones/adquisicionBienes/types';
+import { requisicionApi } from '../../../../../api/requisicionBienesAPI';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useForm } from 'react-hook-form';
+import * as yup from 'yup';
+import { Check } from 'lucide-react';
 
 const schema = yup.object({
-	nombre: yup.string().trim().required('*Requerido'),
-	cargo: yup.string().trim().required('*Requerido'),
-	correo: yup.string().trim().email('*Correo inválido').required('*Requerido'),
-	telefono: yup.string().trim().required('*Requerido'),
+	nombre: yup.string().trim().required('*Requerido').defined(),
+	cargo: yup.string().trim().required('*Requerido').defined(),
+	correo: yup.string().trim().email('*Correo inválido').required('*Requerido').defined(),
+	telefono: yup.string().trim().required('*Requerido').defined(),
 });
 
-const empty: ServiciosPersonaContactoValues = {
+const empty: PersonaContactoValues = {
 	nombre: '',
 	cargo: '',
 	correo: '',
@@ -22,25 +24,31 @@ const empty: ServiciosPersonaContactoValues = {
 };
 
 export function MayorRepresentantesTab({
+	idRequisicion,
+	idUsuario,
 	initialValues,
 	onSave,
 }: {
-	initialValues: Partial<ServiciosPersonaContactoValues>;
-	onSave: (data: ServiciosPersonaContactoValues) => void;
+	idRequisicion: number;
+	idUsuario: number;
+	initialValues: Partial<PersonaContactoValues>;
+	onSave: (data: PersonaContactoValues) => void;
 }) {
+	const [isSaving, setIsSaving] = useState(false);
 	const [toast, setToast] = useState({
 		visible: false,
 		title: '',
 		variant: 'success' as 'success' | 'error',
 	});
+	const Resolver = yupResolver(schema);
 
 	const {
 		register,
 		handleSubmit,
 		reset,
 		formState: { errors },
-	} = useForm<ServiciosPersonaContactoValues>({
-		resolver: yupResolver(schema),
+	} = useForm<PersonaContactoValues>({
+		resolver: yupResolver(schema) as any,
 		defaultValues: { ...empty, ...initialValues },
 	});
 
@@ -54,34 +62,67 @@ export function MayorRepresentantesTab({
 		return () => clearTimeout(t);
 	}, [toast.visible]);
 
+	const getUsuarioId = (): number => {
+		try {
+			const session = JSON.parse(
+				localStorage.getItem('requisiciones_admin_auth_v1') || 'null'
+			);
+
+			return Number(session?.user?.id ?? 0);
+		} catch {
+			return 0;
+		}
+	};
+
+	const onSubmit = async (data: PersonaContactoValues) => {
+		try {
+			setIsSaving(true);
+
+			const usuarioIdFinal = getUsuarioId() || Number(idUsuario ?? 0);
+			const payloadFinal: PersonaContactoValues = {
+				...data,
+			};
+
+			await requisicionApi.guardarRepresentante({
+				idRequisicion: idRequisicion,
+				idUsuario: usuarioIdFinal,
+				correoElectronico: data.correo,
+				...data
+			});
+
+			onSave(payloadFinal);
+
+			setToast({
+				visible: true,
+				title: 'Datos de ejecución guardados',
+				variant: 'success',
+			});
+		} catch (error) {
+			setToast({
+				visible: true,
+				title:
+					error instanceof Error
+						? error.message
+						: 'No se pudieron guardar los datos generales',
+				variant: 'error',
+			});
+		} finally {
+			setIsSaving(false);
+		}
+	};
+
+	const onInvalid = () => {
+		setToast({
+			visible: true,
+			title: 'Faltan campos por capturar',
+			variant: 'error',
+		});
+	};
+
 	return (
 		<div className="p-4 flex-1 min-h-0 overflow-auto">
 			<FormSection>
-				<form
-					className="space-y-4"
-					onSubmit={handleSubmit(
-						(data) => {
-							onSave({
-								nombre: data.nombre.trim().toUpperCase(),
-								cargo: data.cargo.trim().toUpperCase(),
-								correo: data.correo.trim().toLowerCase(),
-								telefono: data.telefono.trim(),
-							});
-							setToast({
-								visible: true,
-								title: 'Representantes guardados',
-								variant: 'success',
-							});
-						},
-						() =>
-							setToast({
-								visible: true,
-								title: 'Faltan campos por capturar',
-								variant: 'error',
-							})
-					)}
-					noValidate
-				>
+				<form className="space-y-4" onSubmit={handleSubmit(onSubmit, onInvalid)} noValidate>
 					<div className="grid grid-cols-12 gap-4">
 						<div className="col-span-12 lg:col-span-3">
 							<FieldRoleLabel htmlFor="cs-rep-nom">Nombre</FieldRoleLabel>
@@ -99,7 +140,7 @@ export function MayorRepresentantesTab({
 						</div>
 						<div className="col-span-12 lg:col-span-3">
 							<FieldRoleLabel htmlFor="cs-rep-mail">Correo electrónico</FieldRoleLabel>
-							<Input id="cs-rep-mail" type="email" {...register('correo')} />
+							<Input id="cs-rep-mail" type="email" {...register('correo')} className="uppercase" />
 							{errors.correo?.message ? (
 								<p className="text-[11px] mt-1 text-red-600">{errors.correo.message}</p>
 							) : null}
@@ -113,8 +154,8 @@ export function MayorRepresentantesTab({
 						</div>
 					</div>
 					<div className="flex justify-end pt-2">
-						<Button type="submit" variant="success" size="md" leftIcon={<Save className="w-4 h-4" />}>
-							Guardar sección
+						<Button type="submit" variant="success" size="md">
+							{isSaving ? 'Guardando...' : 'Guardar sección'}
 						</Button>
 					</div>
 				</form>

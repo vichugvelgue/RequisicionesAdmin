@@ -52,10 +52,6 @@ export interface ServiciosMayorEjecucionValues {
 	colonia: string;
 	cp: string;
 	ciudad: string;
-	periodoInicio: string;
-	periodoFin: string;
-	periodoTexto: string;
-	horario: string;
 }
 
 export interface ServiciosMayorRecursosValues {
@@ -94,7 +90,7 @@ export interface ServiciosPartidaMayor {
 	defCondicionesGeneralesContratacion: string;
 }
 
-export interface ServiciosPartidaMenor extends ServiciosPartidaMayor {}
+export interface ServiciosPartidaMenor extends ServiciosPartidaMayor { }
 
 export interface MenorDetalleServicioValues {
 	descripcionGeneral: string;

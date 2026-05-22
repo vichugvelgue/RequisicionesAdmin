@@ -42,7 +42,7 @@ export function MenorDetalleServicioTab({
 		reset,
 		formState: { errors },
 	} = useForm<MenorDetalleServicioValues>({
-		resolver: yupResolver(schema),
+		resolver: yupResolver(schema) as any,
 		defaultValues: { ...empty, ...initialValues },
 	});
 

@@ -1,7 +1,21 @@
-import React from 'react';
-import { Button, DateInputWithClear, FormSection, Input, TextArea } from '../../../../../components/UI';
+import React, { useState, useEffect } from 'react';
+import { Button, DateInputWithClear, FormSection, Input, TextArea, Toast } from '../../../../../components/UI';
+import { requisicionApi } from '../../../../../api/requisicionBienesAPI';
+import { dateToInputValue } from '../../../../../utils/dateFormat';
 import { FieldRoleLabel } from '../../fieldRoleLabel';
 import type { ServiciosMayorEjecucionValues } from '../../types';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import { useForm } from 'react-hook-form';
+import { Check } from 'lucide-react';
+
+const schemaFull = yup.object({
+	experienciaLicitante: yup.string().required('*Requerido').defined(),
+	calle: yup.string().required('*Requerido').defined(),
+	colonia: yup.string().required('*Requerido').defined(),
+	cp: yup.string().required('*Requerido').defined(),
+	ciudad: yup.string().required('*Requerido').defined(),
+});
 
 const empty: ServiciosMayorEjecucionValues = {
 	experienciaLicitante: '',
@@ -9,139 +23,187 @@ const empty: ServiciosMayorEjecucionValues = {
 	colonia: '',
 	cp: '',
 	ciudad: '',
-	periodoInicio: '',
-	periodoFin: '',
-	periodoTexto: '',
-	horario: '',
 };
 
 export function MayorEjecucionTab({
+	idRequisicion,
+	idUsuario,
 	initialValues,
 	hideRevisorFields,
 	onSave,
 }: {
+	idRequisicion: number;
+	idUsuario: number;
 	initialValues: Partial<ServiciosMayorEjecucionValues>;
 	hideRevisorFields: boolean;
 	onSave: (data: ServiciosMayorEjecucionValues) => void;
 }) {
-	const [data, setData] = React.useState<ServiciosMayorEjecucionValues>({ ...empty, ...initialValues });
+	const [isSaving, setIsSaving] = useState(false);
+	const [toast, setToast] = useState({
+		visible: false,
+		title: '',
+		variant: 'success' as 'success' | 'error',
+	});
+	const Resolver = yupResolver(schemaFull);
 
-	React.useEffect(() => {
-		setData({ ...empty, ...initialValues });
+	const {
+		register,
+		handleSubmit,
+		control,
+		reset,
+		formState: { errors },
+	} = useForm<ServiciosMayorEjecucionValues>({
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		resolver: Resolver as any,
+		defaultValues: withDefaultFecha(initialValues),
+	});
+
+	useEffect(() => {
+		reset(withDefaultFecha(initialValues))
 	}, [initialValues]);
 
-	const hasPeriodo = data.periodoTexto.trim() || (data.periodoInicio.trim() && data.periodoFin.trim());
+	const getUsuarioId = (): number => {
+		try {
+			const session = JSON.parse(
+				localStorage.getItem('requisiciones_admin_auth_v1') || 'null'
+			);
+
+			return Number(session?.user?.id ?? 0);
+		} catch {
+			return 0;
+		}
+	};
+	// const hasPeriodo = data.periodoTexto.trim() || (data.periodoInicio.trim() && data.periodoFin.trim());
+
+	function withDefaultFecha(
+		initialValues: Partial<ServiciosMayorEjecucionValues>
+	): ServiciosMayorEjecucionValues {
+		// const todayIso = dateToInputValue(new Date());
+		return {
+			...empty,
+			...initialValues,
+		};
+	}
+
+	const onSubmit = async (data: ServiciosMayorEjecucionValues) => {
+		try {
+			setIsSaving(true);
+
+			const usuarioIdFinal = getUsuarioId() || Number(idUsuario ?? 0);
+			const payloadFinal: ServiciosMayorEjecucionValues = {
+				...data,
+			};
+
+			await requisicionApi.guardarDatosEjecucion({
+				idRequisicion: idRequisicion,
+				idUsuario: usuarioIdFinal,
+				...payloadFinal
+			});
+			onSave(payloadFinal);
+
+			setToast({
+				visible: true,
+				title: 'Datos de ejecución guardados',
+				variant: 'success',
+			});
+		} catch (error) {
+			setToast({
+				visible: true,
+				title:
+					error instanceof Error
+						? error.message
+						: 'No se pudieron guardar los datos generales',
+				variant: 'error',
+			});
+		} finally {
+			setIsSaving(false);
+		}
+	};
+
+	const onInvalid = () => {
+		setToast({
+			visible: true,
+			title: 'Faltan campos por capturar',
+			variant: 'error',
+		});
+	};
+
+	useEffect(() => {
+		if (!toast.visible) return;
+		const t = setTimeout(() => setToast((s) => ({ ...s, visible: false })), 2800);
+		return () => clearTimeout(t);
+	}, [toast.visible]);
 
 	return (
 		<div className="p-4 flex-1 min-h-0 overflow-auto">
 			<FormSection>
-				<form
-					className="space-y-4"
-					onSubmit={(e) => {
-						e.preventDefault();
-						if (!hasPeriodo) return;
-						onSave({
-							experienciaLicitante: data.experienciaLicitante.trim().toUpperCase(),
-							calle: data.calle.trim().toUpperCase(),
-							colonia: data.colonia.trim().toUpperCase(),
-							cp: data.cp.trim(),
-							ciudad: data.ciudad.trim().toUpperCase(),
-							periodoInicio: data.periodoInicio,
-							periodoFin: data.periodoFin,
-							periodoTexto: data.periodoTexto.trim().toUpperCase(),
-							horario: data.horario.trim().toUpperCase(),
-						});
-					}}
-				>
+				<form className="space-y-4" onSubmit={handleSubmit(onSubmit, onInvalid)} noValidate>
 					<div className="grid grid-cols-12 gap-4">
-						{!hideRevisorFields ? (
-							<div className="col-span-12">
-								<FieldRoleLabel>Experiencia del licitante</FieldRoleLabel>
-								<TextArea
-									rows={2}
-									value={data.experienciaLicitante}
-									onChange={(e) =>
-										setData((prev) => ({ ...prev, experienciaLicitante: e.target.value.toUpperCase() }))
-									}
-									className="uppercase"
-								/>
-							</div>
-						) : null}
-						{!hideRevisorFields ? (
-							<>
-								<div className="col-span-12 sm:col-span-6">
-									<FieldRoleLabel>Lugar ejecución — Calle</FieldRoleLabel>
-									<Input
-										value={data.calle}
-										onChange={(e) => setData((prev) => ({ ...prev, calle: e.target.value.toUpperCase() }))}
-										className="uppercase"
-									/>
-								</div>
-								<div className="col-span-12 sm:col-span-6">
-									<FieldRoleLabel>Colonia</FieldRoleLabel>
-									<Input
-										value={data.colonia}
-										onChange={(e) => setData((prev) => ({ ...prev, colonia: e.target.value.toUpperCase() }))}
-										className="uppercase"
-									/>
-								</div>
-								<div className="col-span-12 sm:col-span-4">
-									<FieldRoleLabel>Código postal</FieldRoleLabel>
-									<Input value={data.cp} onChange={(e) => setData((prev) => ({ ...prev, cp: e.target.value }))} />
-								</div>
-								<div className="col-span-12 sm:col-span-8">
-									<FieldRoleLabel>Ciudad</FieldRoleLabel>
-									<Input
-										value={data.ciudad}
-										onChange={(e) => setData((prev) => ({ ...prev, ciudad: e.target.value.toUpperCase() }))}
-										className="uppercase"
-									/>
-								</div>
-							</>
-						) : null}
-						<div className="col-span-12 sm:col-span-4">
-							<FieldRoleLabel>Periodo ejecución — Inicio</FieldRoleLabel>
-							<DateInputWithClear
-								value={data.periodoInicio}
-								onChange={(v) => setData((prev) => ({ ...prev, periodoInicio: v }))}
-							/>
-						</div>
-						<div className="col-span-12 sm:col-span-4">
-							<FieldRoleLabel>Periodo ejecución — Fin</FieldRoleLabel>
-							<DateInputWithClear
-								value={data.periodoFin}
-								onChange={(v) => setData((prev) => ({ ...prev, periodoFin: v }))}
-							/>
-						</div>
-						<div className="col-span-12 sm:col-span-4">
-							<FieldRoleLabel>Periodo ejecución (texto)</FieldRoleLabel>
-							<Input
-								value={data.periodoTexto}
-								onChange={(e) => setData((prev) => ({ ...prev, periodoTexto: e.target.value.toUpperCase() }))}
-								className="uppercase"
-							/>
-						</div>
 						<div className="col-span-12">
-							<FieldRoleLabel>Horario (opcional)</FieldRoleLabel>
-							<Input
-								value={data.horario}
-								onChange={(e) => setData((prev) => ({ ...prev, horario: e.target.value.toUpperCase() }))}
+							<FieldRoleLabel>Experiencia del licitante</FieldRoleLabel>
+							<TextArea
+								rows={2}
+								{...register('experienciaLicitante')}
 								className="uppercase"
 							/>
+							{errors.experienciaLicitante?.message ? (
+								<p className="text-[11px] mt-1 text-red-600">{errors.experienciaLicitante.message}</p>
+							) : null}
 						</div>
-						{!hasPeriodo ? (
-							<p className="col-span-12 text-[11px] text-red-600">
-								Indique periodo de ejecución (fechas o texto).
-							</p>
-						) : null}
+						<div className="col-span-12 sm:col-span-6">
+							<FieldRoleLabel>Lugar ejecución — Calle</FieldRoleLabel>
+							<Input
+								{...register('calle')}
+								className="uppercase"
+							/>
+							{errors.calle?.message ? (
+								<p className="text-[11px] mt-1 text-red-600">{errors.calle.message}</p>
+							) : null}
+						</div>
+						<div className="col-span-12 sm:col-span-6">
+							<FieldRoleLabel>Colonia</FieldRoleLabel>
+							<Input
+								{...register('colonia')}
+								className="uppercase"
+							/>
+							{errors.colonia?.message ? (
+								<p className="text-[11px] mt-1 text-red-600">{errors.colonia.message}</p>
+							) : null}
+						</div>
+						<div className="col-span-12 sm:col-span-4">
+							<FieldRoleLabel>Código postal</FieldRoleLabel>
+							<Input
+								{...register('cp')}
+								type='number'
+							/>
+							{errors.cp?.message ? (
+								<p className="text-[11px] mt-1 text-red-600">{errors.cp.message}</p>
+							) : null}
+						</div>
+						<div className="col-span-12 sm:col-span-8">
+							<FieldRoleLabel>Ciudad</FieldRoleLabel>
+							<Input
+								{...register('ciudad')}
+								className="uppercase"
+							/>
+							{errors.ciudad?.message ? (
+								<p className="text-[11px] mt-1 text-red-600">{errors.ciudad.message}</p>
+							) : null}
+						</div>
 					</div>
 					<div className="flex justify-end pt-2">
 						<Button type="submit" variant="success" size="md">
-							Guardar sección
+							{isSaving ? 'Guardando...' : 'Guardar sección'}
 						</Button>
 					</div>
 				</form>
 			</FormSection>
+			<Toast
+				visible={toast.visible}
+				title={toast.title}
+				variant={toast.variant}
+				icon={<Check className="w-3.5 h-3.5 text-white" />}
+			/>
 		</div>
 	);
 }

@@ -98,9 +98,9 @@ export function MayorDatosGeneralesTab({
 	const { id } = useParams();
 	const requisicionIdFinal = Number(id ?? idRequisicion ?? 0);
 	const caracterProcedimientoMap: Record<string, number> = {
-	NACIONAL: 0,
-	INTERNACIONAL: 1,
-};
+		NACIONAL: 0,
+		INTERNACIONAL: 1,
+	};
 
 	const resolver = yupResolver(hideRevisorFields ? schemaSolicitante : schemaFull);
 
@@ -117,106 +117,106 @@ export function MayorDatosGeneralesTab({
 	});
 
 	useEffect(() => {
-	const loadUnidades = async () => {
-		try {
-			const data = await unidadSolicitanteApi.listar();
+		const loadUnidades = async () => {
+			try {
+				const data = await unidadSolicitanteApi.listar();
 
-			setUnidadesSolicitantes(
-				data.map((x) => ({
-					value: String(x.id),
-					label: x.nombre,
-				}))
-			);
-		} catch {
-			setToast({
-				visible: true,
-				title: 'No se pudo cargar unidad solicitante',
-				variant: 'error',
-			});
-		}
-	};
+				setUnidadesSolicitantes(
+					data.map((x) => ({
+						value: String(x.id),
+						label: x.nombre,
+					}))
+				);
+			} catch {
+				setToast({
+					visible: true,
+					title: 'No se pudo cargar unidad solicitante',
+					variant: 'error',
+				});
+			}
+		};
 
-	loadUnidades();
-}, []);
+		loadUnidades();
+	}, []);
 
 	useEffect(() => {
 		reset(withDefaultFecha(initialValues));
 	}, [initialValues, reset]);
 
 	const onSubmit = async (data: ServiciosMayorDatosGeneralesValues) => {
-	try {
-		setIsSaving(true);
+		try {
+			setIsSaving(true);
 
-		const fechaSolicitud = hideRevisorFields
-			? (initialValues.fechaSolicitud ?? data.fechaSolicitud ?? '').trim()
-			: (data.fechaSolicitud ?? '').trim();
+			const fechaSolicitud = hideRevisorFields
+				? (initialValues.fechaSolicitud ?? data.fechaSolicitud ?? '').trim()
+				: (data.fechaSolicitud ?? '').trim();
+			
+			const modalidadContratacion = hideRevisorFields
+				? initialValues.modalidadContratacion ?? data.modalidadContratacion
+				: data.modalidadContratacion;
 
-		const modalidadContratacion = hideRevisorFields
-			? initialValues.modalidadContratacion ?? data.modalidadContratacion
-			: data.modalidadContratacion;
+			const articuloConformidad = hideRevisorFields
+				? initialValues.articuloConformidad ?? data.articuloConformidad
+				: data.articuloConformidad;
 
-		const articuloConformidad = hideRevisorFields
-			? initialValues.articuloConformidad ?? data.articuloConformidad
-			: data.articuloConformidad;
+			const payloadFinal: ServiciosMayorDatosGeneralesValues = {
+				...data,
+				fechaSolicitud,
+				modalidadContratacion,
+				articuloConformidad,
+				nombreTitular: data.nombreTitular.trim().toUpperCase(),
+				cargoSolicitante: data.cargoSolicitante.trim().toUpperCase(),
+				tipoProcedimiento: data.tipoProcedimiento.trim().toUpperCase(),
+			};
 
-		const payloadFinal: ServiciosMayorDatosGeneralesValues = {
-			...data,
-			fechaSolicitud,
-			modalidadContratacion,
-			articuloConformidad,
-			nombreTitular: data.nombreTitular.trim().toUpperCase(),
-			cargoSolicitante: data.cargoSolicitante.trim().toUpperCase(),
-			tipoProcedimiento: data.tipoProcedimiento.trim().toUpperCase(),
-		};
+			const usuarioIdFinal = getUsuarioId() || Number(idUsuario ?? 0);
 
-		const usuarioIdFinal = getUsuarioId() || Number(idUsuario ?? 0);
+			await requisicionApi.guardarDatosGenerales({
+				idRequisicion: requisicionIdFinal,
+				idUsuario: usuarioIdFinal,
 
-		await requisicionApi.guardarDatosGenerales({
-			idRequisicion: requisicionIdFinal,
-			idUsuario: usuarioIdFinal,
+				idUnidadSolicitante: Number(payloadFinal.unidadSolicitanteId),
+				nombreSolicitante: payloadFinal.nombreTitular,
+				cargoSolicitante: payloadFinal.cargoSolicitante,
+				fechaSolicitud: payloadFinal.fechaSolicitud,
 
-			idUnidadSolicitante: Number(payloadFinal.unidadSolicitanteId),
-			nombreSolicitante: payloadFinal.nombreTitular,
-			cargoSolicitante: payloadFinal.cargoSolicitante,
-			fechaSolicitud: payloadFinal.fechaSolicitud,
+				caracterProcedimiento:
+					payloadFinal.caracterProcedimiento === 'NACIONAL'
+						? 0
+						: payloadFinal.caracterProcedimiento === 'INTERNACIONAL'
+							? 1
+							: null,
 
-			caracterProcedimiento:
-			payloadFinal.caracterProcedimiento === 'NACIONAL'
-			? 0
-			: payloadFinal.caracterProcedimiento === 'INTERNACIONAL'
-				? 1
-				: null,
+				modalidadContratacion: payloadFinal.modalidadContratacion
+					? Number(payloadFinal.modalidadContratacion)
+					: null,
 
-			modalidadContratacion: payloadFinal.modalidadContratacion
-				? Number(payloadFinal.modalidadContratacion)
-				: null,
+				articulo: payloadFinal.articuloConformidad
+					? Number(payloadFinal.articuloConformidad)
+					: null,
 
-			articulo: payloadFinal.articuloConformidad
-				? Number(payloadFinal.articuloConformidad)
-				: null,
+				tipoProcedimiento: payloadFinal.tipoProcedimiento,
+			});
+			onSave(payloadFinal);
 
-			tipoProcedimiento: payloadFinal.tipoProcedimiento,
-		});		
-		onSave(payloadFinal);
-
-		setToast({
-			visible: true,
-			title: 'Datos generales guardados',
-			variant: 'success',
-		});
-	} catch (error) {
-		setToast({
-			visible: true,
-			title:
-				error instanceof Error
-					? error.message
-					: 'No se pudieron guardar los datos generales',
-			variant: 'error',
-		});
-	} finally {
-		setIsSaving(false);
-	}
-};
+			setToast({
+				visible: true,
+				title: 'Datos generales guardados',
+				variant: 'success',
+			});
+		} catch (error) {
+			setToast({
+				visible: true,
+				title:
+					error instanceof Error
+						? error.message
+						: 'No se pudieron guardar los datos generales',
+				variant: 'error',
+			});
+		} finally {
+			setIsSaving(false);
+		}
+	};
 
 	const onInvalid = () => {
 		setToast({
@@ -312,8 +312,8 @@ export function MayorDatosGeneralesTab({
 												value={field.value}
 												onChange={(e) => field.onChange(e.target.value)}
 												options={[
-													{ value: 'FIJA', label: 'Fija' },
-													{ value: 'ABIERTA', label: 'Abierta' },
+													{ value: '1', label: 'Fija' },
+													{ value: '2', label: 'Abierta' },
 												]}
 											/>
 										)}
