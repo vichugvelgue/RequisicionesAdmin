@@ -29,3 +29,81 @@
     scrollbar-width: none;
   }
 }
+
+.documento-pdf {
+	width: 816px;
+	margin: 0 auto;
+}
+
+.hoja-pdf {
+	width: 816px;
+	min-height: 1056px;
+	margin: 0 auto;
+	background: white;
+	padding: 56px 72px;
+	font-size: 12px;
+	line-height: 1.6;
+	color: black;
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+	break-after: page;
+	page-break-after: always;
+}
+
+.hoja-pdf:last-child {
+	break-after: auto;
+	page-break-after: auto;
+}
+
+.hoja-pdf table {
+	page-break-inside: auto;
+}
+
+.hoja-pdf tr {
+	page-break-inside: avoid;
+	break-inside: avoid;
+}
+
+.hoja-pdf thead {
+	display: table-header-group;
+}
+
+.no-print {
+	display: block;
+}
+
+@media print {
+	@page {
+		size: letter;
+		margin: 0;
+	}
+
+	html,
+	body {
+		background: white !important;
+	}
+
+	.no-print {
+		display: none !important;
+	}
+
+	.documento-pdf {
+		width: 216mm !important;
+		margin: 0 !important;
+		padding: 0 !important;
+	}
+
+	.hoja-pdf {
+		width: 216mm !important;
+		min-height: 279mm !important;
+		margin: 0 !important;
+		padding: 14mm 18mm !important;
+		box-shadow: none !important;
+		break-after: page;
+		page-break-after: always;
+	}
+
+	.hoja-pdf:last-child {
+		break-after: auto;
+		page-break-after: auto;
+	}
+}

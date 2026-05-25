@@ -2,23 +2,19 @@ import React from 'react';
 import { Download } from 'lucide-react';
 import { Button } from '../../../../components/UI';
 
-export function DocumentoTabChrome({ children }: { children: React.ReactNode }) {
+type DocumentoTabChromeProps = {
+	children: React.ReactNode;
+	actions?: React.ReactNode;
+};
+
+export function DocumentoTabChrome({ children, actions }: DocumentoTabChromeProps) {
 	return (
 		<div className="flex min-h-0 flex-1 flex-col">
 			<div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
-				<Button
-					type="button"
-					variant="primary"
-					size="md"
-					leftIcon={<Download className="w-4 h-4" />}
-					disabled
-					title="Próximamente"
-				>
-					Descargar
-				</Button>
+				{actions}
+				
 				<p className="min-w-[200px] flex-1 text-xs text-slate-500">
-					Vista previa de los datos guardados en las pestañas anteriores. La descarga del documento estará
-					disponible más adelante.
+					Vista previa de los datos guardados en las pestañas anteriores. Para descargar el documento generado, haz clic en el botón "Descargar Word".
 				</p>
 			</div>
 			<div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">

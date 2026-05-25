@@ -1,6 +1,10 @@
 import React from 'react';
 import { DocumentoTabChrome } from './DocumentoTabChrome';
 
+
+import { generarWordDesdePlantilla } from "../../../../utils/generarWordDesdePlantilla";
+import { Download } from 'lucide-react';
+
 type Props = {
 	requisicionDetalle: any;
 	bienDetalle: any;
@@ -34,14 +38,30 @@ const modalidad = (v: any) => {
 
 
 
-export function BienesMenorDocumentoWordPreview({
+
+
+export function BienesMayorDocumentoWordPreview({
 	requisicionDetalle,
 	bienDetalle,
 	partidas = [],
 }: Props) {
+
+
+	
+
 	return (
-		<DocumentoTabChrome>
-			<div className="min-h-screen bg-slate-200 py-6">
+		<DocumentoTabChrome actions={
+					<button
+						type="button"
+						onClick={() => generarWordDesdePlantilla(requisicionDetalle)}
+						className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+					>
+						Descargar Word
+					</button>
+				}
+			>
+			
+			<div className="min-h-screen bg-slate-200 py-6">		
 				<div className="mx-auto w-[816px] min-h-[1056px] bg-white px-[72px] py-[56px] text-[12px] leading-relaxed text-black shadow-xl">
 					<div className="text-center font-bold uppercase leading-tight text-gray-700">
 							<p>H. AYUNTAMIENTO DE CUAUTLANCINGO</p>
@@ -205,24 +225,24 @@ export function BienesMenorDocumentoWordPreview({
 
 					<table className=" w-full border-collapse text-[11px]">
 						<thead>
-	<tr className="font-bold">
-		<th className="border border-black bg-gray-200 p-2">
-			NÚMERO DE PARTIDA
-		</th>
+							<tr className="font-bold">
+								<th className="border border-black bg-gray-200 p-2">
+									NÚMERO DE PARTIDA
+								</th>
 
-		<th className="border border-black bg-gray-200 p-2">
-			DESCRIPCIÓN
-		</th>
+								<th className="border border-black bg-gray-200 p-2">
+									DESCRIPCIÓN
+								</th>
 
-		<th className="border border-black bg-gray-200 p-2">
-			UNIDAD DE MEDIDA
-		</th>
+								<th className="border border-black bg-gray-200 p-2">
+									UNIDAD DE MEDIDA
+								</th>
 
-		<th className="border border-black bg-gray-200 p-2">
-			CANTIDAD
-		</th>
-	</tr>
-</thead>
+								<th className="border border-black bg-gray-200 p-2">
+									CANTIDAD
+								</th>
+							</tr>
+						</thead>
 						<tbody>
 							{partidas.length ? (
 								partidas.map((p, index) => (
@@ -979,4 +999,7 @@ export function BienesMenorDocumentoWordPreview({
 			</div>
 		</DocumentoTabChrome>
 	);
+
+	
 }
+
