@@ -35,7 +35,7 @@ import {
 	type RequisicionView,
 	type RequisicionDetalle,
 } from '../../../api/requisicionBienesAPI';
-import { TipoCompra } from '../adquisicionBienes/types';
+import { isSolicitanteProfile, TipoCompra } from '../adquisicionBienes/types';
 
 const BASE_PATH = '/requisiciones/contratacion-servicios';
 
@@ -236,8 +236,12 @@ const editingRow =
 		try {
 			setIsLoading(true);
 			setLoadError(null);
-
-			const data = await requisicionApi.listarPorSolicitante({ tipoObjeto: 2 });
+			
+			let data = []
+			if(isRevisorProfile)
+				data = await requisicionApi.listarPorRevisor({ tipoObjeto: 2 })
+			else
+				data = await requisicionApi.listarPorSolicitante({ tipoObjeto: 2 })
 			console.log('Requisiciones de servicios cargadas:', data);
 
 			const rowsServicios = data
