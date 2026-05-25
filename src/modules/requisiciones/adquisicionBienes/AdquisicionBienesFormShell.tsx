@@ -14,7 +14,8 @@ import { MenorDatosGeneralesTab } from './tabs/menor/MenorDatosGeneralesTab';
 import { MenorDatosRequisicionTab } from './tabs/menor/MenorDatosRequisicionTab';
 import { MenorPartidasTab } from './tabs/menor/MenorPartidasTab';
 import { MenorDocumentoTab } from './tabs/menor/MenorDocumentoTab';
-import { BienesMenorDocumentoWordPreview } from './documento/BienesMenorDocumentoWordPreview';
+import { BienesMayorDocumentoWordPreview } from './documento/BienesMayorDocumentoWordPreview';
+import BienesMenorDocumentoPreview from "./documento/BienesMenorDocumentoPreview";
 import type { RequisicionRow } from './types';
 import { requisicionApi, RequisicionDetalle } from '../../../api/requisicionBienesAPI';
 
@@ -90,14 +91,14 @@ export function AdquisicionBienesFormShell({
 
 
 	const cargarDocumentoBienes = async () => {
+		console.log('Cargando documento de bienes...');
 		if (documentoBienesCargado) return;
 
 		try {
 			const data = await requisicionApi.obtenerInformacionBienesDocumento(
 				requisicionDetalle.id
 			);
-
-			console.log('Documento de bienes cargado:', data);
+			
 			setDocumentoBienes(data);
 			setDocumentoBienesCargado(true);
 		} catch (error) {
@@ -105,10 +106,7 @@ export function AdquisicionBienesFormShell({
 		}
 	};
 
-	useEffect(() => {
-		console.log('Active step changed:', activeStep);
-		console.log('Requisicion detalle:', editingRow.id);		
-		console.log('Documento bienes cargado:', documentoBienesCargado);
+	useEffect(() => {		
 		if (activeStep === 'g8' && !documentoBienesCargado) {
 			cargarDocumentoBienes();
 		}
@@ -461,7 +459,7 @@ export function AdquisicionBienesFormShell({
 						{loadingDocumento ? (
 							<div>Cargando documento...</div>
 						) : (
-							<BienesMenorDocumentoWordPreview
+							<BienesMayorDocumentoWordPreview
 								requisicionDetalle={documentoBienes}
 								bienDetalle={documentoBienes?.bienDetalle}
 								partidas={documentoBienes?.partidas ?? []}
@@ -839,14 +837,21 @@ export function AdquisicionBienesFormShell({
 		},
 		{
 			id: 'm4',
-			label: <StepperTabLabel step={4} title="Documento" />,
+			label: (
+				<div onClick={cargarDocumentoBienes}>
+					<StepperTabLabel step={4} title="Documento" />
+				</div>
+			),
 			panel: (
-				//<MenorDocumentoTab draft={draft} numeroLabel={numeroLabel} solicitanteLabel={solicitantePreview} />
-				<BienesMenorDocumentoWordPreview
-				requisicionDetalle={requisicionDetalle}
-				bienDetalle={requisicionDetalle?.bienDetalle}
-				partidas={requisicionDetalle?.partidas}
-			/>
+				<>
+					{loadingDocumento ? (
+						<div>Cargando documento...</div>
+					) : (
+						<BienesMenorDocumentoPreview
+							requisicionDetalle={documentoBienes}
+						/>
+					)}
+				</>
 			),
 		},
 	];
