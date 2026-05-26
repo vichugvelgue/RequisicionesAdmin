@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Ban, Check, MessageSquare, Plus, Save, Trash2 } from 'lucide-react';
+import { Ban, Check, CheckCircle, MessageSquare, Plus, Save, Trash2 } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth, isRequisicionReadOnlyProfile } from '../../../auth';
 import {
@@ -15,9 +15,10 @@ import {
 	ViewHeader,
 	StatusBadge,
 	resolveStatusBadge,
+	Input,
 } from '../../../components/UI';
 import type { OptionItem, SortConfig } from '../../../components/UI/types';
-import type { SimpleTableColumn } from '../../../components/UI/SimpleTable/SimpleTable';
+import type { SimpleTableColumn, SimpleTableCustomAction } from '../../../components/UI/SimpleTable/SimpleTable';
 import { MontoInicialStep } from './MontoInicialStep';
 import {
 	AdquisicionBienesFormShell,
@@ -26,14 +27,18 @@ import {
 } from './AdquisicionBienesFormShell';
 import {
 	createEmptyDraft,
-	userHidesRevisorFields,
+	isSolicitanteProfile,
+	isRevisorProfileUser,
 	type AdquisicionDraft,
 	type RequisicionRow,
 	type SearchCriteria,
 	type TipoCompra,
+	EnumRequisicionEstatusId,
 } from './types';
 
-import { requisicionApi, RequisicionDetalle, type RequisicionView } from '../../../api/requisicionBienesAPI';
+import { GuardarRequisicionDTO, requisicionApi, CancelarDTO, type RequisicionView } from '../../../api/requisicionBienesAPI';
+import { ContratacionServiciosRow } from '../contratacionServicios/types';
+import { FieldRoleLabel } from './fieldRoleLabel';
 
 
 
@@ -83,7 +88,7 @@ const TABLE_COLUMNS: SimpleTableColumn<RequisicionRow>[] = [
 		sortable: true,
 		width: 'w-[14%]',
 		render: (_v, row) => {
-			const r = resolveStatusBadge(row.estatus);
+			const r = resolveStatusBadge(row.estatus.replace(/([a-z])([A-Z])/g, "$1 $2"));
 			return <StatusBadge variant={r.variant}>{r.label}</StatusBadge>;
 		},
 	},
@@ -130,7 +135,7 @@ export function AdquisicionBienesListadoFormView() {
 	const { user } = useAuth();
 	const navigate = useNavigate();
 	const location = useLocation();
-	const { id } = useParams();		
+	const { id } = useParams();
 
 	const [rows, setRows] = useState<RequisicionRow[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
@@ -159,7 +164,9 @@ export function AdquisicionBienesListadoFormView() {
 	const [appliedTipo, setAppliedTipo] = useState('');
 	const [appliedEstatus, setAppliedEstatus] = useState('');
 
+	const [motivo, setMotivo] = useState('');
 	const [pendingDeleteRow, setPendingDeleteRow] = useState<RequisicionRow | null>(null);
+	const [pendingRevisionRow, setPendingRevisionRow] = useState<ContratacionServiciosRow | null>(null);
 	const [newlyCreatedIds, setNewlyCreatedIds] = useState<string[]>([]);
 	const [activeFormTabId, setActiveFormTabId] = useState('');
 	const [toastState, setToastState] = useState<{
@@ -171,7 +178,7 @@ export function AdquisicionBienesListadoFormView() {
 	const [revisorModal, setRevisorModal] = useState<'solicitar-cambios' | 'cancelar' | null>(null);
 	const [revisorModalText, setRevisorModalText] = useState('');
 
-	const isCreateMode = location.pathname.endsWith('/nuevo');	
+	const isCreateMode = location.pathname.endsWith('/nuevo');
 	const editingRow = rows.find((row) => row.id === id) ?? null;
 	const [editingRow1, setEditingRow] = useState<RequisicionRow | null>(null);
 	const isEditRoute = Boolean(id) && !isCreateMode;
@@ -186,16 +193,17 @@ export function AdquisicionBienesListadoFormView() {
 	//const isRequisicionReadOnly = isRequisicionReadOnlyProfile(user?.tipoPerfil);
 	/** Solo el solicitante oculta bloques de revisor; `isNewRecord` no debe acortar el formulario al revisor al consultar. */
 	//const hideRevisorFields = userHidesRevisorFields(user) || (isNewRecord && !isRevisorProfile);
-	
+
 	const perfil = (user?.tipoPerfil ?? '').trim().toUpperCase();
 
-const isSolicitanteProfile = perfil === 'SOLICITANTE';
-const isRevisorProfile = perfil === 'REVISOR';
-const isAdministradorGeneralProfile = perfil === 'ADMINISTRADOR_GENERAL';
+	const isSolicitante = isSolicitanteProfile(user);
+	const isRevisorProfile = isRevisorProfileUser(user);
+	const isAdministradorGeneralProfile = perfil === 'ADMINISTRADOR_GENERAL';
 
-const canEditSolicitanteFields = isSolicitanteProfile;
-const canEditRevisorFields = isRevisorProfile;
-const isRequisicionReadOnly = isAdministradorGeneralProfile;
+	const canEditSolicitanteFields = isSolicitante;
+	const canEditRevisorFields = isRevisorProfile;
+	const isRequisicionReadOnly = isAdministradorGeneralProfile;
+	const isSolicitantePermisoRegistro = (row: ContratacionServiciosRow) => isSolicitante && EnumRequisicionEstatusId[row.estatus] < EnumRequisicionEstatusId.EnRevision;
 
 
 
@@ -227,35 +235,35 @@ const isRequisicionReadOnly = isAdministradorGeneralProfile;
 	}, [editingRow, mode, navigate]);*/
 
 	useEffect(() => {
-	if (!isCreateMode) return;
+		if (!isCreateMode) return;
 
-	if (isRevisorProfile) {
-		navigate(BASE_PATH, { replace: true });
-		setToastState({
-			visible: true,
-			title: 'Los revisores no crean requisiciones nuevas.',
-			variant: 'error',
-		});
-		return;
-	}
+		if (isRevisorProfile) {
+			navigate(BASE_PATH, { replace: true });
+			setToastState({
+				visible: true,
+				title: 'Los revisores no crean requisiciones nuevas.',
+				variant: 'error',
+			});
+			return;
+		}
 
-	if (isRequisicionReadOnly) {
-		navigate(BASE_PATH, { replace: true });
-		setToastState({
-			visible: true,
-			title: 'El administrador general solo puede consultar requisiciones.',
-			variant: 'error',
-		});
-	}
-}, [isCreateMode, isRevisorProfile, isRequisicionReadOnly, navigate]);
+		if (isRequisicionReadOnly) {
+			navigate(BASE_PATH, { replace: true });
+			setToastState({
+				visible: true,
+				title: 'El administrador general solo puede consultar requisiciones.',
+				variant: 'error',
+			});
+		}
+	}, [isCreateMode, isRevisorProfile, isRequisicionReadOnly, navigate]);
 
-useEffect(() => {
-	if (mode !== 'form-edicion') return;
+	useEffect(() => {
+		if (mode !== 'form-edicion') return;
 
-	if (!editingRow) {
-		navigate(BASE_PATH, { replace: true });
-	}
-}, [editingRow, mode, navigate]);
+		if (!editingRow) {
+			navigate(BASE_PATH, { replace: true });
+		}
+	}, [editingRow, mode, navigate]);
 
 	useEffect(() => {
 		//No cargar si estás creando
@@ -267,6 +275,16 @@ useEffect(() => {
 		loadRequisiciones();
 
 	}, [isCreateMode, mode]);
+
+	const handleEnviarRevision: SimpleTableCustomAction<ContratacionServiciosRow> = {
+		icon: <CheckCircle className="w-4 h-4" />,
+		onClick: (row) => {
+			setPendingRevisionRow(row);
+		},
+		title: 'Enviar a revisión',
+		variant: 'icon',
+		visible: (row: ContratacionServiciosRow) => isSolicitantePermisoRegistro(row),
+	};
 
 	const applyFilters = useCallback(() => {
 		setAppliedSearch({
@@ -347,36 +365,36 @@ useEffect(() => {
 	);
 
 
-	
-const loadRequisiciones = async () => {
-	setIsLoading(true);
-	setLoadError(null);
 
-	try {
+	const loadRequisiciones = async () => {
+		setIsLoading(true);
+		setLoadError(null);
 
-		if (isRevisorProfile) {
-			const data = await requisicionApi.listarPorRevisor({ tipoObjeto: 1 });			
-			setRows(data.map(mapRequisicionViewToRow));
-		} else if (isSolicitanteProfile) {
-			const data = await requisicionApi.listarPorSolicitante({ tipoObjeto: 1 });
-			setRows(data.map(mapRequisicionViewToRow));
-		} else if (isAdministradorGeneralProfile) {
-		
+		try {
+
+			if (isRevisorProfile) {
+				const data = await requisicionApi.listarPorRevisor({ tipoObjeto: 1 });
+				setRows(data.map(mapRequisicionViewToRow));
+			} else if (isSolicitante) {
+				const data = await requisicionApi.listarPorSolicitante({ tipoObjeto: 1 });
+				setRows(data.map(mapRequisicionViewToRow));
+			} else if (isAdministradorGeneralProfile) {
+
+			}
+
+
+
+		} catch (error) {
+			const message =
+				error instanceof Error
+					? error.message
+					: 'No se pudieron cargar las requisiciones.';
+
+			setLoadError(message);
+		} finally {
+			setIsLoading(false);
 		}
-
-
-		
-	} catch (error) {
-		const message =
-			error instanceof Error
-				? error.message
-				: 'No se pudieron cargar las requisiciones.';
-
-		setLoadError(message);
-	} finally {
-		setIsLoading(false);
-	}
-};
+	};
 
 	const resetToListado = () => {
 		navigate(BASE_PATH);
@@ -464,21 +482,80 @@ const loadRequisiciones = async () => {
 		});
 	};
 
-	const handleDeleteConfirm = () => {
+	const handleRevisionConfirm = async () => {
+		if (!pendingRevisionRow) return;
+
+		try {
+			setIsLoading(true)
+			const revId = pendingRevisionRow.id;
+			const data: GuardarRequisicionDTO = {
+				idRequisicion: Number(revId),
+				idUsuario: Number(user?.id ?? 0),
+			};
+			await requisicionApi.EnviarRevision(data);
+
+			setToastState({
+				visible: true,
+				title: 'Requisición enviada a revisión',
+				variant: 'success',
+			});
+		} catch (error) {
+			setToastState({
+				visible: true,
+				title:
+					error instanceof Error
+						? error.message
+						: 'No se pudieron guardar los datos generales',
+				variant: 'error',
+			});
+		} finally {
+			setPendingRevisionRow(null);
+			setIsLoading(false)
+		}
+	};
+
+	const handleDeleteConfirm = async () => {
 		if (!pendingDeleteRow) return;
-		const delId = pendingDeleteRow.id;
-		setRows((prev) => prev.filter((r) => r.id !== delId));
-		setDraftById((prev) => {
-			const n = { ...prev };
-			delete n[delId];
-			return n;
-		});
-		setPendingDeleteRow(null);
-		setToastState({
-			visible: true,
-			title: 'Registro eliminado correctamente',
-			variant: 'success',
-		});
+
+		try {
+			if (!isSolicitantePermisoRegistro(pendingDeleteRow)) {
+				throw new Error('La requisición no puede eliminarse porque ya se encuentra en un nivel superior de autorización.');
+			}
+
+			const delId = pendingDeleteRow.id;
+
+			const data: CancelarDTO = {
+				idRequisicion: Number(delId),
+				idUsuario: Number(user?.id ?? 0),
+				motivo: motivo?.trim() ?? ''
+			};
+			await requisicionApi.Cancelar(data); 1
+
+			setRows((prev) => prev.map((r) => (r.id === delId ? { ...r, estatus: 'Cancelada' } : r)));
+			setDraftById((prev) => {
+				const n = { ...prev };
+				delete n[delId];
+				return n;
+			});
+			setToastState({
+				visible: true,
+				title: 'Registro eliminado correctamente',
+				variant: 'success',
+			});
+		} catch (error) {
+			setToastState({
+				visible: true,
+				title:
+					error instanceof Error
+						? error.message
+						: 'No se pudieron guardar los datos generales',
+				variant: 'error',
+			});
+		} finally {
+			setPendingDeleteRow(null);
+			setMotivo('');
+			setIsLoading(false)
+		}
 	};
 
 	const patchRow = useCallback(
@@ -550,7 +627,7 @@ const loadRequisiciones = async () => {
 		if (mode !== 'form-edicion') {
 			setActiveFormTabId('');
 		}
-	}, [mode]);	
+	}, [mode]);
 
 	const setDraftForId = useCallback((rowId: string, next: AdquisicionDraft) => {
 		setDraftById((prev) => ({ ...prev, [rowId]: next }));
@@ -678,6 +755,7 @@ const loadRequisiciones = async () => {
 									onDelete={
 										isRequisicionReadOnly ? undefined : (row) => setPendingDeleteRow(row)
 									}
+									customActions={[handleEnviarRevision]}
 									showInlineFilters={showInlineFilters}
 									onToggleInlineFilters={() => setShowInlineFilters((v) => !v)}
 									inlineFilters={inlineFilters}
@@ -731,6 +809,30 @@ const loadRequisiciones = async () => {
 						¿Deseas eliminar la requisición{' '}
 						<strong>
 							{pendingDeleteRow ? String(pendingDeleteRow.numero).padStart(7, '0') : ''}
+						</strong>
+						?
+					</p>
+					<br />
+					<div>
+						<FieldRoleLabel htmlFor="motivo">Motivo de cancelación</FieldRoleLabel>
+						<TextArea id="motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)}
+							placeholder="Escribe aquí…"></TextArea>
+					</div>
+				</ConfirmModal>
+				<ConfirmModal
+					open={Boolean(pendingRevisionRow)}
+					onClose={() => setPendingRevisionRow(null)}
+					onConfirm={handleRevisionConfirm}
+					title="Confirmar revisión"
+					icon={<CheckCircle className="w-5 h-5" />}
+					variant="neutral"
+					confirmLabel="Revisar"
+					cancelLabel="Cancelar"
+				>
+					<p className="text-sm text-slate-600">
+						¿Deseas enviar a revisión la requisición{' '}
+						<strong>
+							{pendingRevisionRow ? String(pendingRevisionRow.numero).padStart(7, '0') : ''}
 						</strong>
 						?
 					</p>
