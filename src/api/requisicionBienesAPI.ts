@@ -734,6 +734,36 @@ export const requisicionApi = {
 		console.log("Información de bienes para documento:", result.data);
 
 		return result.data;
+	},
+
+	// obtenerDocumentoServicios
+	async obtenerDocumentoServicios(idRequisicion: number): Promise<RequisicionBienDocumento> {
+		const token = getAuthToken();
+
+		const response = await fetch(
+			`${API_BASE_URL}/ControladorRequisicion/ObtenerDocumentoServicios?idRequisicion=${idRequisicion}`,
+			{
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+			}
+		);
+
+		if (!response.ok) {
+			const errorData = await response.json();
+
+			throw new Error(
+				errorData?.mensaje || "Error al obtener la información del documento"
+			);
+		}
+
+		const result = await response.json();
+
+		console.log("Información de servicios para documento:", result.data);
+
+		return result.data;
 	}
 
 };

@@ -13,10 +13,12 @@ import { MayorCondicionesTab } from './tabs/mayor/MayorCondicionesTab';
 import { MayorRepresentantesTab } from './tabs/mayor/MayorRepresentantesTab';
 import { MayorAdministradorContratoTab } from './tabs/mayor/MayorAdministradorContratoTab';
 import { MayorDocumentoTab } from './tabs/mayor/MayorDocumentoTab';
+import { ServicioMayorDocumentoWordPreview } from './documento/ServicioMayorDocumentoWordPreview';
 import { MenorDatosGeneralesTab } from './tabs/menor/MenorDatosGeneralesTab';
 import { MenorDatosRequisicionTab } from './tabs/menor/MenorDatosRequisicionTab';
 import { MenorPartidasTab } from './tabs/menor/MenorPartidasTab';
 import { MenorDocumentoTab } from './tabs/menor/MenorDocumentoTab';
+
 import { requisicionApi, RequisicionDetalle } from '../../../api/requisicionBienesAPI';
 import { isSolicitanteProfile } from '../adquisicionBienes/types';
 import { useAuth, isRequisicionReadOnlyProfile } from '../../../auth';
@@ -93,6 +95,21 @@ export function ContratacionServiciosFormShell({
 	const [requisicionDetalle, setRequisicionDetalle] = useState<RequisicionDetalle | null>(null);
 	const [isLoadingDetalle, setIsLoadingDetalle] = useState(false);
 	const isSolicitante = isSolicitanteProfile(user)
+	const [documentoServicios, setDocumentoServicios] = useState<any | null>(null);
+	const [loadingDocumento, setLoadingDocumento] = useState(false);
+
+	const cargarDocumentoServicios = async () => {
+		if (!idRequisicion || loadingDocumento) return;
+
+		setLoadingDocumento(true);
+
+		try {
+			const data = await requisicionApi.obtenerDocumentoServicios(idRequisicion);
+			setDocumentoServicios(data);
+		} finally {
+			setLoadingDocumento(false);
+		}
+	};
 
 	useEffect(() => {
 		if (!requisicionDetalle) return;
@@ -271,7 +288,14 @@ export function ContratacionServiciosFormShell({
 					{!isSolicitante && <TabsTab value="cs-g8" label={<StepperTabLabel step={++step} title="Condiciones" />} />}
 					<TabsTab value="cs-g9" label={<StepperTabLabel step={++step} title="Representantes" />} />
 					<TabsTab value="cs-g10" label={<StepperTabLabel step={++step} title="Administrador contrato" />} />
-					<TabsTab value="cs-g11" label={<StepperTabLabel step={++step} title="Documento" />} />
+					<TabsTab
+						value="cs-g11"
+						label={
+							<div onClick={cargarDocumentoServicios}>
+								<StepperTabLabel step={++step} title="Documento" />
+							</div>
+						}
+					/>
 				</TabsList>
 				<TabsPanel value="cs-g1" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 					<RequisicionTabPanelFieldset readOnly={readOnly}>
@@ -509,12 +533,17 @@ export function ContratacionServiciosFormShell({
 				</TabsPanel>
 				<TabsPanel value="cs-g11" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 					<RequisicionTabPanelFieldset readOnly={readOnly}>
-						<MayorDocumentoTab
-							draft={draft}
-							numeroLabel={numeroLabel}
-							solicitanteLabel={solicitantePreview}
-							hideRevisorFields={hideRevisorFields}
-						/>
+						{loadingDocumento ? (
+							<div className="p-6 text-sm text-slate-500">
+								Cargando documento...
+							</div>
+						) : (
+							<ServicioMayorDocumentoWordPreview
+								requisicionDetalle={documentoServicios}			
+								servicioDetalle={documentoServicios?.servicioDetalle}					
+								partidas={documentoServicios?.partidas ?? []}
+							/>
+						)}
 					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 			</Tabs>
