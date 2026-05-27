@@ -28,7 +28,11 @@ export interface RequisicionView {
 	solicitante: string;
 	estatus: string;
 	fechaSolicitud: string;
-	tipoObjetoRequisicion: number;
+	tipoObjetoRequisicion: number;	
+	tipoMontoRequisicion?: number | string;
+	tipoObjeto?: number | string;
+	tipoRequisicion?: number | string;
+	estado?: string;
 }
 
 //Se utiiliza para crear requisición al inicio del proceso, antes de guardar datos generales
@@ -924,6 +928,69 @@ export const requisicionApi = {
 
 		const result = await response.json();
 		return result.data;
+	},
+
+	async obtenerReporteRequisiciones(params: {
+		fechaInicio: string;
+		fechaFin: string;
+		tipoMonto?: string;		
+		tipoObjeto?: string;
+	}): Promise<RequisicionView[]> {
+		const token = getAuthToken();
+		const query = new URLSearchParams();
+
+		query.append('FechaInicio', params.fechaInicio);
+		query.append('FechaFin', params.fechaFin);
+
+		if (params.tipoMonto != null) {
+			const tipoMonto =
+				params.tipoMonto === 'MAYOR'
+					? 1
+					: params.tipoMonto === 'MENOR'
+						? 2
+						: params.tipoMonto;
+
+			query.append('tipoMonto', String(tipoMonto));
+		}
+		if (params.tipoObjeto != null) {
+			const tipoObjeto =
+				params.tipoObjeto === 'BIEN'
+					? 1
+					: params.tipoObjeto === 'SERVICIO'
+						? 2
+						: params.tipoObjeto;
+
+			query.append('tipoObjeto', String(tipoObjeto));
+		}
+
+		console.log("Obteniendo reporte de requisiciones con parámetros:", {
+			FechaInicio: params.fechaInicio,
+			FechaFin: params.fechaFin,
+			tipoMonto: params.tipoMonto,			
+			tipoObjeto: params.tipoObjeto
+		});
+
+		const response = await fetch(
+			`${API_BASE_URL}/ControladorRequisicion/ObtenerReporteRequisiciones?${query.toString()}`,
+			{
+				method: 'GET',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json',
+				},
+			}
+		);
+
+		if (!response.ok) {
+			await handleApiError(response, 'Error al obtener el reporte de requisiciones');
+		}
+
+		const data = await response.json();
+		const requisiciones: Requisicion[] = data.dataList || data.data || [];
+
+		return requisiciones
+			.filter((item) => item && typeof item === 'object' && item.id)
+			.map(mapRequisicionToView);
 	}
 
 };
