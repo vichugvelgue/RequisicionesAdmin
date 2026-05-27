@@ -17,8 +17,11 @@ export interface GuardarRequisicionDTO {
 	idRequisicion: number;
 	idUsuario: number;
 }
-export interface CancelarDTO extends GuardarRequisicionDTO {
+export interface CancelarRequest extends GuardarRequisicionDTO {
 	motivo: string;
+}
+export interface EnviarObservacionRequest extends GuardarRequisicionDTO {
+	observacion: string;
 }
 //Se utiliza para el listado
 export interface RequisicionView {
@@ -508,6 +511,28 @@ export const requisicionApi = {
 		return result.data;
 	},
 
+	async EnviarObservacion(data: EnviarObservacionRequest): Promise<void> {
+		const token = getAuthToken();
+		const response = await fetch(
+			`${API_BASE_URL}/ControladorRequisicion/RegistrarObservacionRevision`,
+			{
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(data),
+			}
+		);
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(
+				errorData?.mensaje || "Error al guardar datos generales"
+			);
+		}
+	},
+
 	async EnviarRevision(data: GuardarRequisicionDTO): Promise<void> {
 		const token = getAuthToken();
 		const response = await fetch(
@@ -534,6 +559,50 @@ export const requisicionApi = {
 		const token = getAuthToken();
 		const response = await fetch(
 			`${API_BASE_URL}/ControladorRequisicion/Cancelar`,
+			{
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(data),
+			}
+		);
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(
+				errorData?.mensaje || "Error al guardar datos generales"
+			);
+		}
+	},
+
+	async EnviarAutorizacion(data: GuardarRequisicionDTO): Promise<void> {
+		const token = getAuthToken();
+		const response = await fetch(
+			`${API_BASE_URL}/ControladorRequisicion/EnviarAutorizacion`,
+			{
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(data),
+			}
+		);
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(
+				errorData?.mensaje || "Error al guardar datos generales"
+			);
+		}
+	},
+
+	async Autorizar(data: GuardarRequisicionDTO): Promise<void> {
+		const token = getAuthToken();
+		const response = await fetch(
+			`${API_BASE_URL}/ControladorRequisicion/Autorizar`,
 			{
 				method: "POST",
 				headers: {
