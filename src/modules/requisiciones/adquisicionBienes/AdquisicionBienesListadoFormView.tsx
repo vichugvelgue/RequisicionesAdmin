@@ -36,7 +36,7 @@ import {
 	EnumRequisicionEstatusId,
 } from './types';
 
-import { GuardarRequisicionDTO, requisicionApi, CancelarDTO, type RequisicionView } from '../../../api/requisicionBienesAPI';
+import { GuardarRequisicionDTO, requisicionApi, CancelarRequest, type RequisicionView, EnviarObservacionRequest } from '../../../api/requisicionBienesAPI';
 import { ContratacionServiciosRow } from '../contratacionServicios/types';
 import { FieldRoleLabel } from './fieldRoleLabel';
 
@@ -166,7 +166,9 @@ export function AdquisicionBienesListadoFormView() {
 
 	const [motivo, setMotivo] = useState('');
 	const [pendingDeleteRow, setPendingDeleteRow] = useState<RequisicionRow | null>(null);
-	const [pendingRevisionRow, setPendingRevisionRow] = useState<ContratacionServiciosRow | null>(null);
+	const [pendingRevisionRow, setPendingRevisionRow] = useState<RequisicionRow | null>(null);
+	const [pendingObservationRow, setPendingObservationRow] = useState<RequisicionRow | null>(null);
+	const [pendingAutorizacionRow, setPendingAutorizacionRow] = useState<RequisicionRow | null>(null);
 	const [newlyCreatedIds, setNewlyCreatedIds] = useState<string[]>([]);
 	const [activeFormTabId, setActiveFormTabId] = useState('');
 	const [toastState, setToastState] = useState<{
@@ -198,41 +200,13 @@ export function AdquisicionBienesListadoFormView() {
 
 	const isSolicitante = isSolicitanteProfile(user);
 	const isRevisorProfile = isRevisorProfileUser(user);
+	const isRequisicionReadOnly = isRequisicionReadOnlyProfile(user?.tipoPerfil);
 	const isAdministradorGeneralProfile = perfil === 'ADMINISTRADOR_GENERAL';
 
 	const canEditSolicitanteFields = isSolicitante;
 	const canEditRevisorFields = isRevisorProfile;
-	const isRequisicionReadOnly = isAdministradorGeneralProfile;
 	const isSolicitantePermisoRegistro = (row: ContratacionServiciosRow) => isSolicitante && EnumRequisicionEstatusId[row.estatus] < EnumRequisicionEstatusId.EnRevision;
-
-
-
-	/*useEffect(() => {
-		if (!isCreateMode) return;
-		if (isRevisorProfile) {
-			navigate(BASE_PATH, { replace: true });
-			setToastState({
-				visible: true,
-				title: 'Los revisores no crean requisiciones nuevas.',
-				variant: 'error',
-			});
-			return;
-		}
-		if (isRequisicionReadOnly) {
-			navigate(BASE_PATH, { replace: true });
-			setToastState({
-				visible: true,
-				title: 'El administrador general solo puede consultar requisiciones.',
-				variant: 'error',
-			});
-		}
-	}, [isCreateMode, isRevisorProfile, isRequisicionReadOnly, navigate]);
-
-	useEffect(() => {
-		if (mode !== 'form-edicion') return;
-		if (editingRow) return;
-		navigate(BASE_PATH, { replace: true });
-	}, [editingRow, mode, navigate]);*/
+	const isRevisorPermisoRegistro = (row: ContratacionServiciosRow) => isRevisorProfile && EnumRequisicionEstatusId[row.estatus] < EnumRequisicionEstatusId.EnAutorizacion;
 
 	useEffect(() => {
 		if (!isCreateMode) return;
@@ -367,30 +341,29 @@ export function AdquisicionBienesListadoFormView() {
 
 
 	const loadRequisiciones = async () => {
-		setIsLoading(true);
-		setLoadError(null);
-
 		try {
+			setIsLoading(true);
+			setLoadError(null);
 
-			if (isRevisorProfile) {
-				const data = await requisicionApi.listarPorRevisor({ tipoObjeto: 1 });
-				setRows(data.map(mapRequisicionViewToRow));
-			} else if (isSolicitante) {
-				const data = await requisicionApi.listarPorSolicitante({ tipoObjeto: 1 });
-				setRows(data.map(mapRequisicionViewToRow));
-			} else if (isAdministradorGeneralProfile) {
+			let data = []
+			if (isRequisicionReadOnly)
+				data = await requisicionApi.listaTodo({ tipoObjeto: 1 })
+			else if (isRevisorProfile)
+				data = await requisicionApi.listarPorRevisor({ tipoObjeto: 1 })
+			else
+				data = await requisicionApi.listarPorSolicitante({ tipoObjeto: 1 })
 
-			}
+			const rowsServicios = data
+				.filter((x) => Number(x.tipoObjetoRequisicion ?? 0) === 1)
+				.map(mapRequisicionViewToRow);
 
-
-
+			setRows(rowsServicios);
 		} catch (error) {
-			const message =
+			setLoadError(
 				error instanceof Error
 					? error.message
-					: 'No se pudieron cargar las requisiciones.';
-
-			setLoadError(message);
+					: 'Error al cargar requisiciones de bienes'
+			);
 		} finally {
 			setIsLoading(false);
 		}
@@ -513,18 +486,26 @@ export function AdquisicionBienesListadoFormView() {
 			setIsLoading(false)
 		}
 	};
-
 	const handleDeleteConfirm = async () => {
 		if (!pendingDeleteRow) return;
 
 		try {
-			if (!isSolicitantePermisoRegistro(pendingDeleteRow)) {
+			if (isRequisicionReadOnly) {
+				throw new Error('El administrador general solo puede consultar requisiciones.');
+			}
+			const canDelete = isSolicitantePermisoRegistro(pendingDeleteRow) || isRevisorPermisoRegistro(pendingDeleteRow);
+
+			if (!canDelete) {
 				throw new Error('La requisición no puede eliminarse porque ya se encuentra en un nivel superior de autorización.');
 			}
-
+			
+			if (!motivo) {
+				throw new Error('Escribe el motivo antes de eliminar.');
+			}
+			
 			const delId = pendingDeleteRow.id;
 
-			const data: CancelarDTO = {
+			const data: CancelarRequest = {
 				idRequisicion: Number(delId),
 				idUsuario: Number(user?.id ?? 0),
 				motivo: motivo?.trim() ?? ''
@@ -557,61 +538,98 @@ export function AdquisicionBienesListadoFormView() {
 			setIsLoading(false)
 		}
 	};
+	const handleObservationConfirm = async () => {
+		if (!pendingObservationRow) return;
 
+		try {
+			if (isRequisicionReadOnly) {
+				throw new Error('El administrador general solo puede consultar requisiciones.');
+			}
+
+			if (!isRevisorPermisoRegistro(pendingObservationRow)) {
+				throw new Error('La requisición ya paso la etapa de revicion');
+			}
+
+			if (!motivo) {
+				throw new Error('Escribe un comentario antes de confirmar.');
+			}
+
+			const id = pendingObservationRow.id;
+
+			const data: EnviarObservacionRequest = {
+				idRequisicion: Number(id),
+				idUsuario: Number(user?.id ?? 0),
+				observacion: motivo?.trim() ?? ''
+			};
+			await requisicionApi.EnviarObservacion(data); 1
+
+			loadRequisiciones();
+			setToastState({
+				visible: true,
+				title: 'Observaciones solicitadas correctamente',
+				variant: 'success',
+			});
+		} catch (error) {
+			setToastState({
+				visible: true,
+				title:
+					error instanceof Error
+						? error.message
+						: 'No se pudieron guardar los datos generales',
+				variant: 'error',
+			});
+		} finally {
+			setPendingObservationRow(null);
+			setMotivo('');
+			setIsLoading(false)
+		}
+	};
+	const handleAutorizationConfirm = async () => {
+		if (!pendingAutorizacionRow) return;
+
+		try {
+			setIsLoading(true)
+			const authId = pendingAutorizacionRow.id;
+			const data: GuardarRequisicionDTO = {
+				idRequisicion: Number(authId),
+				idUsuario: Number(user?.id ?? 0),
+			};
+			let mensaje = ""
+			if (isRevisorProfile) {
+				await requisicionApi.EnviarAutorizacion(data);
+				mensaje = "Requisición enviada a autorización correctamente"
+			} else {
+				await requisicionApi.Autorizar(data);
+				mensaje = "Requisición autorizada correctamente"
+			}
+
+			loadRequisiciones();
+			setToastState({
+				visible: true,
+				title: 'Requisición enviada a autorización',
+				variant: 'success',
+			});
+		} catch (error) {
+			setToastState({
+				visible: true,
+				title:
+					error instanceof Error
+						? error.message
+						: 'No se pudieron guardar los datos generales',
+				variant: 'error',
+			});
+		} finally {
+			setPendingAutorizacionRow(null);
+			setIsLoading(false)
+		}
+	};
+	
 	const patchRow = useCallback(
 		(rowId: string, patch: Partial<RequisicionRow>) => {
 			setRows((prev) => prev.map((r) => (r.id === rowId ? { ...r, ...patch } : r)));
 		},
 		[]
 	);
-
-	const closeRevisorModal = useCallback(() => {
-		setRevisorModal(null);
-		setRevisorModalText('');
-	}, []);
-
-	const handleRevisorValidar = useCallback(() => {
-		if (!editingRow) return;
-		patchRow(editingRow.id, { estatus: 'APROBADA' });
-		resetToListado();
-		setToastState({
-			visible: true,
-			title: 'Requisición validada correctamente.',
-			variant: 'success',
-		});
-	}, [editingRow, patchRow, resetToListado]);
-
-	const handleRevisorModalConfirm = useCallback(() => {
-		const note = revisorModalText.trim();
-		if (!note) {
-			setToastState({
-				visible: true,
-				title: 'Escribe un comentario antes de confirmar.',
-				variant: 'error',
-			});
-			return;
-		}
-		if (!editingRow || !revisorModal) return;
-		if (revisorModal === 'solicitar-cambios') {
-			patchRow(editingRow.id, { estatus: 'CAMBIOS_SOLICITADOS', notaRevision: note });
-			closeRevisorModal();
-			resetToListado();
-			setToastState({
-				visible: true,
-				title: 'La solicitud de cambios se registró correctamente.',
-				variant: 'success',
-			});
-			return;
-		}
-		patchRow(editingRow.id, { estatus: 'RECHAZADA', notaRevision: note });
-		closeRevisorModal();
-		resetToListado();
-		setToastState({
-			visible: true,
-			title: 'Requisición cancelada.',
-			variant: 'success',
-		});
-	}, [closeRevisorModal, editingRow, patchRow, revisorModal, revisorModalText, resetToListado]);
 
 	useEffect(() => {
 		if (mode === 'form-edicion') return;
@@ -691,7 +709,7 @@ export function AdquisicionBienesListadoFormView() {
 										variant="outline"
 										size="md"
 										onClick={() => {
-											setRevisorModal('solicitar-cambios');
+											setPendingObservationRow(editingRow);
 											setRevisorModalText('');
 										}}
 									>
@@ -701,17 +719,18 @@ export function AdquisicionBienesListadoFormView() {
 										type="button"
 										variant="success"
 										size="md"
-										onClick={handleRevisorValidar}
+										onClick={() => {
+											setPendingAutorizacionRow(editingRow);
+										}}
 									>
-										Validar
+										Autorizar
 									</Button>
 									<Button
 										type="button"
 										variant="danger"
 										size="md"
 										onClick={() => {
-											setRevisorModal('cancelar');
-											setRevisorModalText('');
+											setPendingDeleteRow(editingRow);
 										}}
 									>
 										Cancelar
@@ -752,9 +771,7 @@ export function AdquisicionBienesListadoFormView() {
 										}))
 									}
 									onEdit={handleEditClick}
-									onDelete={
-										isRequisicionReadOnly ? undefined : (row) => setPendingDeleteRow(row)
-									}
+									onDelete={isSolicitante ? setPendingDeleteRow : undefined}
 									customActions={[handleEnviarRevision]}
 									showInlineFilters={showInlineFilters}
 									onToggleInlineFilters={() => setShowInlineFilters((v) => !v)}
@@ -837,41 +854,59 @@ export function AdquisicionBienesListadoFormView() {
 						?
 					</p>
 				</ConfirmModal>
+				<ConfirmModal
+					open={Boolean(pendingObservationRow)}
+					onClose={() => setPendingObservationRow(null)}
+					onConfirm={handleObservationConfirm}
+					title="Solicitar cambios"
+					icon={<Trash2 className="w-5 h-5" />}
+					variant="neutral"
+					confirmLabel="Solicitar"
+					cancelLabel="Cancelar"
+				>
+					<div>
+						<FieldRoleLabel htmlFor="motivo">Cambios solicitados</FieldRoleLabel>
+						<TextArea id="motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)}
+							placeholder="Escribe aquí…"></TextArea>
+					</div>
+				</ConfirmModal>
 
 				<ConfirmModal
-					open={revisorModal !== null}
-					onClose={closeRevisorModal}
-					onConfirm={handleRevisorModalConfirm}
-					title={
-						revisorModal === 'cancelar'
-							? 'Cancelar requisición'
-							: 'Solicitar cambios'
-					}
-					icon={
-						revisorModal === 'cancelar' ? (
-							<Ban className="w-5 h-5" />
-						) : (
-							<MessageSquare className="w-5 h-5" />
-						)
-					}
-					variant={revisorModal === 'cancelar' ? 'danger' : 'neutral'}
-					confirmLabel={revisorModal === 'cancelar' ? 'Confirmar cancelación' : 'Enviar solicitud'}
-					cancelLabel="Cerrar"
+					open={Boolean(pendingRevisionRow)}
+					onClose={() => setPendingRevisionRow(null)}
+					onConfirm={handleRevisionConfirm}
+					title="Confirmar revisión"
+					icon={<CheckCircle className="w-5 h-5" />}
+					variant="neutral"
+					confirmLabel="Enviar"
+					cancelLabel="Cancelar"
 				>
-					<div className="flex flex-col gap-2">
-						<Label htmlFor="revisor-modal-textarea">
-							{revisorModal === 'cancelar'
-								? 'Motivo de cancelación'
-								: 'Describe los cambios solicitados'}
-						</Label>
-						<TextArea
-							id="revisor-modal-textarea"
-							value={revisorModalText}
-							onChange={(e) => setRevisorModalText(e.target.value)}
-							rows={5}
-							placeholder="Escribe aquí…"
-						/>
-					</div>
+					<p className="text-sm text-slate-600">
+						¿Deseas enviar a revisión la requisición{' '}
+						<strong>
+							{pendingRevisionRow ? String(pendingRevisionRow.numero).padStart(7, '0') : ''}
+						</strong>
+						?
+					</p>
+				</ConfirmModal>
+
+				<ConfirmModal
+					open={Boolean(pendingAutorizacionRow)}
+					onClose={() => setPendingAutorizacionRow(null)}
+					onConfirm={handleAutorizationConfirm}
+					title={isRevisorProfile ? "Enviar a autorización" : "Autorizar"}
+					icon={<CheckCircle className="w-5 h-5" />}
+					variant="neutral"
+					confirmLabel="Enviar"
+					cancelLabel="Cancelar"
+				>
+					<p className="text-sm text-slate-600">
+						¿{isRevisorProfile ? "Deseas enviar a autorización la requisición" : "Deseas autorizar la requisición"}{' '}
+						<strong>
+							{pendingAutorizacionRow ? String(pendingAutorizacionRow.numero).padStart(7, '0') : ''}
+						</strong>
+						?
+					</p>
 				</ConfirmModal>
 
 				<Toast
