@@ -16,8 +16,7 @@ export const generarWordDesdePlantilla = async (
 		paragraphLoop: true,
 		linebreaks: true,
 	});
-
-    console.log("Detalle de requisición:", requisicionDetalle);
+    
 
 	doc.render({
 		unidadSolicitante:
@@ -83,6 +82,12 @@ export const generarWordDesdePlantilla = async (
 
         pagosSeRealizaran:
             requisicionDetalle?.pagosSeRealizaran ?? "",
+
+        conformidadArticulo:
+            requisicionDetalle?.conformidadArticulo ?? "",
+
+        adquisicionMedianteContrato:
+            requisicionDetalle?.adquisicionMedianteContrato ?? "",
         
         lugarEntrega:
             requisicionDetalle?.lugarEntrega ?? "",
@@ -110,6 +115,13 @@ export const generarWordDesdePlantilla = async (
 
         telefonoAdministradorContrato:
             requisicionDetalle?.telefonoAdministradorContrato ?? "",
+        
+        nombreDependenciaEntrega:
+            requisicionDetalle?.nombreDependenciaEntrega ?? "",
+        telefonoEntrega:
+            requisicionDetalle?.telefonoEntrega ?? "",
+        extencionTelefonoEntrega:
+            requisicionDetalle?.extencionTelefonoEntrega ?? "",
 
 
 	});

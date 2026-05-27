@@ -88,15 +88,46 @@ export interface RequisicionDetalle {
 	servicioDetalle?: ServicioDetalle | null;
 }
 
+export interface DatosAdministrativosBienDTO {
+	idRequisicion: number;
+	idUsuario: number;
+
+	aniosExperienciaLicitante: string;
+	pagosSeRealizaran: string;
+	adquisicionMedianteContrato?: number | null;
+	conformidadArticulo?: number | null;
+	lugarEntrega: string;
+	diasEntrega: string;
+
+	calle: string;
+	colonia: string;
+	ciudad: string;
+	codigoPostal: string;
+	nombreDependenciaEntrega: string;
+	telefonoEntrega: string;
+	extencionTelefonoEntrega: string;
+}
+
 export interface BienDetalle {
 	id: number;
 	idRequisicion: number;
 
 	aniosExperienciaLicitante?: string;
 	pagosSeRealizaran?: string;
-	adquisicionMedianteContrato?: boolean | null;
+
+	adquisicionMedianteContrato?: number | null;
+	conformidadArticulo?: number | null;
+
 	lugarEntrega?: string;
 	diasEntrega?: string;
+
+	calle?: string;
+	colonia?: string;
+	ciudad?: string;
+	codigoPostal?: string;
+	nombreDependenciaEntrega?: string;
+	telefonoEntrega?: string;
+	extencionTelefonoEntrega?: string;
 
 	nombreRepresentante?: string;
 	cargoRepresentante?: string;
@@ -118,6 +149,9 @@ export interface ServicioDetalle {
 	colonia?: string;
 	calle?: string;
 	cp?: string;
+	nombreDependenciaEntrega?: string;
+	telefonoEntrega?: string;
+	extencionTelefonoEntrega?: string;
 	personalRequerido?: string;
 	entregables?: string;
 	diasEntrega?: string;
@@ -201,6 +235,9 @@ export interface guardarDatosEjecucionRequest extends GuardarRequisicionDTO {
 	colonia: string;
 	cp: string;
 	ciudad: string;
+	nombreDependenciaEntrega: string;
+	telefonoEntrega: string;
+	extencionTelefonoEntrega: string;
 }
 export interface guardarDatosCondicionesRequest extends GuardarRequisicionDTO {
 	diasEntrega: string;
@@ -248,6 +285,9 @@ export interface RequisicionBienDocumento {
 	cargoAdministradorContrato: string;
 	correoAdministradorContrato: string;
 	telefonoAdministradorContrato: string;
+	nombreDependenciaEntrega: string;
+	telefonoEntrega: string;
+	extencionTelefonoEntrega: string;
 }
 
 const getAuthToken = (): string | null => {
@@ -857,6 +897,32 @@ export const requisicionApi = {
 
 		console.log("Información de servicios para documento:", result.data);
 
+		return result.data;
+	},
+
+	async guardarDatosAdministrativosBien(data: DatosAdministrativosBienDTO) {
+		const token = getAuthToken();
+		console.log("Guardando datos administrativos del bien con datos:", data);
+		const response = await fetch(
+			`${API_BASE_URL}/ControladorRequisicion/GuardarDatosAdministrativosBien`,
+			{
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(data),
+			}
+		);
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(
+				errorData?.mensaje || "Error al guardar los datos administrativos del bien"
+			);
+		}
+
+		const result = await response.json();
 		return result.data;
 	}
 

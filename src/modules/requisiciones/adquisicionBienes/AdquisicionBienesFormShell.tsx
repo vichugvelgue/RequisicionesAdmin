@@ -365,22 +365,95 @@ export function AdquisicionBienesFormShell({
 		];
 
 		if (!hideRevisorFields) {
-			tabsList.push({
-				id: 'g5',
-				label: <StepperTabLabel step={++step} title="Datos administrativos" />,
-				panel: (
-					<MayorDatosAdministrativosTab
-						initialValues={draft.mayorDatosAdministrativos}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorDatosAdministrativos: { ...draft.mayorDatosAdministrativos, ...data },
-							});
-						}}
-					/>
-				),
-			});
-		}
+	tabsList.push({
+		id: 'g5',
+		label: <StepperTabLabel step={++step} title="Datos administrativos" />,
+		panel: (
+			<MayorDatosAdministrativosTab
+				idRequisicion={Number(editingRow.id)}
+				idUsuario={Number(editingRow.idUsuario ?? 0)}
+				initialValues={{
+					aniosExperienciaLicitante:
+						requisicionDetalle?.bienDetalle?.aniosExperienciaLicitante ?? '',
+
+					pagosSeRealizaran:
+						requisicionDetalle?.bienDetalle?.pagosSeRealizaran ?? '',
+
+					adquisicionMedianteContrato:
+						requisicionDetalle?.bienDetalle?.adquisicionMedianteContrato === 2
+							? 'ABIERTO'
+							: 'FIJO',
+
+					articuloConformidad:
+						requisicionDetalle?.bienDetalle?.conformidadArticulo === 1 ? '107' : '108',
+
+					lugarEntregaCalle:
+						requisicionDetalle?.bienDetalle?.calle ?? '',
+
+					lugarEntregaColonia:
+						requisicionDetalle?.bienDetalle?.colonia ?? '',
+
+					lugarEntregaCp:
+						requisicionDetalle?.bienDetalle?.codigoPostal ?? '',
+
+					lugarEntregaCiudad:
+						requisicionDetalle?.bienDetalle?.ciudad ?? '',
+					
+					nombreDependenciaEntrega: requisicionDetalle?.bienDetalle?.nombreDependenciaEntrega ?? '',
+					telefonoEntrega: requisicionDetalle?.bienDetalle?.telefonoEntrega ?? '',
+					extencionTelefonoEntrega: requisicionDetalle?.bienDetalle?.extencionTelefonoEntrega ?? '',
+
+					diasEntrega:
+						requisicionDetalle?.bienDetalle?.diasEntrega ?? '',
+				}}
+				onSave={(data) => {
+					setRequisicionDetalle((prev) =>
+						prev
+							? {
+									...prev,
+									bienDetalle: {
+										...prev.bienDetalle,
+
+										aniosExperienciaLicitante: data.aniosExperienciaLicitante,
+										pagosSeRealizaran: data.pagosSeRealizaran,
+
+										adquisicionMedianteContrato:
+											data.adquisicionMedianteContrato === 'FIJO' ? 1 : 2,
+
+										conformidadArticulo: 
+											data.articuloConformidad === '107' ? 1 : 2,
+
+										lugarEntrega: [
+											data.lugarEntregaCalle,
+											data.lugarEntregaColonia,
+											data.lugarEntregaCiudad,
+											data.lugarEntregaCp,
+										]
+											.filter(Boolean)
+											.join(', '),
+
+										calle: data.lugarEntregaCalle,
+										colonia: data.lugarEntregaColonia,
+										ciudad: data.lugarEntregaCiudad,
+										codigoPostal: data.lugarEntregaCp,
+										diasEntrega: data.diasEntrega,
+									},
+								}
+							: prev
+					);
+
+					onDraftChange({
+						...draft,
+						mayorDatosAdministrativos: {
+							...draft.mayorDatosAdministrativos,
+							...data,
+						},
+					});
+				}}
+			/>
+		),
+	});
+}
 
 		tabsList.push(
 			{
@@ -388,10 +461,10 @@ export function AdquisicionBienesFormShell({
 				label: <StepperTabLabel step={++step} title="Representantes" />,
 				panel: (
 					<MayorRepresentantesTab
-	idRequisicion={Number(editingRow.id)}
-	idUsuario={Number(editingRow.idUsuario ?? 0)}
-	initialValues={{
-		nombre: requisicionDetalle?.bienDetalle?.nombreRepresentante ?? '',
+						idRequisicion={Number(editingRow.id)}
+						idUsuario={Number(editingRow.idUsuario ?? 0)}
+						initialValues={{
+							nombre: requisicionDetalle?.bienDetalle?.nombreRepresentante ?? '',
 						cargo: requisicionDetalle?.bienDetalle?.cargoRepresentante ?? '',
 						correo: requisicionDetalle?.bienDetalle?.correoRepresentante ?? '',
 						telefono: requisicionDetalle?.bienDetalle?.telefonoRepresentante ?? '',
@@ -642,15 +715,87 @@ export function AdquisicionBienesFormShell({
 			if (administrativosIdx >= 0) {
 				tabsList[administrativosIdx].panel = (
 					<MayorDatosAdministrativosTab
-						initialValues={draft.mayorDatosAdministrativos}
-						onSave={(data) => {
-							onDraftChange({
-								...draft,
-								mayorDatosAdministrativos: { ...draft.mayorDatosAdministrativos, ...data },
-							});
-							goToNextTab('g5', orderedTabIds);
-						}}
-					/>
+				idRequisicion={Number(editingRow.id)}
+				idUsuario={Number(editingRow.idUsuario ?? 0)}
+				initialValues={{
+					aniosExperienciaLicitante:
+						requisicionDetalle?.bienDetalle?.aniosExperienciaLicitante ?? '',
+
+					pagosSeRealizaran:
+						requisicionDetalle?.bienDetalle?.pagosSeRealizaran ?? '',
+
+					adquisicionMedianteContrato:
+						requisicionDetalle?.bienDetalle?.adquisicionMedianteContrato === 2
+							? 'ABIERTO'
+							: 'FIJO',
+
+					articuloConformidad:
+						requisicionDetalle?.bienDetalle?.conformidadArticulo === 1 ? '107' :
+						'108',
+
+					lugarEntregaCalle:
+						requisicionDetalle?.bienDetalle?.calle ?? '',
+
+					lugarEntregaColonia:
+						requisicionDetalle?.bienDetalle?.colonia ?? '',
+
+					lugarEntregaCp:
+						requisicionDetalle?.bienDetalle?.codigoPostal ?? '',
+
+					lugarEntregaCiudad:
+						requisicionDetalle?.bienDetalle?.ciudad ?? '',
+
+					diasEntrega:
+						requisicionDetalle?.bienDetalle?.diasEntrega ?? '',
+					
+						nombreDependenciaEntrega: requisicionDetalle?.bienDetalle?.nombreDependenciaEntrega ?? '',
+						telefonoEntrega: requisicionDetalle?.bienDetalle?.telefonoEntrega ?? '',
+						extencionTelefonoEntrega: requisicionDetalle?.bienDetalle?.extencionTelefonoEntrega ?? '',
+				}}
+				onSave={(data) => {
+					setRequisicionDetalle((prev) =>
+						prev
+							? {
+									...prev,
+									bienDetalle: {
+										...prev.bienDetalle,
+
+										aniosExperienciaLicitante: data.aniosExperienciaLicitante,
+										pagosSeRealizaran: data.pagosSeRealizaran,
+										adquisicionMedianteContrato:
+											data.adquisicionMedianteContrato === 'FIJO' ? 1 : 2,
+										conformidadArticulo: data.articuloConformidad == '107' ? 1 : 2,
+
+										lugarEntrega: [
+											data.lugarEntregaCalle,
+											data.lugarEntregaColonia,
+											data.lugarEntregaCiudad,
+											data.lugarEntregaCp,
+										]
+											.filter(Boolean)
+											.join(', '),
+
+										calle: data.lugarEntregaCalle,
+										colonia: data.lugarEntregaColonia,
+										ciudad: data.lugarEntregaCiudad,
+										codigoPostal: data.lugarEntregaCp,
+										diasEntrega: data.diasEntrega,
+									},
+								}
+							: prev
+		);
+
+		onDraftChange({
+			...draft,
+			mayorDatosAdministrativos: {
+				...draft.mayorDatosAdministrativos,
+				...data,
+			},
+		});
+
+		goToNextTab('g5', orderedTabIds);
+	}}
+/>
 				);
 			}
 		}

@@ -74,6 +74,9 @@ export interface MayorDatosAdministrativosValues {
 	lugarEntregaCp: string;
 	lugarEntregaCiudad: string;
 	diasEntrega: string;
+	nombreDependenciaEntrega: string;
+	telefonoEntrega: string;
+	extencionTelefonoEntrega: string;
 }
 
 export interface PersonaContactoValues {

@@ -15,13 +15,14 @@ export const servicioGenerarWordDesdePlantilla = async (
 	const doc = new Docxtemplater(zip, {
 		paragraphLoop: true,
 		linebreaks: true,
-	});
-
-    console.log("Detalle de requisición:", requisicionDetalle);
+	});    
 
 	doc.render({
 		unidadSolicitante:
 			requisicionDetalle?.unidadSolicitante ?? "",
+        
+        articulo:
+			requisicionDetalle?.articulo ?? "",
 
 		nombreSolicitante:
 			requisicionDetalle?.nombreSolicitante ?? "",
@@ -80,8 +81,8 @@ export const servicioGenerarWordDesdePlantilla = async (
             cantidad: p.cantidad ?? "",
         })),
 
-        /*aniosExperienciaLicitante:
-            requisicionDetalle?.aniosExperienciaLicitante ?? "",
+        experienciaLicitante:
+            requisicionDetalle?.experienciaLicitante ?? "",
 
         diasEntrega:
             requisicionDetalle?.diasEntrega ?? "",
@@ -114,7 +115,14 @@ export const servicioGenerarWordDesdePlantilla = async (
             requisicionDetalle?.correoAdministradorContrato ?? "",
 
         telefonoAdministradorContrato:
-            requisicionDetalle?.telefonoAdministradorContrato ?? "",*/
+            requisicionDetalle?.telefonoAdministradorContrato ?? "",
+
+         nombreDependenciaEntrega:
+            requisicionDetalle?.nombreDependenciaEntrega ?? "",
+        telefonoEntrega:
+            requisicionDetalle?.telefonoEntrega ?? "",
+        extencionTelefonoEntrega:
+            requisicionDetalle?.extencionTelefonoEntrega ?? "",
 
 
 	});

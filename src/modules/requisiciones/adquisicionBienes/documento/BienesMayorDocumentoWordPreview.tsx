@@ -286,7 +286,7 @@ export function BienesMayorDocumentoWordPreview({
 							1.- Los licitantes deberán presentar currículo en hoja membretada
 							debidamente firmada por la persona autorizada para ello y sellada,
 							en el que indiquen su experiencia mínima de{' '}
-							<strong>{txt(bienDetalle?.aniosExperienciaLicitante)}</strong>{' '}
+							<strong>{txt(requisicionDetalle?.aniosExperienciaLicitante)}</strong>{' '}
 							años en contrataciones iguales o similares a la requerida en el
 							cual se incluya:
 						</p>
@@ -601,7 +601,7 @@ export function BienesMayorDocumentoWordPreview({
 
 				<p className="mt-3 text-justify">
 					5. Los pagos se realizarán{' '}
-					<strong>{txt(bienDetalle?.pagosSeRealizaran)}</strong>, durante la
+					<strong>{txt(requisicionDetalle?.pagosSeRealizaran)}</strong>, durante la
 					vigencia del contrato respectivo, mediante trasferencia electrónica,
 					dentro de los diez días hábiles posteriores a la presentación de las
 					facturas, mismas que deberán estar debidamente requisitadas, posterior
@@ -675,7 +675,7 @@ export function BienesMayorDocumentoWordPreview({
 							{txt(requisicionDetalle?.adquisicionMedianteContrato)}
 						</strong>{' '}
 						de conformidad a lo establecido en el artículo{' '}
-						<strong>{txt(requisicionDetalle?.articulo)}</strong> de la Ley de
+						<strong>{txt(requisicionDetalle?.conformidadArticulo)}</strong> de la Ley de
 						Adquisiciones, Arrendamiento, y Servicios del Sector Público Estatal y
 						Municipal, por lo que la contratante está obligada a la adquisición de
 						las cantidades mínimas requeridas, quedando las máximas sujetas a las
@@ -684,15 +684,15 @@ export function BienesMayorDocumentoWordPreview({
 
 					<p className="mt-3 text-justify">
 						3. Los bienes adjudicados deberán entregarse en{' '}
-						<strong>{txt(bienDetalle?.lugarEntrega)}</strong>, en un horario de
+						<strong>{txt(requisicionDetalle?.lugarEntrega)}</strong>, en un horario de
 						9:00 A 15:00 horas de lunes a viernes en días hábiles con el Jefe del
-						Departamento (Homólogo y/o Superior) de __Nombre de la dependencia__,
-						en el número ____Teléfono___ ext. _Extensión_, previa cita.
+						Departamento (Homólogo y/o Superior) de <strong>{txt(requisicionDetalle?.nombreDependenciaEntrega)}</strong>,
+						en el número <strong>{txt(requisicionDetalle?.telefonoEntrega)}</strong> ext. <strong>{txt(requisicionDetalle?.extencionTelefonoEntrega)}</strong>, previa cita.
 					</p>
 
 					<p className="mt-3 text-justify">
 						4. La entrega de bienes solicitados deberá realizarse dentro de los{' '}
-						<strong>{txt(bienDetalle?.diasEntrega)}</strong> días naturales,
+						<strong>{txt(requisicionDetalle?.diasEntrega)}</strong> días naturales,
 						posteriores a cada solicitud remitida por correo electrónico al
 						Proveedor, durante la vigencia del contrato y será en el domicilio
 						señalado.
