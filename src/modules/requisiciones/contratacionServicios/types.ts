@@ -52,6 +52,9 @@ export interface ServiciosMayorEjecucionValues {
 	colonia: string;
 	cp: string;
 	ciudad: string;
+	nombreDependenciaEntrega: string;
+	telefonoEntrega: string;
+	extencionTelefonoEntrega: string;
 }
 
 export interface ServiciosMayorRecursosValues {

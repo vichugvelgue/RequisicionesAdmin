@@ -31,8 +31,7 @@ export const generarBienesMenorWord = async (requisicionDetalle: any) => {
 		paragraphLoop: true,
 		linebreaks: true,
 	});
-
-    console.log("Detalle de requisición:", requisicionDetalle);
+    
 
 	doc.render({
 		unidadSolicitante: txt(requisicionDetalle?.unidadSolicitante),

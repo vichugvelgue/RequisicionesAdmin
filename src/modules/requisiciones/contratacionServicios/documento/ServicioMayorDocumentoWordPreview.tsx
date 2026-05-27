@@ -48,7 +48,8 @@ export function ServicioMayorDocumentoWordPreview({
 
 
 	
-
+console.log('requisicionDetalle', requisicionDetalle);
+console.log('servicioDetalle', servicioDetalle);
 	return (
 		<DocumentoTabChrome actions={
 					<button
@@ -293,7 +294,7 @@ export function ServicioMayorDocumentoWordPreview({
 							1.- Los licitantes deberán presentar currículo en hoja membretada
 							debidamente firmada por la persona autorizada para ello y sellada,
 							en el que indiquen su experiencia mínima de{' '}
-							<strong>{txt(servicioDetalle?.aniosExperienciaLicitante)}</strong>{' '}
+							<strong>{txt(requisicionDetalle?.experienciaLicitante)}</strong>{' '}
 							años en contrataciones iguales o similares a la requerida en el
 							cual se incluya:
 						</p>
@@ -364,7 +365,7 @@ export function ServicioMayorDocumentoWordPreview({
 						</p>
 
 						<p className="mt-3 text-justify">
-							f) A garantizar ejecutar la totalidad del servicio en un plazo de _{txt(servicioDetalle?.diasEntrega)}__ días naturales/hábiles, contados a partir de la formalización del contrato.
+							f) A garantizar ejecutar la totalidad del servicio en un plazo de _{txt(requisicionDetalle?.diasEntrega)}__ días naturales/hábiles, contados a partir de la formalización del contrato.
 						</p>
 
 						<p className="mt-3 text-justify">
@@ -494,7 +495,7 @@ export function ServicioMayorDocumentoWordPreview({
 
 				<p className="mt-3 text-justify">
 					5. Los pagos se realizarán{' '}
-					<strong>{txt(servicioDetalle?.pagosSeRealizaran)}</strong>, durante la
+					<strong>{txt(requisicionDetalle?.pagosSeRealizaran)}</strong>, durante la
 					vigencia del contrato respectivo, mediante trasferencia electrónica,
 					dentro de los diez días hábiles posteriores a la presentación de las
 					facturas, mismas que deberán estar debidamente requisitadas, posterior
@@ -565,7 +566,7 @@ export function ServicioMayorDocumentoWordPreview({
 					<p className="mt-3 text-justify">
 						2. La adquisición se llevará a cabo mediante contrato{' '}
 						<strong>
-							{txt(requisicionDetalle?.adquisicionMedianteContrato)}
+							{txt(requisicionDetalle?.modalidadContratacion)}
 						</strong>{' '}
 						de conformidad a lo establecido en el artículo{' '}
 						<strong>{txt(requisicionDetalle?.articulo)}</strong> de la Ley de
@@ -575,7 +576,7 @@ export function ServicioMayorDocumentoWordPreview({
 
 					<p className="mt-3 text-justify">
 						3. La ejecución del servicio contratado deberá llevarse a cabo en {' '}
-						<strong>{txt(servicioDetalle?.lugarEntrega)}</strong>, en un horario de 9:00 A 15:00 horas de lunes a viernes en días hábiles con el Jefe del Departamento (Homólogo y/o Superior) de __Nombre de la dependencia__, en el número ____Teléfono___ext. _Extensión_, previa cita.
+						<strong>{txt(requisicionDetalle?.lugarEntrega)}</strong>, en un horario de 9:00 A 15:00 horas de lunes a viernes en días hábiles con el Jefe del Departamento (Homólogo y/o Superior) de __<strong>{txt(requisicionDetalle?.nombreDependenciaEntrega)}</strong>__, en el número __<strong>{txt(requisicionDetalle?.telefonoEntrega)}</strong>___ext. _<strong>{txt(requisicionDetalle?.extencionTelefonoEntrega)}</strong>_, previa cita.
 					</p>
 
 					<p className="mt-3 text-justify">

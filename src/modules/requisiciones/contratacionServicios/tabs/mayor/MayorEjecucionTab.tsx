@@ -15,6 +15,9 @@ const schemaFull = yup.object({
 	colonia: yup.string().required('*Requerido').defined(),
 	cp: yup.string().required('*Requerido').defined(),
 	ciudad: yup.string().required('*Requerido').defined(),
+	nombreDependenciaEntrega: yup.string().required('*Requerido').defined(),
+	telefonoEntrega: yup.string().required('*Requerido').defined(),
+	extencionTelefonoEntrega: yup.string().required('*Requerido').defined(),
 });
 
 const empty: ServiciosMayorEjecucionValues = {
@@ -23,6 +26,9 @@ const empty: ServiciosMayorEjecucionValues = {
 	colonia: '',
 	cp: '',
 	ciudad: '',
+	nombreDependenciaEntrega: '',
+	telefonoEntrega: '',
+	extencionTelefonoEntrega: '',
 };
 
 export function MayorEjecucionTab({
@@ -59,8 +65,8 @@ export function MayorEjecucionTab({
 	});
 
 	useEffect(() => {
-		reset(withDefaultFecha(initialValues))
-	}, [initialValues]);
+	reset(withDefaultFecha(initialValues));
+}, [initialValues, reset]);
 
 	const getUsuarioId = (): number => {
 		try {
@@ -76,14 +82,19 @@ export function MayorEjecucionTab({
 	// const hasPeriodo = data.periodoTexto.trim() || (data.periodoInicio.trim() && data.periodoFin.trim());
 
 	function withDefaultFecha(
-		initialValues: Partial<ServiciosMayorEjecucionValues>
-	): ServiciosMayorEjecucionValues {
-		// const todayIso = dateToInputValue(new Date());
-		return {
-			...empty,
-			...initialValues,
-		};
-	}
+	initialValues: Partial<ServiciosMayorEjecucionValues>
+): ServiciosMayorEjecucionValues {
+	return {
+		experienciaLicitante: initialValues.experienciaLicitante ?? '',
+		calle: initialValues.calle ?? '',
+		colonia: initialValues.colonia ?? '',
+		cp: initialValues.cp ?? '',
+		ciudad: initialValues.ciudad ?? '',
+		nombreDependenciaEntrega: initialValues.nombreDependenciaEntrega ?? '',
+		telefonoEntrega: initialValues.telefonoEntrega ?? '',
+		extencionTelefonoEntrega: initialValues.extencionTelefonoEntrega ?? '',
+	};
+}
 
 	const onSubmit = async (data: ServiciosMayorEjecucionValues) => {
 		try {
@@ -174,7 +185,7 @@ export function MayorEjecucionTab({
 							<FieldRoleLabel>Código postal</FieldRoleLabel>
 							<Input
 								{...register('cp')}
-								type='number'
+								className="uppercase"
 							/>
 							{errors.cp?.message ? (
 								<p className="text-[11px] mt-1 text-red-600">{errors.cp.message}</p>
@@ -188,6 +199,36 @@ export function MayorEjecucionTab({
 							/>
 							{errors.ciudad?.message ? (
 								<p className="text-[11px] mt-1 text-red-600">{errors.ciudad.message}</p>
+							) : null}
+						</div>
+						<div className="col-span-12 sm:col-span-6">
+							<FieldRoleLabel>Nombre de la dependencia donde se entregarán los servicios</FieldRoleLabel>
+							<Input
+								{...register('nombreDependenciaEntrega')}
+								className="uppercase"
+							/>
+							{errors.nombreDependenciaEntrega?.message ? (
+								<p className="text-[11px] mt-1 text-red-600">{errors.nombreDependenciaEntrega.message}</p>
+							) : null}
+						</div>
+						<div className="col-span-12 sm:col-span-6">
+							<FieldRoleLabel>Teléfono de entrega</FieldRoleLabel>
+							<Input
+								{...register('telefonoEntrega')}
+								className="uppercase"
+							/>
+							{errors.telefonoEntrega?.message ? (
+								<p className="text-[11px] mt-1 text-red-600">{errors.telefonoEntrega.message}</p>
+							) : null}
+						</div>
+						<div className="col-span-12 sm:col-span-6">
+							<FieldRoleLabel>Extensión del teléfono de entrega</FieldRoleLabel>
+							<Input
+								{...register('extencionTelefonoEntrega')}
+								className="uppercase"
+							/>
+							{errors.extencionTelefonoEntrega?.message ? (
+								<p className="text-[11px] mt-1 text-red-600">{errors.extencionTelefonoEntrega.message}</p>
 							) : null}
 						</div>
 					</div>

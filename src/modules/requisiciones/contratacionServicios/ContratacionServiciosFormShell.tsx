@@ -7,13 +7,11 @@ import { MayorDatosPresupuestalesTab } from './tabs/mayor/MayorDatosPresupuestal
 import { MayorDatosRequisicionTab } from './tabs/mayor/MayorDatosRequisicionTab';
 import { MayorPartidasTab } from './tabs/mayor/MayorPartidasTab';
 import { MayorEjecucionTab } from './tabs/mayor/MayorEjecucionTab';
-import { MayorRecursosTab } from './tabs/mayor/MayorRecursosTab';
-import { MayorEntregablesTab } from './tabs/mayor/MayorEntregablesTab';
 import { MayorCondicionesTab } from './tabs/mayor/MayorCondicionesTab';
 import { MayorRepresentantesTab } from './tabs/mayor/MayorRepresentantesTab';
 import { MayorAdministradorContratoTab } from './tabs/mayor/MayorAdministradorContratoTab';
-import { MayorDocumentoTab } from './tabs/mayor/MayorDocumentoTab';
 import { ServicioMayorDocumentoWordPreview } from './documento/ServicioMayorDocumentoWordPreview';
+import { ServicioMenorDocumentoWordPreview } from './documento/ServicioMenorDocumentoWordPreview';
 import { MenorDatosGeneralesTab } from './tabs/menor/MenorDatosGeneralesTab';
 import { MenorDatosRequisicionTab } from './tabs/menor/MenorDatosRequisicionTab';
 import { MenorPartidasTab } from './tabs/menor/MenorPartidasTab';
@@ -468,18 +466,48 @@ export function ContratacionServiciosFormShell({
 				<TabsPanel value="cs-g5" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 					<RequisicionTabPanelFieldset readOnly={readOnly}>
 						<MayorEjecucionTab
-							idRequisicion={Number(editingRow.id)}
-							idUsuario={Number(editingRow.idUsuario ?? 0)}
-							hideRevisorFields={hideRevisorFields}
-							initialValues={draft.mayorEjecucion}
-							onSave={(data) => {
-								onDraftChange({
-									...draft,
-									mayorEjecucion: { ...draft.mayorEjecucion, ...data },
-								});
-								goToNextTab('cs-g5', orderedTabIds);
-							}}
-						/>
+								idRequisicion={Number(editingRow.id)}
+								idUsuario={Number(editingRow.idUsuario ?? 0)}
+								hideRevisorFields={hideRevisorFields}
+								initialValues={{
+									experienciaLicitante:
+										requisicionDetalle?.servicioDetalle?.experienciaLicitante ?? '',
+
+									calle:
+										requisicionDetalle?.servicioDetalle?.calle ?? '',
+
+									colonia:
+										requisicionDetalle?.servicioDetalle?.colonia ?? '',
+
+									cp:
+										requisicionDetalle?.servicioDetalle?.cp ??
+										requisicionDetalle?.servicioDetalle?.cp ??
+										'',
+
+									ciudad:
+										requisicionDetalle?.servicioDetalle?.ciudad ?? '',
+
+									nombreDependenciaEntrega:
+										requisicionDetalle?.servicioDetalle?.nombreDependenciaEntrega ?? '',
+
+									telefonoEntrega:
+										requisicionDetalle?.servicioDetalle?.telefonoEntrega ?? '',
+
+									extencionTelefonoEntrega:
+										requisicionDetalle?.servicioDetalle?.extencionTelefonoEntrega ?? '',
+								}}
+								onSave={(data) => {
+									onDraftChange({
+										...draft,
+										mayorEjecucion: {
+											...draft.mayorEjecucion,
+											...data,
+										},
+									});
+
+									goToNextTab('cs-g5', orderedTabIds);
+								}}
+							/>
 					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g8" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
@@ -558,8 +586,15 @@ export function ContratacionServiciosFormShell({
 			<TabsList className="shrink-0 bg-white border-b border-slate-200">
 				<TabsTab value="cs-m1" label={<StepperTabLabel step={++mStep} title="Datos generales" />} />
 				<TabsTab value="cs-m2" label={<StepperTabLabel step={++mStep} title="Datos requisición" />} />
-				<TabsTab value="cs-m3" label={<StepperTabLabel step={++mStep} title="Partidas" />} />
-				<TabsTab value="cs-m4" label={<StepperTabLabel step={++mStep} title="Documento" />} />
+				<TabsTab value="cs-m3" label={<StepperTabLabel step={++mStep} title="Partidas" />} />				
+				<TabsTab
+						value="cs-m4"
+						label={
+							<div onClick={cargarDocumentoServicios}>
+								<StepperTabLabel step={++mStep} title="Documento" />
+							</div>
+						}
+					/>
 			</TabsList>
 			<TabsPanel value="cs-m1" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 				<RequisicionTabPanelFieldset readOnly={readOnly}>
@@ -632,7 +667,17 @@ export function ContratacionServiciosFormShell({
 			</TabsPanel>
 			<TabsPanel value="cs-m4" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 				<RequisicionTabPanelFieldset readOnly={readOnly}>
-					<MenorDocumentoTab draft={draft} numeroLabel={numeroLabel} solicitanteLabel={solicitantePreview} />
+					{loadingDocumento ? (
+							<div className="p-6 text-sm text-slate-500">
+								Cargando documento...
+							</div>
+						) : (
+							<ServicioMenorDocumentoWordPreview
+								requisicionDetalle={documentoServicios}			
+								servicioDetalle={documentoServicios?.servicioDetalle}					
+								partidas={documentoServicios?.partidas ?? []}
+							/>
+						)}
 				</RequisicionTabPanelFieldset>
 			</TabsPanel>
 		</Tabs>
