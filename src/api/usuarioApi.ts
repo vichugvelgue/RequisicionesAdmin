@@ -1,4 +1,4 @@
-import type { AuthSession } from '../auth/types';
+import type { AuthSession, LoginCredentials, RecuperationCredentials } from '../auth/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5214';
 
@@ -13,7 +13,7 @@ const TIPO_USUARIO_ID_TO_LABEL: Record<string, string> = {
 export interface Usuario {
 	id: number;
 	nombres: string;
-    nombreCompleto: string;
+	nombreCompleto: string;
 	apellidoPaterno: string;
 	apellidoMaterno: string;
 	correo: string;
@@ -37,7 +37,7 @@ export interface Usuario {
 export interface UsuarioView {
 	id: string;
 	nombre: string;
-    nombreCompleto: string;
+	nombreCompleto: string;
 	correo: string;
 	tipoUsuario: string;
 	puesto: string;
@@ -57,10 +57,11 @@ export interface CreateUsuarioRequest {
 }
 
 export interface UpdateUsuarioRequest {
-	id: number;
-	nombres: string;    
+	id?: number;
+	nombres: string;
 	apellidoPaterno: string;
 	apellidoMaterno: string;
+	contrasena?: string;
 	correo: string;
 	idTipoUsuario: number;
 	puesto: string;
@@ -94,8 +95,8 @@ const mapUsuarioToView = (usuario: Usuario): UsuarioView => {
 		typeof rawTipoUsuario === "string" && TIPO_USUARIO_ID_TO_LABEL[rawTipoUsuario]
 			? TIPO_USUARIO_ID_TO_LABEL[rawTipoUsuario]
 			: typeof rawTipoUsuario === "number"
-			? TIPO_USUARIO_ID_TO_LABEL[String(rawTipoUsuario)] ?? String(rawTipoUsuario)
-			: String(rawTipoUsuario);
+				? TIPO_USUARIO_ID_TO_LABEL[String(rawTipoUsuario)] ?? String(rawTipoUsuario)
+				: String(rawTipoUsuario);
 
 	return {
 		id: String(usuario.id ?? ""),
@@ -129,7 +130,7 @@ export const usuarioApi = {
 		const data = await response.json();
 		// API returns { dataList: Usuario[] }
 		const usuarios: Usuario[] = data.dataList || [];
-        console.log('Usuarios obtenidos del API:', usuarios);
+		console.log('Usuarios obtenidos del API:', usuarios);
 		const mapped = usuarios
 			.filter((item) => item && typeof item === "object" && item.id != null)
 			.map(mapUsuarioToView);
@@ -147,7 +148,7 @@ export const usuarioApi = {
 			},
 			body: JSON.stringify(request),
 		});
-        console.log('Request para crear usuario:', request);
+		console.log('Request para crear usuario:', request);
 
 		if (!response.ok) {
 			const errorData = await response.json();
@@ -209,9 +210,25 @@ export const usuarioApi = {
 	},
 
 	// POST /ControladorUsuarioAdministrador/ActualizarUsuario (para invitación)
-	async enviarInvitacion(request: EnviarInvitacionRequest): Promise<void> {
+	async enviarInvitacion(idUsuario: number): Promise<void> {
 		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorUsuarioAdministrador/ActualizarUsuario`, {
+		const response = await fetch(`${API_BASE_URL}/ControladorUsuarioAdministrador/InvitarUsuario/${idUsuario}`, {
+			method: 'POST',
+			headers: {
+				'Authorization': `Bearer ${token}`,
+				'Content-Type': 'application/json',
+			},
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData?.mensaje || `Error al enviar invitación: ${response.statusText}`);
+		}
+	},
+
+	async enviarRecuperarContraseña(request: LoginCredentials): Promise<void> {
+		const token = getAuthToken();
+		const response = await fetch(`${API_BASE_URL}/EnviarRecuperarContrasena`, {
 			method: 'POST',
 			headers: {
 				'Authorization': `Bearer ${token}`,
@@ -222,7 +239,23 @@ export const usuarioApi = {
 
 		if (!response.ok) {
 			const errorData = await response.json();
-			throw new Error(errorData?.mensaje || `Error al enviar invitación: ${response.statusText}`);
+			throw new Error(errorData?.mensaje || `Error al enviar correo de recuperacion: ${response.statusText}`);
+		}
+	},
+	async recuperarContraseña(request: RecuperationCredentials): Promise<void> {
+		const token = getAuthToken();
+		const response = await fetch(`${API_BASE_URL}/RecuperarContrasena`, {
+			method: 'POST',
+			headers: {
+				'Authorization': `Bearer ${token}`,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(request),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData?.mensaje || `Error al enviar correo de recuperacion: ${response.statusText}`);
 		}
 	},
 };

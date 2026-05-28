@@ -165,8 +165,8 @@ export function UsuariosListadoFormView() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [invitacionesHistorial, setInvitacionesHistorial] = useState<
-	Record<string, InvitacionHistorialItem[]>
->({});
+		Record<string, InvitacionHistorialItem[]>
+	>({});
 	const [sortConfig, setSortConfig] = useState<SortConfig>({
 		key: "id",
 		direction: "asc",
@@ -179,8 +179,8 @@ export function UsuariosListadoFormView() {
 		correo: "",
 		tipoUsuario: "",
 		puesto: "",
-	area: "",
-		
+		area: "",
+
 	});
 	const [searchCriteria, setSearchCriteria] =
 		useState<SearchCriteria>("Coincidencia");
@@ -215,13 +215,13 @@ export function UsuariosListadoFormView() {
 		}
 	};
 
-	const showToast = ( title: string, message: string, variant: "success" | "error" = "success") => {
-	setToastState({
-		visible: true,
-		title: message,
-		variant,
-	});
-};
+	const showToast = (title: string, message: string, variant: "success" | "error" = "success") => {
+		setToastState({
+			visible: true,
+			title: message,
+			variant,
+		});
+	};
 
 	const isCreateMode = location.pathname.endsWith("/nuevo");
 	const editingRow = rows.find((row) => row.id === id) ?? null;
@@ -273,7 +273,7 @@ export function UsuariosListadoFormView() {
 			}));
 			setToastState({
 				visible: true,
-				title: "Invitación registrada (prototipo)",
+				title: "Invitación registrada correctamente",
 				variant: "success",
 			});
 		},
@@ -283,7 +283,7 @@ export function UsuariosListadoFormView() {
 	const handleEnviarInvitacionDesdeListado = useCallback(
 		async (row: UsuarioView) => {
 			try {
-				await usuarioApi.enviarInvitacion({ id: parseInt(row.id) });
+				await usuarioApi.enviarInvitacion(parseInt(row.id));
 				registrarInvitacion(row.id);
 			} catch (err) {
 				showToast("Error", err instanceof Error ? err.message : "Error al enviar invitación", "error");
@@ -310,7 +310,7 @@ export function UsuariosListadoFormView() {
 		}
 
 		try {
-			await usuarioApi.enviarInvitacion({ id: parseInt(id) });
+			await usuarioApi.enviarInvitacion(parseInt(id));
 			registrarInvitacion(id);
 		} catch (err) {
 			showToast("Error", err instanceof Error ? err.message : "Error al enviar invitación", "error");
@@ -351,8 +351,8 @@ export function UsuariosListadoFormView() {
 	}, [rows, sortConfig, inlineFilters, appliedSearch]);
 
 	const resetToListado = () => {
-		reset(EMPTY_VALUES);
 		navigate(BASE_PATH);
+		loadUsuarios();
 	};
 
 	const handleAddClick = () => {
@@ -392,13 +392,13 @@ export function UsuariosListadoFormView() {
 					nombres: normalizeText(values.nombres),
 					apellidoPaterno: normalizeText(values.apellidoPaterno),
 					apellidoMaterno: normalizeText(values.apellidoMaterno),
+					contrasena: normalizeText(values.contrasena),
 					correo: values.correo.trim().toLowerCase(),
 					idTipoUsuario: parseInt(values.tipoUsuario, 10),
 					puesto: normalizeText(values.puesto),
 					area: normalizeText(values.area),
 				});
 
-				setRows((prev) => prev.map((row) => (row.id === id ? updatedUsuario : row)));
 				showToast("Registro actualizado", "Registro actualizado correctamente.");
 			} else {
 				// Crear nuevo usuario

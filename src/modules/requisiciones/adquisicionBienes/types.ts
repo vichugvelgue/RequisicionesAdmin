@@ -151,6 +151,10 @@ export function isRevisorProfileUser(user: AuthUser | null): boolean {
 	return normalizePerfil(user) === 'REVISOR';
 }
 
+export function isAutorizadorProfileUser(user: AuthUser | null): boolean {
+	return normalizePerfil(user) === 'AUTORIZADOR';
+}
+
 export function isAdministradorGeneralProfile(user: AuthUser | null): boolean {
 	return normalizePerfil(user) === 'ADMINISTRADOR_GENERAL';
 }

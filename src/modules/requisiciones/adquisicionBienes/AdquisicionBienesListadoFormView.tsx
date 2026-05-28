@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Ban, Check, CheckCircle, MessageSquare, Plus, Save, Trash2 } from 'lucide-react';
+import { Ban, Check, CheckCircle, History, MessageSquare, Plus, Save, Trash2 } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth, isRequisicionReadOnlyProfile } from '../../../auth';
 import {
@@ -12,7 +12,9 @@ import {
 	ViewHeader,
 	StatusBadge,
 	resolveStatusBadge,	
-	SimpleTable,
+	SimpleTable,	
+	Input,
+	Modal,
 } from '../../../components/UI';
 import type { OptionItem, SortConfig } from '../../../components/UI/types';
 import type { SimpleTableColumn, SimpleTableCustomAction } from '../../../components/UI/SimpleTable/SimpleTable';
@@ -31,9 +33,10 @@ import {
 	type SearchCriteria,
 	type TipoCompra,
 	EnumRequisicionEstatusId,
+	isAutorizadorProfileUser,
 } from './types';
 
-import { GuardarRequisicionDTO, requisicionApi, CancelarRequest, type RequisicionView, EnviarObservacionRequest } from '../../../api/requisicionBienesAPI';
+import { GuardarRequisicionDTO, requisicionApi, CancelarRequest, type RequisicionView, EnviarObservacionRequest, ObservacionRequisicionView, HistorialRequisicionView } from '../../../api/requisicionBienesAPI';
 import { ContratacionServiciosRow } from '../contratacionServicios/types';
 import { FieldRoleLabel } from './fieldRoleLabel';
 
@@ -140,6 +143,9 @@ export function AdquisicionBienesListadoFormView() {
 	const [pendingRevisionRow, setPendingRevisionRow] = useState<RequisicionRow | null>(null);
 	const [pendingObservationRow, setPendingObservationRow] = useState<RequisicionRow | null>(null);
 	const [pendingAutorizacionRow, setPendingAutorizacionRow] = useState<RequisicionRow | null>(null);
+	const [pendingHistoryRow, setPendingHistoryRow] = useState<ContratacionServiciosRow | null>(null);
+	const [observacionesRows, setObservacionesRows] = useState<ObservacionRequisicionView[]>([]);
+	const [historysRows, setHistoryRows] = useState<HistorialRequisicionView[]>([]);
 	const [newlyCreatedIds, setNewlyCreatedIds] = useState<string[]>([]);
 	const [activeFormTabId, setActiveFormTabId] = useState('');
 	const [toastState, setToastState] = useState<{
@@ -171,6 +177,7 @@ export function AdquisicionBienesListadoFormView() {
 
 	const isSolicitante = isSolicitanteProfile(user);
 	const isRevisorProfile = isRevisorProfileUser(user);
+	const isAutorizadorProfile = isAutorizadorProfileUser(user);
 	const isRequisicionReadOnly = isRequisicionReadOnlyProfile(user?.tipoPerfil);
 	const isAdministradorGeneralProfile = perfil === 'ADMINISTRADOR_GENERAL';
 
@@ -223,6 +230,13 @@ export function AdquisicionBienesListadoFormView() {
 		title: 'Enviar a revisión',
 		variant: 'icon',
 		visible: (row: ContratacionServiciosRow) => isSolicitantePermisoRegistro(row),
+	};
+	const handleHistoryView: SimpleTableCustomAction<ContratacionServiciosRow> = {
+		icon: <History className="w-4 h-4" />,
+		onClick: (row) => { loadObservaciones(row); },
+		title: 'Ver historial',
+		variant: 'icon',
+		visible: (row: ContratacionServiciosRow) => true,
 	};
 
 	const loadRequisiciones = useCallback(async ( fechaInicio?: string, fechaFin?: string, tipoMonto?: string, estatus?: string) => {
@@ -603,6 +617,20 @@ export function AdquisicionBienesListadoFormView() {
 		return () => clearTimeout(t);
 	}, [toastState.visible]);
 
+	const formatDate = (date: string) => {
+		if (!date) return
+
+		const [fecha, hora] = date.split("T")
+		const [año, mes, dia] = fecha.split("-")
+		const [horas, minutos] = hora.split(":")
+
+		return `${dia}/${mes}/${año} ${horas}:${minutos}`
+	}
+	const formatStatus = (status: string) => {
+		return status.replace(/([a-z])([A-Z])/g, "$1 $2")
+			.replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+	}
+
 	return (
 		<div className="flex flex-col h-full min-h-0 bg-slate-50 p-2 lg:p-3 overflow-hidden">
 			<div className="w-full min-h-0 flex-1 flex flex-col">
@@ -648,7 +676,7 @@ export function AdquisicionBienesListadoFormView() {
 								>
 									Guardar
 								</Button>
-							) : mode === 'form-edicion' && isRevisorProfile && editingRow ? (
+							) : mode === 'form-edicion' && (isRevisorProfile || isAutorizadorProfile) && editingRow ? (
 								<div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
 									<Button
 										type="button"
@@ -796,7 +824,7 @@ export function AdquisicionBienesListadoFormView() {
 								key={editingRow.id}
 								tipoCompra={editingRow.tipoCompra}
 								hideRevisorFields={canEditSolicitanteFields}
-								readOnly={isRequisicionReadOnly}
+								readOnly={isRequisicionReadOnly || isAutorizadorProfile}
 								draft={draftForEdit}
 								onDraftChange={(next) => setDraftForId(editingRow.id, next)}
 								editingRow={editingRow}
@@ -905,6 +933,53 @@ export function AdquisicionBienesListadoFormView() {
 					</p>
 				</ConfirmModal>
 
+				<Modal
+					title="Ver historial"
+					open={Boolean(pendingHistoryRow)}
+					onClose={() => setPendingHistoryRow(null)}
+					icon={<History className="w-5 h-5" />}
+				>
+					<div>
+						<div className="flex flex-col">
+							{historysRows.map((item, index) => (
+								<div key={index} className="flex gap-3">
+									{/* Línea + punto */}
+									<div className="flex flex-col items-center">
+										<div className="w-3 h-3 rounded-full bg-blue-500 mt-1 shrink-0" />
+										{index < historysRows.length - 1 && (
+											<div className="w-0.5 bg-gray-300 flex-1 my-1" />
+										)}
+									</div>
+
+									{/* Contenido */}
+									<div className="pb-4">
+										<p className="font-semibold text-sm uppercase">{formatStatus(item.accion)}</p>
+										<p className="text-xs text-gray-500">{formatDate(item.fechaRegistro)}</p>
+										{item.comentario && (
+											<p className="text-sm text-gray-600 mt-1">{item.comentario}</p>
+										)}
+									</div>
+								</div>
+							))}
+						</div>
+						<br />
+						<table className='w-full'>
+							<thead>
+								<tr>
+									<th className='w-44 text-left'>Fecha</th>
+									<th className='text-left'>Observación</th>
+								</tr>
+							</thead>
+							<tbody>
+								{observacionesRows.map((row, index) =>
+									<tr key={index}>
+										<td>{formatDate(row.fechaRegistro)}</td>
+										<td>{row.observacion}</td>
+									</tr>)}
+							</tbody>
+						</table>
+					</div>
+				</Modal>
 				<Toast
 					visible={toastState.visible}
 					title={toastState.title}

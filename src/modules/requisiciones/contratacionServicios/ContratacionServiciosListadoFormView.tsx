@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Check, CheckCircle, MessageSquare, Plus, Save, Trash2 } from 'lucide-react';
+import { Check, CheckCircle, History, Plus, Save, Trash2 } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom'; 1
 import { useAuth, isRequisicionReadOnlyProfile } from '../../../auth';
 import {
@@ -15,6 +15,7 @@ import {
 	resolveStatusBadge,
 	TextArea,
 	Label,
+	Modal,
 } from '../../../components/UI';
 import type { OptionItem, SortConfig } from '../../../components/UI/types';
 import type { SimpleTableColumn, SimpleTableCustomAction } from '../../../components/UI/SimpleTable/SimpleTable';
@@ -39,8 +40,10 @@ import {
 	GuardarRequisicionDTO,
 	CancelarRequest,
 	EnviarObservacionRequest,
+	ObservacionRequisicionView,
+	HistorialRequisicionView,
 } from '../../../api/requisicionBienesAPI';
-import { EnumRequisicionEstatusId, isRevisorProfileUser, isSolicitanteProfile, TipoCompra } from '../adquisicionBienes/types';
+import { EnumRequisicionEstatusId, isAutorizadorProfileUser, isRevisorProfileUser, isSolicitanteProfile, TipoCompra } from '../adquisicionBienes/types';
 import { FieldRoleLabel } from './fieldRoleLabel';
 
 const BASE_PATH = '/requisiciones/contratacion-servicios';
@@ -172,6 +175,9 @@ export function ContratacionServiciosListadoFormView() {
 	const [pendingRevisionRow, setPendingRevisionRow] = useState<ContratacionServiciosRow | null>(null);
 	const [pendingObservationRow, setPendingObservationRow] = useState<ContratacionServiciosRow | null>(null);
 	const [pendingAutorizacionRow, setPendingAutorizacionRow] = useState<ContratacionServiciosRow | null>(null);
+	const [pendingHistoryRow, setPendingHistoryRow] = useState<ContratacionServiciosRow | null>(null);
+	const [observacionesRows, setObservacionesRows] = useState<ObservacionRequisicionView[]>([]);
+	const [historysRows, setHistoryRows] = useState<HistorialRequisicionView[]>([]);
 	const [newlyCreatedIds, setNewlyCreatedIds] = useState<string[]>([]);
 	const [activeFormTabId, setActiveFormTabId] = useState('');
 	const [toastState, setToastState] = useState<{
@@ -206,6 +212,7 @@ export function ContratacionServiciosListadoFormView() {
 	const isNewRecord = Boolean(editingRow && newlyCreatedIds.includes(editingRow.id));
 	const isSolicitante = isSolicitanteProfile(user);
 	const isRevisorProfile = isRevisorProfileUser(user);
+	const isAutorizadorProfile = isAutorizadorProfileUser(user);
 	const isRequisicionReadOnly = isRequisicionReadOnlyProfile(user?.tipoPerfil);
 	/** Solo el solicitante oculta bloques de revisor; `isNewRecord` no debe acortar el formulario al revisor al consultar. */
 	const hideRevisorFields = userHidesRevisorFields(user) || (isNewRecord && !isRevisorProfile);
@@ -243,12 +250,17 @@ export function ContratacionServiciosListadoFormView() {
 
 	const handleEnviarRevision: SimpleTableCustomAction<ContratacionServiciosRow> = {
 		icon: <CheckCircle className="w-4 h-4" />,
-		onClick: (row) => {
-			setPendingRevisionRow(row);
-		},
+		onClick: (row) => { setPendingRevisionRow(row); },
 		title: 'Enviar a revisión',
 		variant: 'icon',
 		visible: (row: ContratacionServiciosRow) => isSolicitantePermisoRegistro(row),
+	};
+	const handleHistoryView: SimpleTableCustomAction<ContratacionServiciosRow> = {
+		icon: <History className="w-4 h-4" />,
+		onClick: (row) => { loadObservaciones(row); },
+		title: 'Ver historial',
+		variant: 'icon',
+		visible: (row: ContratacionServiciosRow) => true,
 	};
 
 	useEffect(() => {
@@ -266,13 +278,12 @@ export function ContratacionServiciosListadoFormView() {
 			setLoadError(null);
 
 			let data = []
-			if (isRequisicionReadOnly)
+			if (isRequisicionReadOnly || isAutorizadorProfile)
 				data = await requisicionApi.listaTodo({ tipoObjeto: 2 })
 			else if (isRevisorProfile)
 				data = await requisicionApi.listarPorRevisor({ tipoObjeto: 2 })
 			else
 				data = await requisicionApi.listarPorSolicitante({ tipoObjeto: 2 })
-			console.log('Requisiciones de servicios cargadas:', data);
 
 			const rowsServicios = data
 				.filter((x) => Number(x.tipoObjetoRequisicion ?? 0) === 2)
@@ -284,6 +295,44 @@ export function ContratacionServiciosListadoFormView() {
 				error instanceof Error
 					? error.message
 					: 'Error al cargar requisiciones de servicios'
+			);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+	const loadObservaciones = async (row: ContratacionServiciosRow) => {
+		try {
+			setObservacionesRows([]);
+			setIsLoading(true);
+
+			let data = await requisicionApi.ObtenerObservaciones(row.id)
+
+			setObservacionesRows(data);
+		} catch (error) {
+			setLoadError(
+				error instanceof Error
+					? error.message
+					: 'Error al cargar observaciones del servicio'
+			);
+		} finally {
+			setIsLoading(false);
+			loadHistory(row);
+		}
+	};
+	const loadHistory = async (row: ContratacionServiciosRow) => {
+		try {
+			setHistoryRows([]);
+			setPendingHistoryRow(row);
+			setIsLoading(true);
+
+			let data = await requisicionApi.ObtenerHistorial(row.id)
+
+			setHistoryRows(data);
+		} catch (error) {
+			setLoadError(
+				error instanceof Error
+					? error.message
+					: 'Error al cargar observaciones del servicio'
 			);
 		} finally {
 			setIsLoading(false);
@@ -662,7 +711,7 @@ export function ContratacionServiciosListadoFormView() {
 
 	const patchRow = useCallback((rowId: string, patch: Partial<ContratacionServiciosRow>) => {
 		setRows((prev) => prev.map((r) => (r.id === rowId ? { ...r, ...patch } : r)));
-	}, []);1
+	}, []); 1
 
 	const draftForEdit = editingRow
 		? draftById[editingRow.id] ?? createEmptyDraft()
@@ -699,6 +748,19 @@ export function ContratacionServiciosListadoFormView() {
 		return () => clearTimeout(t);
 	}, [toastState.visible]);
 
+	const formatDate = (date: string) => {
+		if (!date) return
+
+		const [fecha, hora] = date.split("T")
+		const [año, mes, dia] = fecha.split("-")
+		const [horas, minutos] = hora.split(":")
+
+		return `${dia}/${mes}/${año} ${horas}:${minutos}`
+	}
+	const formatStatus = (status: string) => {
+		return status.replace(/([a-z])([A-Z])/g, "$1 $2")
+			.replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+	}
 	return (
 		<div className="flex flex-col h-full min-h-0 bg-slate-50 p-2 lg:p-3 overflow-hidden">
 			<div className="w-full min-h-0 flex-1 flex flex-col">
@@ -744,7 +806,7 @@ export function ContratacionServiciosListadoFormView() {
 								>
 									Guardar
 								</Button>
-							) : mode === 'form-edicion' && isRevisorProfile && editingRow ? (
+							) : mode === 'form-edicion' && (isRevisorProfile || isAutorizadorProfile) && editingRow ? (
 								<div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
 									<Button
 										type="button"
@@ -823,7 +885,7 @@ export function ContratacionServiciosListadoFormView() {
 										}
 										onEdit={handleEditClick}
 										onDelete={isSolicitante ? setPendingDeleteRow : undefined}
-										customActions={[handleEnviarRevision]}
+										customActions={[handleEnviarRevision, handleHistoryView]}
 										showInlineFilters={showInlineFilters}
 										onToggleInlineFilters={() => setShowInlineFilters((v) => !v)}
 										inlineFilters={inlineFilters}
@@ -852,7 +914,7 @@ export function ContratacionServiciosListadoFormView() {
 								key={editingRow.id}
 								tipoCompra={editingRow.tipoCompra}
 								hideRevisorFields={hideRevisorFields}
-								readOnly={isRequisicionReadOnly}
+								readOnly={isRequisicionReadOnly || isAutorizadorProfile}
 								draft={draftForEdit}
 								onDraftChange={(next) => setDraftForId(editingRow.id, next)}
 								editingRow={editingRow}
@@ -942,6 +1004,54 @@ export function ContratacionServiciosListadoFormView() {
 						?
 					</p>
 				</ConfirmModal>
+
+				<Modal
+					title="Ver historial"
+					open={Boolean(pendingHistoryRow)}
+					onClose={() => setPendingHistoryRow(null)}
+					icon={<History className="w-5 h-5" />}
+				>
+					<div>
+						<div className="flex flex-col">
+							{historysRows.map((item, index) => (
+								<div key={index} className="flex gap-3">
+									{/* Línea + punto */}
+									<div className="flex flex-col items-center">
+										<div className="w-3 h-3 rounded-full bg-blue-500 mt-1 shrink-0" />
+										{index < historysRows.length - 1 && (
+											<div className="w-0.5 bg-gray-300 flex-1 my-1" />
+										)}
+									</div>
+
+									{/* Contenido */}
+									<div className="pb-4">
+										<p className="font-semibold text-sm uppercase">{formatStatus(item.accion)}</p>
+										<p className="text-xs text-gray-500">{formatDate(item.fechaRegistro)}</p>
+										{item.comentario && (
+											<p className="text-sm text-gray-600 mt-1">{item.comentario}</p>
+										)}
+									</div>
+								</div>
+							))}
+						</div>
+						<br />
+						<table className='w-full'>
+							<thead>
+								<tr>
+									<th className='w-44 text-left'>Fecha</th>
+									<th className='text-left'>Observación</th>
+								</tr>
+							</thead>
+							<tbody>
+								{observacionesRows.map((row, index) =>
+									<tr key={index}>
+										<td>{formatDate(row.fechaRegistro)}</td>
+										<td>{row.observacion}</td>
+									</tr>)}
+							</tbody>
+						</table>
+					</div>
+				</Modal>
 
 				<Toast
 					visible={toastState.visible}

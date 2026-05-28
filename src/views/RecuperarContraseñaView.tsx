@@ -3,6 +3,7 @@ import {
 	Navigate,
 	useLocation,
 	useNavigate,
+	useParams,
 	type Location,
 } from 'react-router-dom';
 import { Button, Input, Label, Toast } from '../components/UI';
@@ -29,13 +30,15 @@ function resolvePostLoginPath(fromState: unknown): string {
 	return '/';
 }
 
-export function LoginView() {
+export function RecuperarContraseñaView() {
+	const { id } = useParams();
 	const { isAuthenticated, isHydrated, login } = useAuth();
 	const navigate = useNavigate();
 	const location = useLocation();
 
 	const [correoTelefono, setCorreoTelefono] = useState('');
 	const [contrasena, setContrasena] = useState('');
+	const [contrasenaConfirm, setContrasenaConfirm] = useState('');
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [toastState, setToastState] = useState<{
@@ -75,37 +78,18 @@ export function LoginView() {
 		return () => clearTimeout(timer);
 	};
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
+	const handleSubmit = async () => {
 		setErrorMessage(null);
 		setIsSubmitting(true);
-		console.log('Submitting login with:', correoTelefono, contrasena);
 		try {
-			const result = await login({ correoTelefono, contrasena });
-			console.log('Login result:', result);
-			if (!result.ok) {
-				//console.log('Setting error message:', result.message);
-				setErrorMessage((result as { ok: false; message: string; }).message);
-				setIsSubmitting(false);
-				return;
-			}
-			const target = resolvePostLoginPath(from);
-			navigate(target, { replace: true });
-		} catch (error) {
-			setErrorMessage('No se pudo iniciar sesión. Intenta de nuevo.');
-		} finally {
-			setIsSubmitting(false);
-		}
-	};
+			if (contrasena != contrasenaConfirm)
+				throw new Error("Las contraseñas no coinciden")
 
-	const recuperarContraseña = async () => {
-		setErrorMessage(null);
-		setIsSubmitting(true);
-		try {
-			const result = await usuarioApi.enviarRecuperarContraseña({ correoTelefono, contrasena })
+			await usuarioApi.recuperarContraseña({ id: parseInt(id), contrasena })
 			showToast("Recuperacion contraseña", "Se envio correo de recuperacion correctamente");
+			navigate('/', { replace: true });
 		} catch (error) {
-			setErrorMessage(error);
+			setErrorMessage(error instanceof Error ? error.message : "Error desconocido");
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -125,16 +109,13 @@ export function LoginView() {
 					</div>
 				</div>
 
-				<form
-					onSubmit={handleSubmit}
-					className="w-full max-w-md md:max-w-sm shrink-0 flex flex-col justify-center space-y-5 rounded-lg border border-brand-neutral/15 bg-brand-white/95 p-6 sm:p-8 shadow-xl shadow-brand-neutral/10 backdrop-blur-sm"
-				>
+				<div className="w-full max-w-md md:max-w-sm shrink-0 flex flex-col justify-center space-y-5 rounded-lg border border-brand-neutral/15 bg-brand-white/95 p-6 sm:p-8 shadow-xl shadow-brand-neutral/10 backdrop-blur-sm">
 					<div className="text-center md:text-left space-y-1">
 						<h1 className="text-sm font-bold text-brand-primary uppercase tracking-widest">
-							Acceso
+							Recuperacion de contraseña
 						</h1>
 						<p className="text-[11px] text-brand-neutral/70 font-medium">
-							Ingresa con tu correo autorizado
+							Ingresa tu nueva contraseña
 						</p>
 					</div>
 
@@ -146,22 +127,6 @@ export function LoginView() {
 							{errorMessage}
 						</div>
 					) : null}
-
-					<div>
-						<Label htmlFor="login-correoTelefono" required>
-							Correo o Teléfono
-						</Label>
-						<Input
-							id="login-correoTelefono"
-							type="text"
-							autoComplete="username"
-							value={correoTelefono}
-							onChange={(e) => setCorreoTelefono(e.target.value)}
-							placeholder="correo@ejemplo.gob.mx o teléfono"
-							disabled={isSubmitting}
-							required
-						/>
-					</div>
 
 					<div>
 						<Label htmlFor="login-contrasena" required>
@@ -179,20 +144,33 @@ export function LoginView() {
 						/>
 					</div>
 
+					<div>
+						<Label htmlFor="login-contrasena" required>
+							Confirmar contraseña
+						</Label>
+						<Input
+							id="login-contrasena"
+							type="password"
+							autoComplete="current-password"
+							value={contrasenaConfirm}
+							onChange={(e) => setContrasenaConfirm(e.target.value)}
+							placeholder="Confirma tu contraseña"
+							disabled={isSubmitting}
+							required
+						/>
+					</div>
+
 					<Button
 						type="submit"
 						variant="primary"
 						size="xl"
 						className="w-full"
+						onClick={handleSubmit}
 						disabled={isSubmitting}
 					>
 						{isSubmitting ? 'Ingresando…' : 'Ingresar'}
 					</Button>
-
-					<button onClick={recuperarContraseña} type='button' className='text-gray-500 text-center'>
-						Recuperar contraseña
-					</button>
-				</form>
+				</div>
 			</div>
 			<Toast
 				visible={toastState.visible}

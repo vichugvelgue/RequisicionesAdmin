@@ -37,6 +37,20 @@ export interface RequisicionView {
 	tipoRequisicion?: number | string;
 	estado?: string;
 }
+//Se utiliza para el listado
+export interface ObservacionRequisicionView extends GuardarRequisicionDTO {
+	tipoObservacion: string;
+	observacion: string;
+	fechaRegistro: string;
+}
+//Se utiliza para el listado
+export interface HistorialRequisicionView extends GuardarRequisicionDTO {
+	estatusAnterior: number;
+	estatusNuevo: number;
+	accion: string;
+	comentario: string;
+	fechaRegistro: string;
+}
 
 //Se utiiliza para crear requisición al inicio del proceso, antes de guardar datos generales
 export interface CrearRequisicionRequest {
@@ -677,6 +691,58 @@ async listarPorSolicitante(params?: {
 				errorData?.mensaje || "Error al guardar datos generales"
 			);
 		}
+	},
+
+	async ObtenerObservaciones(idRequisicion: string): Promise<ObservacionRequisicionView[]> {
+		const token = getAuthToken();
+		const response = await fetch(
+			`${API_BASE_URL}/ControladorRequisicion/ObtenerObservaciones/${idRequisicion}`,
+			{
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+			}
+		);
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(
+				errorData?.mensaje || "Error al guardar datos generales"
+			);
+		}
+
+		const result = await response.json();
+
+		// normalmente regresa { data: ... }
+		return result.dataList;
+	},
+
+	async ObtenerHistorial(idRequisicion: string): Promise<HistorialRequisicionView[]> {
+		const token = getAuthToken();
+		const response = await fetch(
+			`${API_BASE_URL}/ControladorRequisicion/ObtenerHistorial/${idRequisicion}`,
+			{
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+			}
+		);
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(
+				errorData?.mensaje || "Error al guardar datos generales"
+			);
+		}
+
+		const result = await response.json();
+
+		// normalmente regresa { data: ... }
+		return result.dataList;
 	},
 
 
