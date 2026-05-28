@@ -23,6 +23,11 @@ export interface LoginCredentials {
 	contrasena: string;
 }
 
+export interface RecuperationCredentials {
+	id: number;
+	contrasena: string;
+}
+
 export type AuthErrorCode = 'INVALID_CREDENTIALS' | 'NETWORK' | 'UNKNOWN';
 
 export interface AuthFailure {

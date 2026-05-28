@@ -37,6 +37,20 @@ export interface RequisicionView {
 	tipoRequisicion?: number | string;
 	estado?: string;
 }
+//Se utiliza para el listado
+export interface ObservacionRequisicionView extends GuardarRequisicionDTO {
+	tipoObservacion: string;
+	observacion: string;
+	fechaRegistro: string;
+}
+//Se utiliza para el listado
+export interface HistorialRequisicionView extends GuardarRequisicionDTO {
+	estatusAnterior: number;
+	estatusNuevo: number;
+	accion: string;
+	comentario: string;
+	fechaRegistro: string;
+}
 
 //Se utiiliza para crear requisición al inicio del proceso, antes de guardar datos generales
 export interface CrearRequisicionRequest {
@@ -351,37 +365,6 @@ const handleApiError = async (response: Response, fallback: string): Promise<nev
 };
 
 export const requisicionApi = {
-	// Obtener el listado de requisiciones para el usuario autenticado
-	/*async listarPorSolicitante(): Promise<RequisicionView[]> {
-		console.log("requisicionApi.listarPorSolicitante called");
-		const token = getAuthToken();
-		const idUsuario = getUsuarioId();
-
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/ListarPorSolicitante/${idUsuario}`,
-			{
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-			}
-		);
-
-		if (!response.ok) {
-			await handleApiError(response, "Error al listar requisiciones por solicitante");
-		}
-
-		const data = await response.json();
-
-		const requisiciones: Requisicion[] = data.dataList || [];
-		console.log("Requisiciones recibidas del API:", requisiciones);
-
-		return requisiciones
-			.filter((item) => item && typeof item === "object" && item.id)
-			.map(mapRequisicionToView);
-	},*/
-
 	async listarPorSolicitante(params?: {
 		tipoMonto?: number | null;
 		estatus?: number | null;
@@ -663,6 +646,58 @@ export const requisicionApi = {
 				errorData?.mensaje || "Error al guardar datos generales"
 			);
 		}
+	},
+
+	async ObtenerObservaciones(idRequisicion: string): Promise<ObservacionRequisicionView[]> {
+		const token = getAuthToken();
+		const response = await fetch(
+			`${API_BASE_URL}/ControladorRequisicion/ObtenerObservaciones/${idRequisicion}`,
+			{
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+			}
+		);
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(
+				errorData?.mensaje || "Error al guardar datos generales"
+			);
+		}
+
+		const result = await response.json();
+
+		// normalmente regresa { data: ... }
+		return result.dataList;
+	},
+
+	async ObtenerHistorial(idRequisicion: string): Promise<HistorialRequisicionView[]> {
+		const token = getAuthToken();
+		const response = await fetch(
+			`${API_BASE_URL}/ControladorRequisicion/ObtenerHistorial/${idRequisicion}`,
+			{
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+			}
+		);
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(
+				errorData?.mensaje || "Error al guardar datos generales"
+			);
+		}
+
+		const result = await response.json();
+
+		// normalmente regresa { data: ... }
+		return result.dataList;
 	},
 
 
