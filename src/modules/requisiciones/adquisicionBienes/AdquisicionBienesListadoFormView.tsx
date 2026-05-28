@@ -1,21 +1,18 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Ban, Check, CheckCircle, MessageSquare, Plus, Save, Trash2 } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth, isRequisicionReadOnlyProfile } from '../../../auth';
 import {
 	BackLink,
 	Button,
-	ConfirmModal,
-	InfiniteScrollTable,
-	Label,
-	PageCard,
-	TableFilterBar,
+	ConfirmModal,	
+	PageCard,	
 	TextArea,
 	Toast,
 	ViewHeader,
 	StatusBadge,
-	resolveStatusBadge,
-	Input,
+	resolveStatusBadge,	
+	SimpleTable,
 } from '../../../components/UI';
 import type { OptionItem, SortConfig } from '../../../components/UI/types';
 import type { SimpleTableColumn, SimpleTableCustomAction } from '../../../components/UI/SimpleTable/SimpleTable';
@@ -43,15 +40,6 @@ import { FieldRoleLabel } from './fieldRoleLabel';
 
 
 const BASE_PATH = '/requisiciones/adquisicion-bienes';
-
-const SEARCH_CRITERIA_OPTIONS: OptionItem[] = [
-	{ value: 'Coincidencia', label: 'Coincidencia' },
-	{ value: 'ID', label: 'ID' },
-	{ value: 'Solicitante', label: 'Solicitante' },
-	{ value: 'Tipo', label: 'Tipo' },
-	{ value: 'Estatus', label: 'Estatus' },
-];
-
 
 const TABLE_COLUMNS: SimpleTableColumn<RequisicionRow>[] = [
 	{
@@ -112,25 +100,6 @@ const mapRequisicionViewToRow = (item: RequisicionView): RequisicionRow => ({
 	fechaSolicitudIso: item.fechaSolicitud ?? "",
 });
 
-function matchesSearch(row: RequisicionRow, criteria: SearchCriteria, text: string): boolean {
-	const t = text.trim().toLowerCase();
-	if (!t) return true;
-	const idStr = String(row.numero).padStart(7, '0');
-	if (criteria === 'Coincidencia') {
-		return (
-			idStr.toLowerCase().includes(t) ||
-			row.solicitante.toLowerCase().includes(t) ||
-			row.tipoCompra.toLowerCase().includes(t) ||
-			row.estatus.toLowerCase().includes(t)
-		);
-	}
-	if (criteria === 'ID') return idStr.toLowerCase().includes(t);
-	if (criteria === 'Solicitante') return row.solicitante.toLowerCase().includes(t);
-	if (criteria === 'Tipo') return row.tipoCompra.toLowerCase().includes(t);
-	if (criteria === 'Estatus') return row.estatus.toLowerCase().includes(t);
-	return true;
-}
-
 export function AdquisicionBienesListadoFormView() {
 	const { user } = useAuth();
 	const navigate = useNavigate();
@@ -156,6 +125,8 @@ export function AdquisicionBienesListadoFormView() {
 	const [pendingSearchText, setPendingSearchText] = useState('');
 	const [pendingTipo, setPendingTipo] = useState('');
 	const [pendingEstatus, setPendingEstatus] = useState('');
+	const [fechaInicio, setFechaInicio] = useState('');
+	const [fechaFin, setFechaFin] = useState('');
 
 	const [appliedSearch, setAppliedSearch] = useState({
 		criteria: 'Coincidencia' as SearchCriteria,
@@ -239,16 +210,10 @@ export function AdquisicionBienesListadoFormView() {
 		}
 	}, [editingRow, mode, navigate]);
 
+
 	useEffect(() => {
-		//No cargar si estás creando
-		if (isCreateMode) return;
-
-		//No cargar si estás editando
-		if (mode === "form-edicion") return;
-
 		loadRequisiciones();
-
-	}, [isCreateMode, mode]);
+	}, []);
 
 	const handleEnviarRevision: SimpleTableCustomAction<ContratacionServiciosRow> = {
 		icon: <CheckCircle className="w-4 h-4" />,
@@ -260,104 +225,52 @@ export function AdquisicionBienesListadoFormView() {
 		visible: (row: ContratacionServiciosRow) => isSolicitantePermisoRegistro(row),
 	};
 
-	const applyFilters = useCallback(() => {
-		setAppliedSearch({
-			criteria: pendingCriteria as SearchCriteria,
-			text: pendingSearchText,
-		});
-		setAppliedTipo(pendingTipo);
-		setAppliedEstatus(pendingEstatus);
-	}, [pendingCriteria, pendingSearchText, pendingTipo, pendingEstatus]);
-
-	const filteredAndSortedRows = useMemo(() => {
-		const filtered = rows.filter((row) => {
-			if (!matchesSearch(row, appliedSearch.criteria, appliedSearch.text)) return false;
-			if (appliedTipo && row.tipoCompra !== appliedTipo) return false;
-			if (appliedEstatus && row.estatus !== appliedEstatus) return false;
-			return (
-				String(row.numero).includes(inlineFilters.numero) &&
-				String(row.monto).toLowerCase().includes(inlineFilters.monto.toLowerCase()) &&
-				row.tipoCompra.toLowerCase().includes(inlineFilters.tipoCompra.toLowerCase()) &&
-				row.solicitante.toLowerCase().includes(inlineFilters.solicitante.toLowerCase()) &&
-				row.estatus.toLowerCase().includes(inlineFilters.estatus.toLowerCase()) &&
-				row.fechaSolicitudIso.toLowerCase().includes(inlineFilters.fechaSolicitudIso.toLowerCase())
-			);
-		});
-		return [...filtered].sort((a, b) => {
-			const key = sortConfig.key as keyof RequisicionRow;
-			const direction = sortConfig.direction === 'asc' ? 1 : -1;
-			const av = a[key];
-			const bv = b[key];
-			if (typeof av === 'number' && typeof bv === 'number') {
-				return (av - bv) * direction;
-			}
-			return String(av).localeCompare(String(bv), 'es', { numeric: true }) * direction;
-		});
-	}, [rows, sortConfig, inlineFilters, appliedSearch, appliedTipo, appliedEstatus]);
-
-	const filterBarFilters = useMemo(
-		() => [
-			{
-				type: 'search' as const,
-				cols: 4,
-				criteriaOptions: SEARCH_CRITERIA_OPTIONS,
-				criteriaValue: pendingCriteria,
-				onCriteriaChange: (v: string) => setPendingCriteria(v),
-				labelInput: 'Búsqueda:',
-				searchValue: pendingSearchText,
-				onSearchChange: (v: string) => setPendingSearchText(v),
-				placeholder: 'Término de búsqueda…',
-			},
-			{
-				type: 'select' as const,
-				cols: 2,
-				label: 'Tipo',
-				options: [
-					{ value: '', label: 'Todos' },
-					{ value: 'MAYOR', label: 'Mayor' },
-					{ value: 'MENOR', label: 'Menor' },
-				],
-				value: pendingTipo,
-				onChange: (v: string) => setPendingTipo(v),
-			},
-			{
-				type: 'select' as const,
-				cols: 2,
-				label: 'Estatus',
-				options: [
-					{ value: '', label: 'Todos' },
-					{ value: 'PENDIENTE', label: 'Pendiente' },
-					{ value: 'APROBADA', label: 'Aprobada' },
-					{ value: 'RECHAZADA', label: 'Rechazada' },
-					{ value: 'CAMBIOS_SOLICITADOS', label: 'Cambios solicitados' },
-				],
-				value: pendingEstatus,
-				onChange: (v: string) => setPendingEstatus(v),
-			},
-		],
-		[pendingCriteria, pendingSearchText, pendingTipo, pendingEstatus]
-	);
-
-
-
-	const loadRequisiciones = async () => {
+	const loadRequisiciones = useCallback(async ( fechaInicio?: string, fechaFin?: string, tipoMonto?: string, estatus?: string) => {
 		try {
 			setIsLoading(true);
 			setLoadError(null);
 
-			let data = []
-			if (isRequisicionReadOnly)
-				data = await requisicionApi.listaTodo({ tipoObjeto: 1 })
-			else if (isRevisorProfile)
-				data = await requisicionApi.listarPorRevisor({ tipoObjeto: 1 })
-			else
-				data = await requisicionApi.listarPorSolicitante({ tipoObjeto: 1 })
+			let data: RequisicionView[] = [];
 
-			const rowsServicios = data
+			const tipoMontoValue =
+				tipoMonto !== undefined && tipoMonto !== null && tipoMonto !== ''
+					? (isNaN(Number(tipoMonto)) ? null : Number(tipoMonto))
+					: null;
+
+			const estatusValue =
+				estatus !== undefined && estatus !== null && estatus !== ''
+					? (isNaN(Number(estatus)) ? null : Number(estatus))
+					: null;
+
+			if (isRequisicionReadOnly) {
+				data = await requisicionApi.listaTodo({
+					tipoObjeto: 1,
+					tipoMonto: tipoMontoValue,
+					estatus: estatusValue,
+					fechaInicio,
+					fechaFin,
+				});
+			} else if (isRevisorProfile) {
+				data = await requisicionApi.listarPorRevisor({
+					tipoObjeto: 1,
+					tipoMonto: tipoMontoValue,
+					estatus: estatusValue,
+
+				});
+			} else {
+				data = await requisicionApi.listarPorSolicitante({
+					tipoObjeto: 1,
+					tipoMonto: tipoMontoValue,
+					estatus: estatusValue,
+
+				});
+			}
+
+			const rowsBienes = data
 				.filter((x) => Number(x.tipoObjetoRequisicion ?? 0) === 1)
 				.map(mapRequisicionViewToRow);
 
-			setRows(rowsServicios);
+			setRows(rowsBienes);
 		} catch (error) {
 			setLoadError(
 				error instanceof Error
@@ -367,7 +280,40 @@ export function AdquisicionBienesListadoFormView() {
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	}, [isRequisicionReadOnly, isRevisorProfile]);
+
+	const applyFilters = useCallback(() => {		
+
+		if (!fechaInicio || !fechaFin) {
+			setLoadError('Selecciona fecha inicio y fecha fin para buscar.');
+			return;
+		}
+
+		setLoadError(null);
+
+		setAppliedSearch({
+			criteria: pendingCriteria as SearchCriteria,
+			text: pendingSearchText,
+		});
+
+		setAppliedTipo(pendingTipo);
+		setAppliedEstatus(pendingEstatus);		
+
+		loadRequisiciones(
+			fechaInicio,
+			fechaFin,
+			pendingTipo,
+			pendingEstatus
+		);
+	}, [
+		fechaInicio,
+		fechaFin,
+		pendingCriteria,
+		pendingSearchText,
+		pendingTipo,
+		pendingEstatus,
+		loadRequisiciones,
+	]);
 
 	const resetToListado = () => {
 		navigate(BASE_PATH);
@@ -498,11 +444,11 @@ export function AdquisicionBienesListadoFormView() {
 			if (!canDelete) {
 				throw new Error('La requisición no puede eliminarse porque ya se encuentra en un nivel superior de autorización.');
 			}
-			
+
 			if (!motivo) {
 				throw new Error('Escribe el motivo antes de eliminar.');
 			}
-			
+
 			const delId = pendingDeleteRow.id;
 
 			const data: CancelarRequest = {
@@ -623,7 +569,7 @@ export function AdquisicionBienesListadoFormView() {
 			setIsLoading(false)
 		}
 	};
-	
+
 	const patchRow = useCallback(
 		(rowId: string, patch: Partial<RequisicionRow>) => {
 			setRows((prev) => prev.map((r) => (r.id === rowId ? { ...r, ...patch } : r)));
@@ -742,55 +688,105 @@ export function AdquisicionBienesListadoFormView() {
 
 					{mode === 'listado' ? (
 						<div className="flex-1 min-h-0 flex flex-col px-5 pt-4 pb-2 gap-3">
-							<TableFilterBar
-								filters={filterBarFilters}
-								gridCols={12}
-								onApply={applyFilters}
-								applyLabel="Buscar"
-								className="shrink-0"
-							/>
-							<div className="flex-1 min-h-0">
-								<InfiniteScrollTable<RequisicionRow>
-									data={filteredAndSortedRows}
-									pageSize={30}
-									resetKey={JSON.stringify({
-										appliedSearch,
-										appliedTipo,
-										appliedEstatus,
-										inlineFilters,
-										sortConfig,
-									})}
-									columns={TABLE_COLUMNS}
-									getRowKey={(row) => row.id}
-									sortConfig={sortConfig}
-									onSort={(key) =>
-										setSortConfig((prev) => ({
-											key,
-											direction:
-												prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
-										}))
-									}
-									onEdit={handleEditClick}
-									onDelete={isSolicitante ? setPendingDeleteRow : undefined}
-									customActions={[handleEnviarRevision]}
-									showInlineFilters={showInlineFilters}
-									onToggleInlineFilters={() => setShowInlineFilters((v) => !v)}
-									inlineFilters={inlineFilters}
-									onInlineFilterChange={(key, value) =>
-										setInlineFilters((prev) => ({ ...prev, [key]: value }))
-									}
-									onClearInlineFilters={() =>
-										setInlineFilters({
-											numero: '',
-											monto: '',
-											tipoCompra: '',
-											solicitante: '',
-											estatus: '',
-											fechaSolicitudIso: '',
-										})
-									}
-								/>
+							<div className="shrink-0 rounded-xl border border-slate-200 bg-white p-3">
+								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[160px_160px_160px_180px_110px] items-end gap-3">
+									<div className="flex flex-col gap-1">
+										<label className="text-xs font-medium text-slate-600">Fecha inicio *</label>
+										<input
+											type="date"
+											value={fechaInicio}
+											onChange={(e) => setFechaInicio(e.target.value)}
+											className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+										/>
+									</div>
+
+									<div className="flex flex-col gap-1">
+										<label className="text-xs font-medium text-slate-600">Fecha fin *</label>
+										<input
+											type="date"
+											value={fechaFin}
+											onChange={(e) => setFechaFin(e.target.value)}
+											className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+										/>
+									</div>
+
+									<div className="flex flex-col gap-1">
+										<label className="text-xs font-medium text-slate-600">Tipo</label>
+										<select
+											value={pendingTipo}
+											onChange={(e) => setPendingTipo(e.target.value)}
+											className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+										>
+											<option value="">Todos</option>
+											<option value="1">Mayor</option>
+											<option value="2">Menor</option>
+										</select>
+									</div>
+
+									<div className="flex flex-col gap-1">
+										<label className="text-xs font-medium text-slate-600">Estatus</label>
+										<select
+											value={pendingEstatus}
+											onChange={(e) => setPendingEstatus(e.target.value)}
+											className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+										>
+											<option value="">Todos</option>
+											<option value="1">Registrada</option>
+											<option value="2">En revisión</option>
+											<option value="3">Observada</option>
+											<option value="4">En autorización</option>
+											<option value="5">Autorizada</option>
+											<option value="6">Cancelada</option>
+										</select>
+									</div>
+
+									<Button
+										variant="primary"
+										size="md"
+										onClick={applyFilters}
+										className="h-10"
+									>
+										Buscar
+									</Button>
+								</div>
 							</div>
+							
+							{loadError ? (
+								<div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+									{loadError}
+								</div>
+							) : null}
+							<SimpleTable<RequisicionRow>
+								data={rows}
+								columns={TABLE_COLUMNS}
+								getRowKey={(row) => row.id}
+								sortConfig={sortConfig}
+								onSort={(key) =>
+									setSortConfig((prev) => ({
+										key,
+										direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+									}))
+								}
+								onEdit={handleEditClick}
+								onDelete={isSolicitante ? setPendingDeleteRow : undefined}
+								customActions={[handleEnviarRevision]}
+								showInlineFilters={showInlineFilters}
+								onToggleInlineFilters={() => setShowInlineFilters((v) => !v)}
+								inlineFilters={inlineFilters}
+								onInlineFilterChange={(key, value) =>
+									setInlineFilters((prev) => ({ ...prev, [key]: value }))
+								}
+								onClearInlineFilters={() =>
+									setInlineFilters({
+										numero: '',
+										monto: '',
+										tipoCompra: '',
+										solicitante: '',
+										estatus: '',
+										fechaSolicitudIso: '',
+									})
+								}
+							/>
 						</div>
 					) : mode === 'form-alta' ? (
 						<MontoInicialStep onContinue={handleMontoContinue} />
