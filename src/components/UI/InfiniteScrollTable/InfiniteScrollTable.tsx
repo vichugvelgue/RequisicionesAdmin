@@ -1,8 +1,7 @@
-import React, { useMemo } from "react";
+import React, { useEffect } from "react";
 import { SimpleTable } from "../SimpleTable";
 import { GlobalSearchBar } from "../GlobalSearchBar";
 import { TableResultsInfo } from "../TableResultsInfo/TableResultsInfo";
-import { useInfiniteScrollSlice } from "../useInfiniteScrollSlice";
 import type { SortConfig } from "../types";
 import type { OptionItem, SearchDateRangeValue } from "../types";
 import type { SimpleTableColumn } from "../SimpleTable/SimpleTable";
@@ -23,18 +22,19 @@ export interface InfiniteScrollTableSearchBarProps {
 }
 
 export interface InfiniteScrollTableProps<T extends object> {
-	/** Full list (already filtered/sorted by parent or raw for internal use) */
 	data: T[];
 	pageSize: number;
-	/** When this changes, visibleCount resets to pageSize (e.g. search + sort + filters) */
 	resetKey?: string;
 
-	/** Optional global search bar above the table */
 	searchBar?: InfiniteScrollTableSearchBarProps;
 
-	/** Table props (passed through to SimpleTable) */
 	columns: SimpleTableColumn<T>[];
 	getRowKey?: (row: T) => string | number;
+
+	hasMore?: boolean;
+	isLoadingMore?: boolean;
+	onLoadMore?: () => void | Promise<void>;
+
 	sortConfig?: SortConfig | null;
 	onSort?: (key: string) => void;
 	showInlineFilters?: boolean;
@@ -62,6 +62,11 @@ export function InfiniteScrollTable<T extends object>({
 	searchBar,
 	columns,
 	getRowKey,
+
+	hasMore = false,
+	isLoadingMore = false,
+	onLoadMore,
+
 	sortConfig,
 	onSort,
 	showInlineFilters = true,
@@ -80,18 +85,38 @@ export function InfiniteScrollTable<T extends object>({
 	wrapperClassName = "",
 	showResultsInfo = true,
 }: InfiniteScrollTableProps<T>) {
-	const totalItems = data.length;
-	const { scrollContainerRef, sentinelRef, visibleCount } =
-		useInfiniteScrollSlice({
-			dataLength: totalItems,
-			pageSize,
-			resetKey,
-		});
+	const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
+	const sentinelRef = React.useRef<HTMLDivElement | null>(null);
 
-	const visibleData = useMemo(
-		() => data.slice(0, visibleCount),
-		[data, visibleCount]
-	);
+	useEffect(() => {
+		if (!hasMore || isLoadingMore || !onLoadMore) return;
+
+		const sentinel = sentinelRef.current;
+		const root = scrollContainerRef.current;
+
+		if (!sentinel || !root) return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				const first = entries[0];
+
+				if (first?.isIntersecting && hasMore && !isLoadingMore) {
+					onLoadMore();
+				}
+			},
+			{
+				root,
+				rootMargin: "120px",
+				threshold: 0,
+			}
+		);
+
+		observer.observe(sentinel);
+
+		return () => {
+			observer.disconnect();
+		};
+	}, [hasMore, isLoadingMore, onLoadMore, data.length]);
 
 	return (
 		<div className="flex flex-col flex-1 min-h-0 min-w-0 w-full">
@@ -118,41 +143,52 @@ export function InfiniteScrollTable<T extends object>({
 					ref={scrollContainerRef}
 					className="flex flex-col flex-1 min-h-0 min-w-0 overflow-auto"
 				>
-					<>
-						<SimpleTable<T>
-							columns={columns}
-							data={visibleData}
-							getRowKey={getRowKey}
-							sortConfig={sortConfig}
-							onSort={onSort}
-							showInlineFilters={showInlineFilters}
-							onToggleInlineFilters={onToggleInlineFilters}
-							inlineFilters={inlineFilters}
-							onInlineFilterChange={onInlineFilterChange}
-							onClearInlineFilters={onClearInlineFilters}
-							onView={onView}
-							onPrint={onPrint}
-							onEdit={onEdit}
-							onCancel={onCancel}
-							onDelete={onDelete}
-							customActions={customActions}
-							actionsColumnLabel={actionsColumnLabel}
-							wrapperClassName={wrapperClassName}
-							tableClassName={tableClassName}
-							scrollContainer="parent"
-						/>
-						<div
-							ref={sentinelRef}
-							className="h-1 w-full shrink-0"
-							aria-hidden
-						/>
-					</>
+					<SimpleTable<T>
+						columns={columns}
+						data={data}
+						getRowKey={getRowKey}
+						sortConfig={sortConfig}
+						onSort={onSort}
+						showInlineFilters={showInlineFilters}
+						onToggleInlineFilters={onToggleInlineFilters}
+						inlineFilters={inlineFilters}
+						onInlineFilterChange={onInlineFilterChange}
+						onClearInlineFilters={onClearInlineFilters}
+						onView={onView}
+						onPrint={onPrint}
+						onEdit={onEdit}
+						onCancel={onCancel}
+						onDelete={onDelete}
+						customActions={customActions}
+						actionsColumnLabel={actionsColumnLabel}
+						wrapperClassName={wrapperClassName}
+						tableClassName={tableClassName}
+						scrollContainer="parent"
+					/>
+
+					<div
+						ref={sentinelRef}
+						className="h-8 w-full shrink-0"
+						aria-hidden
+					/>
+
+					{isLoadingMore && (
+						<div className="py-3 text-center text-sm text-slate-500">
+							Cargando más registros...
+						</div>
+					)}
+
+					{!hasMore && data.length > 0 && (
+						<div className="py-3 text-center text-xs text-slate-400">
+							No hay más registros
+						</div>
+					)}
 				</div>
 
 				{showResultsInfo && (
 					<TableResultsInfo
-						visibleCount={visibleData.length}
-						totalCount={totalItems}
+						visibleCount={data.length}
+						totalCount={hasMore ? data.length + 1 : data.length}
 					/>
 				)}
 			</div>

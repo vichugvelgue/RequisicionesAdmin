@@ -365,58 +365,95 @@ const handleApiError = async (response: Response, fallback: string): Promise<nev
 };
 
 export const requisicionApi = {
-	async listarPorSolicitante(params?: {
-		tipoMonto?: number | null;
-		estatus?: number | null;
-		tipoObjeto?: number | null;
-	}): Promise<RequisicionView[]> {
+	// Obtener el listado de requisiciones para el usuario autenticado
+	/*async listarPorSolicitante(): Promise<RequisicionView[]> {
+		console.log("requisicionApi.listarPorSolicitante called");
 		const token = getAuthToken();
-
 		const idUsuario = getUsuarioId();
 
-		const query = new URLSearchParams();
-
-		if (params?.tipoMonto != null) {
-			query.append('tipoMonto', String(params.tipoMonto));
-		}
-
-		if (params?.estatus != null) {
-			query.append('estatus', String(params.estatus));
-		}
-
-		if (params?.tipoObjeto != null) {
-			query.append('tipoObjeto', String(params.tipoObjeto));
-		}
-
-		const queryString = query.toString();
-
 		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/ListarPorSolicitante/${idUsuario}${queryString ? `?${queryString}` : ''}`,
+			`${API_BASE_URL}/ControladorRequisicion/ListarPorSolicitante/${idUsuario}`,
 			{
-				method: 'GET',
+				method: "GET",
 				headers: {
 					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/json',
+					"Content-Type": "application/json",
 				},
 			}
 		);
 
 		if (!response.ok) {
-			await handleApiError(response, 'Error al listar requisiciones por solicitante');
+			await handleApiError(response, "Error al listar requisiciones por solicitante");
 		}
 
 		const data = await response.json();
+
 		const requisiciones: Requisicion[] = data.dataList || [];
+		console.log("Requisiciones recibidas del API:", requisiciones);
 
 		return requisiciones
-			.filter((item) => item && typeof item === 'object' && item.id)
+			.filter((item) => item && typeof item === "object" && item.id)
 			.map(mapRequisicionToView);
-	},
+	},*/
+
+async listarPorSolicitante(params?: {
+	tipoMonto?: number | null;
+	estatus?: number | null;
+	tipoObjeto?: number | null;
+	page?: number;
+	pageSize?: number;
+}): Promise<RequisicionView[]> {
+	const token = getAuthToken();
+	const idUsuario = getUsuarioId();
+
+	const query = new URLSearchParams();
+
+	if (params?.tipoMonto != null) {
+		query.append('tipoMonto', String(params.tipoMonto));
+	}
+
+	if (params?.estatus != null) {
+		query.append('estatus', String(params.estatus));
+	}
+
+	if (params?.tipoObjeto != null) {
+		query.append('tipoObjeto', String(params.tipoObjeto));
+	}
+
+	query.append('page', String(params?.page ?? 1));
+	query.append('pageSize', String(params?.pageSize ?? 20));
+
+	const queryString = query.toString();
+
+	const response = await fetch(
+		`${API_BASE_URL}/ControladorRequisicion/ListarPorSolicitante/${idUsuario}?${queryString}`,
+		{
+			method: 'GET',
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json',
+			},
+		}
+	);
+
+	if (!response.ok) {
+		await handleApiError(response, 'Error al listar requisiciones por solicitante');
+	}
+
+	const data = await response.json();
+	const requisiciones: Requisicion[] = data.dataList || [];
+
+	return requisiciones
+		.filter((item) => item && typeof item === 'object' && item.id)
+		.map(mapRequisicionToView);
+},
 
 	async listarPorRevisor(params?: {
 		tipoMonto?: number | null;
 		estatus?: number | null;
 		tipoObjeto?: number | null;
+		page?: number;
+	pageSize?: number;
 	}): Promise<RequisicionView[]> {
 		const token = getAuthToken();
 
@@ -462,52 +499,60 @@ export const requisicionApi = {
 	},
 
 	async listaTodo(params?: {
-		tipoMonto?: number | null;
-		estatus?: number | null;
 		tipoObjeto?: number | null;
-	}): Promise<RequisicionView[]> {
-		const token = getAuthToken();
+		tipoMonto?: number | null;
+		estatus?: number | null;	
+		fechaInicio?: string | null;
+		fechaFin?: string | null;
+}): Promise<RequisicionView[]> {
+	const token = getAuthToken();
 
-		const idUsuario = getUsuarioId();
+	const query = new URLSearchParams();
 
-		const query = new URLSearchParams();
+	if (params?.tipoMonto != null) {
+		query.append('tipoMonto', String(params.tipoMonto));
+	}
 
-		if (params?.tipoMonto != null) {
-			query.append('tipoMonto', String(params.tipoMonto));
+	if (params?.estatus != null) {
+		query.append('estatus', String(params.estatus));
+	}
+
+	if (params?.tipoObjeto != null) {
+		query.append('tipoObjeto', String(params.tipoObjeto));
+	}
+
+	if (params?.fechaInicio) {
+		query.append('fechaInicio', params.fechaInicio);
+	}
+
+	if (params?.fechaFin) {
+		query.append('fechaFin', params.fechaFin);
+	}
+
+	const queryString = query.toString();
+
+	const response = await fetch(
+		`${API_BASE_URL}/ControladorRequisicion/ListarTodas${queryString ? `?${queryString}` : ''}`,
+		{
+			method: 'GET',
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json',
+			},
 		}
+	);
 
-		if (params?.estatus != null) {
-			query.append('estatus', String(params.estatus));
-		}
+	if (!response.ok) {
+		await handleApiError(response, 'Error al listar requisiciones');
+	}
 
-		if (params?.tipoObjeto != null) {
-			query.append('tipoObjeto', String(params.tipoObjeto));
-		}
+	const data = await response.json();
+	const requisiciones: Requisicion[] = data.dataList || [];
 
-		const queryString = query.toString();
-
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/ListarTodas/${queryString ? `?${queryString}` : ''}`,
-			{
-				method: 'GET',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/json',
-				},
-			}
-		);
-
-		if (!response.ok) {
-			await handleApiError(response, 'Error al listar requisiciones por solicitante');
-		}
-
-		const data = await response.json();
-		const requisiciones: Requisicion[] = data.dataList || [];
-
-		return requisiciones
-			.filter((item) => item && typeof item === 'object' && item.id)
-			.map(mapRequisicionToView);
-	},
+	return requisiciones
+		.filter((item) => item && typeof item === 'object' && item.id)
+		.map(mapRequisicionToView);
+},
 
 	// Crear una nueva requisición al inicio del proceso, antes de guardar datos generales
 	async crear(data: CrearRequisicionRequest) {
@@ -747,7 +792,6 @@ export const requisicionApi = {
 		}
 
 		const result = await response.json();
-		console.log("Detalle de requisición recibido del API:", result.data);
 		return result.data;
 	},
 
@@ -784,7 +828,6 @@ export const requisicionApi = {
 	async guardarPartidas(data: GuardarPartidasRequest): Promise<void> {
 		const token = getAuthToken();
 		const idUsuario = getUsuarioId();
-		console.log("Guardando partidas con datos:", data);
 		const response = await fetch(
 			`${API_BASE_URL}/ControladorRequisicion/GuardarPartidas`,
 			{
@@ -972,9 +1015,6 @@ export const requisicionApi = {
 		}
 
 		const result = await response.json();
-
-		console.log("Información de bienes para documento:", result.data);
-
 		return result.data;
 	},
 
@@ -1003,14 +1043,11 @@ export const requisicionApi = {
 
 		const result = await response.json();
 
-		console.log("Información de servicios para documento:", result.data);
-
 		return result.data;
 	},
 
 	async guardarDatosAdministrativosBien(data: DatosAdministrativosBienDTO) {
 		const token = getAuthToken();
-		console.log("Guardando datos administrativos del bien con datos:", data);
 		const response = await fetch(
 			`${API_BASE_URL}/ControladorRequisicion/GuardarDatosAdministrativosBien`,
 			{
@@ -1065,14 +1102,7 @@ export const requisicionApi = {
 						: params.tipoObjeto;
 
 			query.append('tipoObjeto', String(tipoObjeto));
-		}
-
-		console.log("Obteniendo reporte de requisiciones con parámetros:", {
-			FechaInicio: params.fechaInicio,
-			FechaFin: params.fechaFin,
-			tipoMonto: params.tipoMonto,			
-			tipoObjeto: params.tipoObjeto
-		});
+		}	
 
 		const response = await fetch(
 			`${API_BASE_URL}/ControladorRequisicion/ObtenerReporteRequisiciones?${query.toString()}`,
