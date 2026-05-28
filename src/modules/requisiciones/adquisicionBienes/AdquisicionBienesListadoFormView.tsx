@@ -222,6 +222,46 @@ export function AdquisicionBienesListadoFormView() {
 		loadRequisiciones();
 	}, []);
 
+	const loadObservaciones = async (row: ContratacionServiciosRow) => {
+		try {
+			setObservacionesRows([]);
+			setIsLoading(true);
+
+			let data = await requisicionApi.ObtenerObservaciones(row.id)
+
+			setObservacionesRows(data);
+		} catch (error) {
+			setLoadError(
+				error instanceof Error
+					? error.message
+					: 'Error al cargar observaciones del servicio'
+			);
+		} finally {
+			setIsLoading(false);
+			loadHistory(row);
+		}
+	};
+
+	const loadHistory = async (row: ContratacionServiciosRow) => {
+		try {
+			setHistoryRows([]);
+			setPendingHistoryRow(row);
+			setIsLoading(true);
+
+			let data = await requisicionApi.ObtenerHistorial(row.id)
+
+			setHistoryRows(data);
+		} catch (error) {
+			setLoadError(
+				error instanceof Error
+					? error.message
+					: 'Error al cargar observaciones del servicio'
+			);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
 	const handleEnviarRevision: SimpleTableCustomAction<ContratacionServiciosRow> = {
 		icon: <CheckCircle className="w-4 h-4" />,
 		onClick: (row) => {
@@ -256,7 +296,7 @@ export function AdquisicionBienesListadoFormView() {
 					? (isNaN(Number(estatus)) ? null : Number(estatus))
 					: null;
 
-			if (isRequisicionReadOnly) {
+			if (isRequisicionReadOnly) {				
 				data = await requisicionApi.listaTodo({
 					tipoObjeto: 1,
 					tipoMonto: tipoMontoValue,
@@ -271,7 +311,16 @@ export function AdquisicionBienesListadoFormView() {
 					estatus: estatusValue,
 
 				});
-			} else {
+			} else if(isAutorizadorProfile) {
+				data = await requisicionApi.listaTodo({
+					tipoObjeto: 1,
+					tipoMonto: tipoMontoValue,
+					estatus: estatusValue,
+					fechaInicio,
+					fechaFin,
+				});
+			}
+			else {
 				data = await requisicionApi.listarPorSolicitante({
 					tipoObjeto: 1,
 					tipoMonto: tipoMontoValue,
@@ -797,7 +846,7 @@ export function AdquisicionBienesListadoFormView() {
 								}
 								onEdit={handleEditClick}
 								onDelete={isSolicitante ? setPendingDeleteRow : undefined}
-								customActions={[handleEnviarRevision]}
+								customActions={[handleEnviarRevision, handleHistoryView]}
 								showInlineFilters={showInlineFilters}
 								onToggleInlineFilters={() => setShowInlineFilters((v) => !v)}
 								inlineFilters={inlineFilters}
