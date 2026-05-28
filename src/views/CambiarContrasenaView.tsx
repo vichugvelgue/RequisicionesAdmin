@@ -56,7 +56,7 @@ export function CambiarContrasenaView() {
 		try {
 			await new Promise((r) => setTimeout(r, 400));
 			setToastVariant('success');
-			setToastTitle('Contraseña actualizada (prototipo)');
+			setToastTitle('Contraseña actualizada correctamente');
 			setToastDescription('En producción aquí se confirmará con el servidor.');
 			setToastVisible(true);
 			window.setTimeout(() => {

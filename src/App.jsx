@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { MainLayout } from "./components/layout/MainLayout";
 import { DashboardView } from "./views/DashboardView";
 import { LoginView } from "./views/LoginView";
+import { RecuperarContraseñaView } from "./views/RecuperarContraseñaView";
 import { CambiarContrasenaView } from "./views/CambiarContrasenaView";
 import { InvitacionUsuarioView } from "./views/InvitacionUsuarioView";
 import { RequireAuth, RequireCatalogosUsuariosAccess } from "./auth";
@@ -40,7 +41,8 @@ function App() {
 		<Routes>
 			<Route path="/login" element={<LoginView />} />
 			<Route path="/cambiar-contrasena" element={<CambiarContrasenaView />} />
-			<Route path="/invitacion" element={<InvitacionUsuarioView />} />
+			<Route path="/invitacion/:id" element={<InvitacionUsuarioView />} />
+			<Route path="/RecuperarContrasena/:id" element={<RecuperarContraseñaView />} />
 			<Route element={<RequireAuth />}>
 				<Route path="/" element={<MainLayout />}>
 				<Route index element={<DashboardView />} />

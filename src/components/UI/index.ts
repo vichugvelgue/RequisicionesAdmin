@@ -49,6 +49,7 @@ export { ActionCell } from './ActionCell';
 export { GlobalSearchBar } from './GlobalSearchBar';
 export { TableFilterBar } from './TableFilterBar';
 export { ConfirmModal } from './ConfirmModal';
+export { Modal } from './Modal';
 export { Toast } from './Toast';
 export { EmptyState } from './EmptyState';
 export { TableResultsInfo } from './TableResultsInfo/TableResultsInfo';
