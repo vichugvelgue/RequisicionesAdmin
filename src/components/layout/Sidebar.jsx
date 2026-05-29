@@ -147,6 +147,7 @@ export function Sidebar({ isSidebarOpen }) {
 							})}
 						</SidebarParentExpandable>
 					) : null}
+
 					<SidebarParentExpandable
 						icon={<ClipboardList className="w-4 h-4" />}
 						label="Requisiciones"
@@ -166,7 +167,8 @@ export function Sidebar({ isSidebarOpen }) {
 								/>
 							);
 						})}
-					</SidebarParentExpandable>				{showCatalogosUsuarios ? (
+					</SidebarParentExpandable>				
+					{showCatalogosUsuarios ? (
 					<SidebarParentExpandable
 						icon={<BarChart3 className="w-4 h-4" />}
 						label="Reportes"

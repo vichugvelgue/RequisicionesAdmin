@@ -897,6 +897,7 @@ export function AdquisicionBienesFormShell({
 							? requisicionDetalle.fechaSolicitud.substring(0, 10)
 							: '',
 					}}
+					readOnly={readOnly}
 					onSave={(data) => {
 						setRequisicionDetalle((prev) =>
 							prev
@@ -923,6 +924,7 @@ export function AdquisicionBienesFormShell({
 					initialValues={{
 						justificacionGasto: requisicionDetalle?.justificacionGasto ?? '',
 					}}
+					readOnly={readOnly}
 					onSave={(data) => {
 						setRequisicionDetalle((prev) =>
 							prev
@@ -1015,6 +1017,7 @@ export function AdquisicionBienesFormShell({
 						? requisicionDetalle.fechaSolicitud.substring(0, 10)
 						: '',
 				}}
+				readOnly={readOnly}
 				onSave={(data) => {
 					setRequisicionDetalle((prev) =>
 						prev
@@ -1037,6 +1040,7 @@ export function AdquisicionBienesFormShell({
 				initialValues={{
 					justificacionGasto: requisicionDetalle?.justificacionGasto ?? '',
 				}}
+				readOnly={readOnly}
 				onSave={(data) => {
 					setRequisicionDetalle((prev) =>
 						prev
