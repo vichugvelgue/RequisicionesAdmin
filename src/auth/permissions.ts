@@ -5,7 +5,7 @@ export function canAccessCatalogosUsuarios(
 	tipoPerfil: TipoPerfilUsuario | undefined
 ): boolean {
 	if (!tipoPerfil) return false;
-	return tipoPerfil === 'AUTORIZADOR' || tipoPerfil === 'ADMINISTRADOR GENERAL';
+	return tipoPerfil === 'ADMINISTRADOR GENERAL';
 }
 
 /** Requisiciones en modo solo consulta (sin altas ni edición). */

@@ -64,12 +64,13 @@ const getUsuarioId = (): number => {
 	}
 };
 
-export function MenorDatosGeneralesTab({idRequisicion,idUsuario,initialValues,onSave,}: {
+export function MenorDatosGeneralesTab({idRequisicion,idUsuario,initialValues,onSave,readOnly}: {
 	idRequisicion: number;
 	idUsuario: number;
 	initialValues: Partial<MenorDatosGeneralesForm>;
 	onSave: (data: MenorDatosGeneralesForm) => void;
-}) {
+	readOnly: boolean;
+	}) {
 	
 	const [toast, setToast] = useState({visible: false,title: '',variant: 'success' as 'success' | 'error',});
 	const [unidadesSolicitantes, setUnidadesSolicitantes] = useState<OptionItem[]>([]);
@@ -240,7 +241,7 @@ useEffect(() => {
 						</div>
 					</div>
 					<div className="flex justify-end pt-2">
-						<Button type="submit" variant="success" size="md" leftIcon={<Save className="w-4 h-4" />}>
+						<Button type="submit" variant="success" size="md" leftIcon={<Save className="w-4 h-4" />} disabled={readOnly}>
 							Guardar sección
 						</Button>
 					</div>

@@ -92,7 +92,7 @@ export function LoginView() {
 			const target = resolvePostLoginPath(from);
 			navigate(target, { replace: true });
 		} catch (error) {
-			setErrorMessage('No se pudo iniciar sesión. Intenta de nuevo.');
+			setErrorMessage(error instanceof Error ? error.message : 'No se pudo iniciar sesión. Intenta de nuevo.');
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -105,7 +105,7 @@ export function LoginView() {
 			const result = await usuarioApi.enviarRecuperarContraseña({ correoTelefono, contrasena })
 			showToast("Recuperacion contraseña", "Se envio correo de recuperacion correctamente");
 		} catch (error) {
-			setErrorMessage(error);
+			setErrorMessage(error instanceof Error ? error.message : "No se pudo enviar correo de recuperacion");
 		} finally {
 			setIsSubmitting(false);
 		}

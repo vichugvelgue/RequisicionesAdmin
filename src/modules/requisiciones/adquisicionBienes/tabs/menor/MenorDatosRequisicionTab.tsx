@@ -36,11 +36,13 @@ export function MenorDatosRequisicionTab({
 	idUsuario,
 	initialValues,
 	onSave,
+	readOnly,
 }: {
 	idRequisicion: number;
 	idUsuario: number;
 	initialValues: Partial<MenorDatosRequisicionForm>;
 	onSave: (data: MenorDatosRequisicionForm) => void;
+	readOnly: boolean;
 }) {
 	const [toast, setToast] = useState({
 		visible: false,

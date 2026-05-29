@@ -43,7 +43,7 @@ import {
 	ObservacionRequisicionView,
 	HistorialRequisicionView,
 } from '../../../api/requisicionBienesAPI';
-import { EnumRequisicionEstatusId, isAutorizadorProfileUser, isRevisorProfileUser, isSolicitanteProfile, TipoCompra } from '../adquisicionBienes/types';
+import { EnumRequisicionEstatus, EnumRequisicionEstatusId, isAutorizadorProfileUser, isRevisorProfileUser, isSolicitanteProfile, TipoCompra } from '../adquisicionBienes/types';
 import { FieldRoleLabel } from './fieldRoleLabel';
 
 const BASE_PATH = '/requisiciones/contratacion-servicios';
@@ -216,11 +216,22 @@ export function ContratacionServiciosListadoFormView() {
 	const isRequisicionReadOnly = isRequisicionReadOnlyProfile(user?.tipoPerfil);
 	/** Solo el solicitante oculta bloques de revisor; `isNewRecord` no debe acortar el formulario al revisor al consultar. */
 	const hideRevisorFields = userHidesRevisorFields(user) || (isNewRecord && !isRevisorProfile);
-	const isSolicitantePermisoRegistro = (row: ContratacionServiciosRow) => isSolicitante && EnumRequisicionEstatusId[row.estatus] < EnumRequisicionEstatusId.EnRevision;
-	const isRevisorPermisoRegistro = (row: ContratacionServiciosRow) => isRevisorProfile && EnumRequisicionEstatusId[row.estatus] < EnumRequisicionEstatusId.EnAutorizacion;
+	const isSolicitantePermisoRegistro = (row: ContratacionServiciosRow) => isSolicitante && [EnumRequisicionEstatus.Registrada, EnumRequisicionEstatus.Observada].includes(EnumRequisicionEstatus[row.estatus]);
+	const isRevisorPermisoRegistro = (row: ContratacionServiciosRow) => isRevisorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.EnRevision;
+	const isAutorizadorPermisoRegistro = (row: ContratacionServiciosRow) => isAutorizadorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.EnAutorizacion;
+	const canDelete = (row: ContratacionServiciosRow) => {
+		if (EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Cancelada) return false
+		if (isAutorizadorPermisoRegistro(row)) return true;
+		return isSolicitantePermisoRegistro(row) || isRevisorPermisoRegistro(row) || isAutorizadorPermisoRegistro(row);
+	}
+	const canActions = (row: ContratacionServiciosRow) => {
+		if (isSolicitante || isRequisicionReadOnly) return false;
+		return isRevisorPermisoRegistro(row) || isAutorizadorPermisoRegistro(row);
+	}
 
 	const [revisorModal, setRevisorModal] = useState<'solicitar-cambios' | 'cancelar' | null>(null);
 	const [revisorModalText, setRevisorModalText] = useState('');
+
 	useEffect(() => {
 		if (!isCreateMode) return;
 		if (isRevisorProfile) {
@@ -257,7 +268,7 @@ export function ContratacionServiciosListadoFormView() {
 	};
 	const handleHistoryView: SimpleTableCustomAction<ContratacionServiciosRow> = {
 		icon: <History className="w-4 h-4" />,
-		onClick: (row) => { loadObservaciones(row); },
+		onClick: (row) => { loadHistory(row); },
 		title: 'Ver historial',
 		variant: 'icon',
 		visible: (row: ContratacionServiciosRow) => true,
@@ -298,25 +309,6 @@ export function ContratacionServiciosListadoFormView() {
 			);
 		} finally {
 			setIsLoading(false);
-		}
-	};
-	const loadObservaciones = async (row: ContratacionServiciosRow) => {
-		try {
-			setObservacionesRows([]);
-			setIsLoading(true);
-
-			let data = await requisicionApi.ObtenerObservaciones(row.id)
-
-			setObservacionesRows(data);
-		} catch (error) {
-			setLoadError(
-				error instanceof Error
-					? error.message
-					: 'Error al cargar observaciones del servicio'
-			);
-		} finally {
-			setIsLoading(false);
-			loadHistory(row);
 		}
 	};
 	const loadHistory = async (row: ContratacionServiciosRow) => {
@@ -570,6 +562,7 @@ export function ContratacionServiciosListadoFormView() {
 		} finally {
 			setPendingRevisionRow(null);
 			setIsLoading(false)
+			resetToListado()
 		}
 	};
 	const handleDeleteConfirm = async () => {
@@ -579,8 +572,6 @@ export function ContratacionServiciosListadoFormView() {
 			if (isRequisicionReadOnly) {
 				throw new Error('El administrador general solo puede consultar requisiciones.');
 			}
-			const canDelete = isSolicitantePermisoRegistro(pendingDeleteRow) || isRevisorPermisoRegistro(pendingDeleteRow);
-
 			if (!canDelete) {
 				throw new Error('La requisición no puede eliminarse porque ya se encuentra en un nivel superior de autorización.');
 			}
@@ -621,6 +612,7 @@ export function ContratacionServiciosListadoFormView() {
 			setPendingDeleteRow(null);
 			setMotivo('');
 			setIsLoading(false)
+			resetToListado()
 		}
 	};
 	const handleObservationConfirm = async () => {
@@ -667,6 +659,7 @@ export function ContratacionServiciosListadoFormView() {
 			setPendingObservationRow(null);
 			setMotivo('');
 			setIsLoading(false)
+			resetToListado()
 		}
 	};
 	const handleAutorizationConfirm = async () => {
@@ -691,7 +684,7 @@ export function ContratacionServiciosListadoFormView() {
 			loadRequisiciones();
 			setToastState({
 				visible: true,
-				title: 'Requisición enviada a autorización',
+				title: mensaje,
 				variant: 'success',
 			});
 		} catch (error) {
@@ -706,6 +699,7 @@ export function ContratacionServiciosListadoFormView() {
 		} finally {
 			setPendingAutorizacionRow(null);
 			setIsLoading(false)
+			resetToListado()
 		}
 	};
 
@@ -806,7 +800,7 @@ export function ContratacionServiciosListadoFormView() {
 								>
 									Guardar
 								</Button>
-							) : mode === 'form-edicion' && (isRevisorProfile || isAutorizadorProfile) && editingRow ? (
+							) : mode === 'form-edicion' &&  editingRow && canActions(editingRow) ? (
 								<div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
 									<Button
 										type="button"
@@ -914,7 +908,7 @@ export function ContratacionServiciosListadoFormView() {
 								key={editingRow.id}
 								tipoCompra={editingRow.tipoCompra}
 								hideRevisorFields={hideRevisorFields}
-								readOnly={isRequisicionReadOnly || isAutorizadorProfile}
+								readOnly={isRequisicionReadOnly || !canActions(editingRow)}
 								draft={draftForEdit}
 								onDraftChange={(next) => setDraftForId(editingRow.id, next)}
 								editingRow={editingRow}
@@ -1034,22 +1028,6 @@ export function ContratacionServiciosListadoFormView() {
 								</div>
 							))}
 						</div>
-						<br />
-						<table className='w-full'>
-							<thead>
-								<tr>
-									<th className='w-44 text-left'>Fecha</th>
-									<th className='text-left'>Observación</th>
-								</tr>
-							</thead>
-							<tbody>
-								{observacionesRows.map((row, index) =>
-									<tr key={index}>
-										<td>{formatDate(row.fechaRegistro)}</td>
-										<td>{row.observacion}</td>
-									</tr>)}
-							</tbody>
-						</table>
 					</div>
 				</Modal>
 
