@@ -209,6 +209,10 @@ export function AdquisicionBienesListadoFormView() {
 		cargarIndicadores();
 	}, [isSolicitante]);
 
+	const isReadOnly = (row: ContratacionServiciosRow) => {
+		if (isAdministradorGeneralProfile) return true;
+		return !(isSolicitantePermisoRegistro(row) || isRevisorPermisoRegistro(row));
+	}
 	useEffect(() => {
 		if (!isCreateMode) return;
 
@@ -279,7 +283,7 @@ export function AdquisicionBienesListadoFormView() {
 		onClick: (row) => { loadHistory(row); },
 		title: 'Ver historial',
 		variant: 'icon',
-		visible: (row: ContratacionServiciosRow) => true,
+		visible: (row: ContratacionServiciosRow) => isRequisicionReadOnly,
 	};
 
 	const loadRequisiciones = useCallback(async (fechaInicio?: string, fechaFin?: string, tipoMonto?: string, estatus?: string) => {
@@ -914,6 +918,7 @@ export function AdquisicionBienesListadoFormView() {
 								tipoCompra={editingRow.tipoCompra}
 								hideRevisorFields={canEditSolicitanteFields}
 								readOnly={isRequisicionReadOnly || canActions(editingRow)}
+								readOnly={isReadOnly(editingRow)}
 								draft={draftForEdit}
 								onDraftChange={(next) => setDraftForId(editingRow.id, next)}
 								editingRow={editingRow}
@@ -1029,21 +1034,19 @@ export function AdquisicionBienesListadoFormView() {
 					icon={<History className="w-5 h-5" />}
 				>
 					<div>
-						<div className="flex flex-col">
+						<div className="overflow-y-auto max-h-[70dvh] pr-2">
 							{historysRows.map((item, index) => (
 								<div key={index} className="flex gap-3">
 									{/* Línea + punto */}
 									<div className="flex flex-col items-center">
 										<div className="w-3 h-3 rounded-full bg-blue-500 mt-1 shrink-0" />
-										{index < historysRows.length - 1 && (
-											<div className="w-0.5 bg-gray-300 flex-1 my-1" />
-										)}
+										<div className={`w-0.5 flex-1 my-1 ${index < historysRows.length - 1 ? 'bg-gray-300' : 'bg-transparent'}`} />
 									</div>
 
 									{/* Contenido */}
 									<div className="pb-4">
 										<p className="font-semibold text-sm uppercase">{formatStatus(item.accion)}</p>
-										<p className="text-xs text-gray-500">{formatDate(item.fechaRegistro)}</p>
+										<p className="text-xs text-gray-500">{item.nombreUsuario} - {formatDate(item.fechaRegistro)}</p>
 										{item.comentario && (
 											<p className="text-sm text-gray-600 mt-1">{item.comentario}</p>
 										)}

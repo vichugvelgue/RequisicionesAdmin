@@ -45,8 +45,7 @@ export interface ObservacionRequisicionView extends GuardarRequisicionDTO {
 }
 //Se utiliza para el listado
 export interface HistorialRequisicionView extends GuardarRequisicionDTO {
-	estatusAnterior: number;
-	estatusNuevo: number;
+	nombreUsuario: string;
 	accion: string;
 	comentario: string;
 	fechaRegistro: string;
