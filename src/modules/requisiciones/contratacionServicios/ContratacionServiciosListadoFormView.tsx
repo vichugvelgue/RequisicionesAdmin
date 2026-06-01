@@ -42,6 +42,7 @@ import {
 	EnviarObservacionRequest,
 	ObservacionRequisicionView,
 	HistorialRequisicionView,
+	IndicadoresSolicitante,
 } from '../../../api/requisicionBienesAPI';
 import { EnumRequisicionEstatus, EnumRequisicionEstatusId, isAutorizadorProfileUser, isRevisorProfileUser, isSolicitanteProfile, TipoCompra } from '../adquisicionBienes/types';
 import { FieldRoleLabel } from './fieldRoleLabel';
@@ -189,6 +190,8 @@ export function ContratacionServiciosListadoFormView() {
 	const isCreateMode = location.pathname.endsWith('/nuevo');
 	const isEditRoute = Boolean(id) && !isCreateMode;
 	const editingRowFromRows = rows.find((row) => row.id === id) ?? null;
+	const [indicadores, setIndicadores] = useState<IndicadoresSolicitante | null>(null);
+
 
 	const editingRow =
 		editingRowFromRows ??
@@ -231,6 +234,17 @@ export function ContratacionServiciosListadoFormView() {
 
 	const [revisorModal, setRevisorModal] = useState<'solicitar-cambios' | 'cancelar' | null>(null);
 	const [revisorModalText, setRevisorModalText] = useState('');
+
+	useEffect(() => {
+		if (!isSolicitante) return;
+
+		const cargarIndicadores = async () => {
+			const data = await requisicionApi.obtenerIndicadoresSolicitante(2);
+			setIndicadores(data);
+		};
+
+		cargarIndicadores();
+	}, [isSolicitante]);
 
 	useEffect(() => {
 		if (!isCreateMode) return;
@@ -800,7 +814,7 @@ export function ContratacionServiciosListadoFormView() {
 								>
 									Guardar
 								</Button>
-							) : mode === 'form-edicion' &&  editingRow && canActions(editingRow) ? (
+							) : mode === 'form-edicion' && editingRow && canActions(editingRow) ? (
 								<div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
 									<Button
 										type="button"
@@ -840,6 +854,45 @@ export function ContratacionServiciosListadoFormView() {
 
 					{mode === 'listado' ? (
 						<div className="flex-1 min-h-0 flex flex-col px-5 pt-4 pb-2 gap-3">
+							{isSolicitante && indicadores ? (
+								<div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 shrink-0">
+									<IndicadorCard
+										titulo="Total"
+										valor={indicadores.total}
+										color="bg-slate-50 border-slate-200 text-slate-700"
+									/>
+
+									<IndicadorCard
+										titulo="Registradas"
+										valor={indicadores.registradas}
+										color="bg-blue-50 border-blue-200 text-blue-700"
+									/>
+
+									<IndicadorCard
+										titulo="En revisión"
+										valor={indicadores.enRevision}
+										color="bg-amber-50 border-amber-200 text-amber-700"
+									/>
+
+									<IndicadorCard
+										titulo="Observadas"
+										valor={indicadores.observadas}
+										color="bg-red-50 border-red-200 text-red-700"
+									/>
+
+									<IndicadorCard
+										titulo="En autorización"
+										valor={indicadores.enAutorizacion}
+										color="bg-purple-50 border-purple-200 text-purple-700"
+									/>
+
+									<IndicadorCard
+										titulo="Autorizadas"
+										valor={indicadores.autorizadas}
+										color="bg-green-50 border-green-200 text-green-700"
+									/>
+								</div>
+							) : null}
 							<TableFilterBar
 								filters={filterBarFilters}
 								gridCols={12}
@@ -1038,6 +1091,19 @@ export function ContratacionServiciosListadoFormView() {
 					icon={<Check className="w-3.5 h-3.5 text-white" />}
 				/>
 			</div>
+		</div>
+	);
+}
+
+function IndicadorCard({ titulo, valor, color }: {
+	titulo: string;
+	valor: number;
+	color: string;
+}) {
+	return (
+		<div className={`rounded-xl border p-3 ${color}`}>
+			<p className="text-xs font-medium opacity-80">{titulo}</p>
+			<p className="mt-1 text-3xl font-bold">{valor}</p>
 		</div>
 	);
 }

@@ -5,14 +5,14 @@ import { useAuth, isRequisicionReadOnlyProfile } from '../../../auth';
 import {
 	BackLink,
 	Button,
-	ConfirmModal,	
-	PageCard,	
+	ConfirmModal,
+	PageCard,
 	TextArea,
 	Toast,
 	ViewHeader,
 	StatusBadge,
-	resolveStatusBadge,	
-	SimpleTable,	
+	resolveStatusBadge,
+	SimpleTable,
 	Input,
 	Modal,
 } from '../../../components/UI';
@@ -37,7 +37,7 @@ import {
 	EnumRequisicionEstatus,
 } from './types';
 
-import { GuardarRequisicionDTO, requisicionApi, CancelarRequest, type RequisicionView, EnviarObservacionRequest, ObservacionRequisicionView, HistorialRequisicionView } from '../../../api/requisicionBienesAPI';
+import { GuardarRequisicionDTO, requisicionApi, CancelarRequest, type RequisicionView, EnviarObservacionRequest, ObservacionRequisicionView, HistorialRequisicionView, IndicadoresSolicitante } from '../../../api/requisicionBienesAPI';
 import { ContratacionServiciosRow } from '../contratacionServicios/types';
 import { FieldRoleLabel } from './fieldRoleLabel';
 
@@ -131,6 +131,7 @@ export function AdquisicionBienesListadoFormView() {
 	const [pendingEstatus, setPendingEstatus] = useState('');
 	const [fechaInicio, setFechaInicio] = useState('');
 	const [fechaFin, setFechaFin] = useState('');
+	const [indicadores, setIndicadores] = useState<IndicadoresSolicitante | null>(null);
 
 	const [appliedSearch, setAppliedSearch] = useState({
 		criteria: 'Coincidencia' as SearchCriteria,
@@ -195,6 +196,19 @@ export function AdquisicionBienesListadoFormView() {
 		if (isSolicitante || isAdministradorGeneralProfile) return false;
 		return isRevisorPermisoRegistro(row) || isAutorizadorPermisoRegistro(row);
 	}
+
+	useEffect(() => {
+		if (!isSolicitante) return;
+
+		const cargarIndicadores = async () => {
+			const data = await requisicionApi.obtenerIndicadoresSolicitante(1);
+
+			setIndicadores(data);
+		};
+
+		cargarIndicadores();
+	}, [isSolicitante]);
+
 	useEffect(() => {
 		if (!isCreateMode) return;
 
@@ -268,7 +282,7 @@ export function AdquisicionBienesListadoFormView() {
 		visible: (row: ContratacionServiciosRow) => true,
 	};
 
-	const loadRequisiciones = useCallback(async ( fechaInicio?: string, fechaFin?: string, tipoMonto?: string, estatus?: string) => {
+	const loadRequisiciones = useCallback(async (fechaInicio?: string, fechaFin?: string, tipoMonto?: string, estatus?: string) => {
 		try {
 			setIsLoading(true);
 			setLoadError(null);
@@ -285,7 +299,7 @@ export function AdquisicionBienesListadoFormView() {
 					? (isNaN(Number(estatus)) ? null : Number(estatus))
 					: null;
 
-			if (isRequisicionReadOnly) {				
+			if (isRequisicionReadOnly) {
 				data = await requisicionApi.listaTodo({
 					tipoObjeto: 1,
 					tipoMonto: tipoMontoValue,
@@ -300,7 +314,7 @@ export function AdquisicionBienesListadoFormView() {
 					estatus: estatusValue,
 
 				});
-			} else if(isAutorizadorProfile) {
+			} else if (isAutorizadorProfile) {
 				data = await requisicionApi.listaTodo({
 					tipoObjeto: 1,
 					tipoMonto: tipoMontoValue,
@@ -334,7 +348,7 @@ export function AdquisicionBienesListadoFormView() {
 		}
 	}, [isRequisicionReadOnly, isRevisorProfile]);
 
-	const applyFilters = useCallback(() => {		
+	const applyFilters = useCallback(() => {
 
 		if (!fechaInicio || !fechaFin) {
 			setLoadError('Selecciona fecha inicio y fecha fin para buscar.');
@@ -349,7 +363,7 @@ export function AdquisicionBienesListadoFormView() {
 		});
 
 		setAppliedTipo(pendingTipo);
-		setAppliedEstatus(pendingEstatus);		
+		setAppliedEstatus(pendingEstatus);
 
 		loadRequisiciones(
 			fechaInicio,
@@ -711,7 +725,7 @@ export function AdquisicionBienesListadoFormView() {
 								>
 									Guardar
 								</Button>
-							) : mode === 'form-edicion' && editingRow && canActions(editingRow)? (
+							) : mode === 'form-edicion' && editingRow && canActions(editingRow) ? (
 								<div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
 									<Button
 										type="button"
@@ -749,8 +763,48 @@ export function AdquisicionBienesListadoFormView() {
 						}
 					/>
 
+
 					{mode === 'listado' ? (
 						<div className="flex-1 min-h-0 flex flex-col px-5 pt-4 pb-2 gap-3">
+							{isSolicitante && indicadores ? (
+								<div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 shrink-0">
+									<IndicadorCard
+										titulo="Total"
+										valor={indicadores.total}
+										color="bg-slate-50 border-slate-200 text-slate-700"
+									/>
+
+									<IndicadorCard
+										titulo="Registradas"
+										valor={indicadores.registradas}
+										color="bg-blue-50 border-blue-200 text-blue-700"
+									/>
+
+									<IndicadorCard
+										titulo="En revisión"
+										valor={indicadores.enRevision}
+										color="bg-amber-50 border-amber-200 text-amber-700"
+									/>
+
+									<IndicadorCard
+										titulo="Observadas"
+										valor={indicadores.observadas}
+										color="bg-red-50 border-red-200 text-red-700"
+									/>
+
+									<IndicadorCard
+										titulo="En autorización"
+										valor={indicadores.enAutorizacion}
+										color="bg-purple-50 border-purple-200 text-purple-700"
+									/>
+
+									<IndicadorCard
+										titulo="Autorizadas"
+										valor={indicadores.autorizadas}
+										color="bg-green-50 border-green-200 text-green-700"
+									/>
+								</div>
+							) : null}
 							<div className="shrink-0 rounded-xl border border-slate-200 bg-white p-3">
 								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[160px_160px_160px_180px_110px] items-end gap-3">
 									<div className="flex flex-col gap-1">
@@ -813,7 +867,7 @@ export function AdquisicionBienesListadoFormView() {
 									</Button>
 								</div>
 							</div>
-							
+
 							{loadError ? (
 								<div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
 									{loadError}
@@ -859,7 +913,7 @@ export function AdquisicionBienesListadoFormView() {
 								key={editingRow.id}
 								tipoCompra={editingRow.tipoCompra}
 								hideRevisorFields={canEditSolicitanteFields}
-								readOnly={isRequisicionReadOnly || !canActions(editingRow)}
+								readOnly={isRequisicionReadOnly || canActions(editingRow)}
 								draft={draftForEdit}
 								onDraftChange={(next) => setDraftForId(editingRow.id, next)}
 								editingRow={editingRow}
@@ -1006,6 +1060,17 @@ export function AdquisicionBienesListadoFormView() {
 					icon={<Check className="w-3.5 h-3.5 text-white" />}
 				/>
 			</div>
+		</div>
+	);
+}
+
+
+
+function IndicadorCard({ titulo, valor, color }: { titulo: string; valor: number; color: string }) {
+	return (
+		<div className={`rounded-xl border p-3 ${color}`}>
+			<p className="text-xs font-medium opacity-80">{titulo}</p>
+			<p className="mt-1 text-3xl font-bold">{valor}</p>
 		</div>
 	);
 }
