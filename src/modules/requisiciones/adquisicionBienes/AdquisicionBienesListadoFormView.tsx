@@ -1059,20 +1059,20 @@ export function AdquisicionBienesListadoFormView() {
 									</div>
 
 									{item.comentario ? (
-	<div className="mt-3 rounded-lg border-l-4 border-blue-500 pl-4 py-1">
-		<p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-blue-700">
-			Comentario
-		</p>
+										<div className="mt-3 rounded-lg border-l-4 border-blue-500 pl-4 py-1">
+											<p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-blue-700">
+												Comentario
+											</p>
 
-		<p className="text-sm leading-relaxed text-slate-700">
-			{item.comentario}
-		</p>
-	</div>
-) : (
-	<p className="mt-3 text-xs italic text-slate-400">
-		Sin comentario registrado
-	</p>
-)}
+											<p className="text-sm leading-relaxed text-slate-700">
+												{item.comentario}
+											</p>
+										</div>
+									) : (
+										<p className="mt-3 text-xs italic text-slate-400">
+											Sin comentario registrado
+										</p>
+									)}
 								</div>
 							))}
 						</div>

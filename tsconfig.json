@@ -18,9 +18,10 @@
     "allowJs": true,
     "checkJs": false,
     "baseUrl": ".",
-    "paths": {
+     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src"]
 }
