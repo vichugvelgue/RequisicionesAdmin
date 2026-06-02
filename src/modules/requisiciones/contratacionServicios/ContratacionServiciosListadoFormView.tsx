@@ -275,7 +275,7 @@ export function ContratacionServiciosListadoFormView() {
 		onClick: (row) => { loadHistory(row); },
 		title: 'Ver historial',
 		variant: 'icon',
-		visible: (row: ContratacionServiciosRow) => isRequisicionReadOnly,
+		visible: (row: ContratacionServiciosRow) => true,
 	};
 
 	useEffect(() => {

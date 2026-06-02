@@ -269,7 +269,7 @@ export function AdquisicionBienesListadoFormView() {
 		onClick: (row) => { loadHistory(row); },
 		title: 'Ver historial',
 		variant: 'icon',
-		visible: (row: ContratacionServiciosRow) => isRequisicionReadOnly,
+		visible: (row: ContratacionServiciosRow) => true,
 	};
 
 	const loadRequisiciones = useCallback(async ( fechaInicio?: string, fechaFin?: string, tipoMonto?: string, estatus?: string) => {
