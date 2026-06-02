@@ -78,19 +78,16 @@ export function LoginView() {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setErrorMessage(null);
-		setIsSubmitting(true);
-		console.log('Submitting login with:', correoTelefono, contrasena);
+		setIsSubmitting(true);		
 		try {
-			const result = await login({ correoTelefono, contrasena });
-			console.log('Login result:', result);
-			if (!result.ok) {
-				//console.log('Setting error message:', result.message);
+			const result = await login({ correoTelefono, contrasena });			
+			if (!result.ok) {				
 				setErrorMessage((result as { ok: false; message: string; }).message);
 				setIsSubmitting(false);
 				return;
 			}
-			const target = resolvePostLoginPath(from);
-			navigate(target, { replace: true });
+			console.log("Login successful:", result);			
+			window.location.replace("/");
 		} catch (error) {
 			setErrorMessage(error instanceof Error ? error.message : 'No se pudo iniciar sesión. Intenta de nuevo.');
 		} finally {

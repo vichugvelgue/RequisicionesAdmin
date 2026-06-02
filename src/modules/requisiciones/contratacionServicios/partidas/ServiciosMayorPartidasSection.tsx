@@ -20,6 +20,7 @@ import {
 } from '../types';
 import { requisicionApi, type PartidaRequest, unidadMedidaApi } from '../../../../api';
 import type { OptionItem } from '../../../../components/UI/types';
+import { createPortal } from "react-dom";
 
 
 function upper(s: string) {
@@ -63,7 +64,7 @@ export function ServiciosMayorPartidasSection({
 	const [expandedById, setExpandedById] = useState<Record<string, boolean>>({});
 	const [saving, setSaving] = useState(false);
 	const [toast, setToast] = useState<{ visible: boolean; title: string; variant: 'success' | 'error' }>({ visible: false, title: '', variant: 'success' });
-	const [unidadesMedida, setUnidadesMedida] = useState<OptionItem[]>([]);	
+	const [unidadesMedida, setUnidadesMedida] = useState<OptionItem[]>([]);
 
 	const nextNumeroPartida = useMemo(() => {
 		const max = partidas.reduce((acc, item) => Math.max(acc, item.numeroPartida), 0);
@@ -166,7 +167,7 @@ export function ServiciosMayorPartidasSection({
 
 
 	const handleGuardarSeccion = async () => {
-		
+
 		try {
 			setSaving(true);
 			const listaPartidas: PartidaRequest[] = partidas.map((p) => ({
@@ -337,7 +338,7 @@ export function ServiciosMayorPartidasSection({
 										{canEditRows ? (
 											<div className="ml-auto flex shrink-0 items-center gap-1">
 												<Button
-													type="button"													
+													type="button"
 													variant="iconAmber"
 													title="Editar"
 													onClick={() => openEdit(row)}
@@ -345,7 +346,7 @@ export function ServiciosMayorPartidasSection({
 													<Pencil className="w-4 h-4" />
 												</Button>
 												<Button
-													type="button"													
+													type="button"
 													variant="iconRed"
 													title="Eliminar"
 													onClick={() => handleDelete(row)}
@@ -411,20 +412,20 @@ export function ServiciosMayorPartidasSection({
 				)}
 			</div>
 			<div className="flex justify-end pt-4">
-	<Button
-		type="button"
-		variant="success"
-		size="md"
-		disabled={isSaving || partidas.length === 0}		
-		onClick={handleGuardarSeccion}
-	>
-		{isSaving ? 'Guardando...' : 'Guardar partidas'}
-	</Button>
-</div>
+				<Button
+					type="button"
+					variant="success"
+					size="md"
+					disabled={isSaving || partidas.length === 0}
+					onClick={handleGuardarSeccion}
+				>
+					{isSaving ? 'Guardando...' : 'Guardar partidas'}
+				</Button>
+			</div>
 
-			{modalOpen && modalDraft ? (
-				<div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-					<div className="flex max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-xl">
+			{modalOpen && modalDraft ? createPortal(
+				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+					<div className="relative z-[10000] flex max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-xl">
 						<div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-3">
 							<h3 className="text-lg font-bold text-slate-800">
 								{partidas.some((p) => p.id === modalDraft.id) ? 'Editar partida' : 'Nueva partida'} — No.{' '}
@@ -461,7 +462,7 @@ export function ServiciosMayorPartidasSection({
 											<div className="col-span-12 sm:col-span-4">
 												<FieldRoleLabel>Unidad de medida</FieldRoleLabel>
 												<SearchableSelect
-												options={unidadesMedida.length > 0 ? unidadesMedida : MOCK_UNIDAD_MEDIDA}
+													options={unidadesMedida.length > 0 ? unidadesMedida : MOCK_UNIDAD_MEDIDA}
 													value={modalDraft.unidadMedidaId}
 													onChange={(v) =>
 														setModalDraft((d) => (d ? { ...d, unidadMedidaId: v } : d))
@@ -532,13 +533,14 @@ export function ServiciosMayorPartidasSection({
 							</Button>
 						</div>
 					</div>
-				</div>
+				</div>,
+				document.body
 			) : null}
 
 			<Toast
 				visible={toast.visible}
 				title={toast.title}
-				variant={toast.variant}				
+				variant={toast.variant}
 			/>
 		</div>
 	);

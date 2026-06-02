@@ -362,7 +362,7 @@ const mapRequisicionToView = (item: Requisicion): RequisicionView => ({
 	solicitante: item.solicitante ?? "",
 	estatus: item.estatus ?? "",
 	fechaSolicitud: formatFecha(item.fechaSolicitud),
-	tipoObjetoRequisicion: item.tipoObjetoRequisicion ?? 0,
+	tipoObjetoRequisicion: item.tipoObjetoRequisicion,
 });
 
 const handleApiError = async (response: Response, fallback: string): Promise<never> => {
@@ -410,11 +410,11 @@ export const requisicionApi = {
 	},*/
 
 	async listarPorSolicitante(params?: {
+		tipoObjeto?: number | null;
 		tipoMonto?: number | null;
 		estatus?: number | null;
-		tipoObjeto?: number | null;
-		page?: number;
-		pageSize?: number;
+		fechaInicio?: string | null;
+		fechaFin?: string | null;
 	}): Promise<RequisicionView[]> {
 		const token = getAuthToken();
 		const idUsuario = getUsuarioId();
@@ -433,13 +433,19 @@ export const requisicionApi = {
 			query.append('tipoObjeto', String(params.tipoObjeto));
 		}
 
-		query.append('page', String(params?.page ?? 1));
-		query.append('pageSize', String(params?.pageSize ?? 20));
+		if (params?.fechaInicio) {
+			query.append('fechaInicio', params.fechaInicio);
+		}
+
+		if (params?.fechaFin) {
+			query.append('fechaFin', params.fechaFin);
+		}
 
 		const queryString = query.toString();
 
 		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/ListarPorSolicitante/${idUsuario}?${queryString}`,
+			`${API_BASE_URL}/ControladorRequisicion/ListarPorSolicitante/${idUsuario}${queryString ? `?${queryString}` : ''
+			}`,
 			{
 				method: 'GET',
 				headers: {
@@ -465,9 +471,10 @@ export const requisicionApi = {
 		tipoMonto?: number | null;
 		estatus?: number | null;
 		tipoObjeto?: number | null;
+		fechaInicio?: string | null;
+		fechaFin?: string | null;
 	}): Promise<RequisicionView[]> {
 		const token = getAuthToken();
-
 		const idUsuario = getUsuarioId();
 
 		const query = new URLSearchParams();
@@ -484,6 +491,14 @@ export const requisicionApi = {
 			query.append('tipoObjeto', String(params.tipoObjeto));
 		}
 
+		if (params?.fechaInicio) {
+			query.append('fechaInicio', params.fechaInicio);
+		}
+
+		if (params?.fechaFin) {
+			query.append('fechaFin', params.fechaFin);
+		}
+
 		const queryString = query.toString();
 
 		const response = await fetch(
@@ -498,7 +513,7 @@ export const requisicionApi = {
 		);
 
 		if (!response.ok) {
-			await handleApiError(response, 'Error al listar requisiciones por solicitante');
+			await handleApiError(response, 'Error al listar requisiciones por revisor');
 		}
 
 		const data = await response.json();

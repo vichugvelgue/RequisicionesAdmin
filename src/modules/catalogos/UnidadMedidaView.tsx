@@ -231,12 +231,13 @@ export function UnidadMedidaView() {
 						/>
 					</div>
 
-					<div className="p-4 flex-1 min-h-0">
+					<div className="p-4 flex-1 min-h-0 overflow-hidden flex flex-col">
 						{loadError ? (
 							<div className="text-sm text-red-700">{loadError}</div>
 						) : isLoading ? (
 							<div className="text-sm text-slate-500">Cargando registros...</div>
 						) : (
+							<div className="flex-1 min-h-0 overflow-y-auto">
 							<InlineInsertInfiniteTable<CatalogRow>
 								columns={COLUMNS}
 								data={filteredAndSortedRows}
@@ -359,6 +360,7 @@ export function UnidadMedidaView() {
 									);
 								}}
 							/>
+							</div>
 						)}
 					</div>
 				</PageCard>

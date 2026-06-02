@@ -39,6 +39,7 @@ import {
 function App() {
 	return (
 		<Routes>
+			<Route path="/" element={<DashboardView />} />
 			<Route path="/login" element={<LoginView />} />
 			<Route path="/cambiar-contrasena" element={<CambiarContrasenaView />} />
 			<Route path="/invitacion/:id" element={<InvitacionUsuarioView />} />
