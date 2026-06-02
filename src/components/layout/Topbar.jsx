@@ -1,7 +1,8 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CalendarDays, Bell, CheckCircle2, LogOut } from "lucide-react";
 import { useAuth } from "../../auth";
+import { notificacionesApi } from "../../api/notificacionesApi";
 
 function initialsFromDisplayName(displayName) {
 	if (!displayName || typeof displayName !== "string") return "?";
@@ -15,6 +16,8 @@ export function Topbar({ isSidebarOpen }) {
 	const { user, logout } = useAuth();
 	const navigate = useNavigate();
 	const activeProfileLabel = user?.tipoPerfil ?? "SIN PERFIL";
+	const [notificaciones, setNotificaciones] = useState([]);
+	const [open, setOpen] = useState(false);
 
 	const avatarInitials = useMemo(
 		() => initialsFromDisplayName(user?.displayName ?? user?.email ?? ""),
@@ -25,6 +28,17 @@ export function Topbar({ isSidebarOpen }) {
 		logout();
 		navigate("/login", { replace: true });
 	}, [logout, navigate]);
+
+	const handleBell = () => {
+		setOpen(!open);
+		if (!open) listarNotificaciones();
+	};
+	const listarNotificaciones = () => {
+		notificacionesApi.listar(user?.id ?? 0).then((notificaciones) => {
+			setNotificaciones(notificaciones);
+		});
+	};
+
 	return (
 		<header className="h-14 bg-brand-white border-b border-brand-neutral/20 flex items-center justify-between px-4 shrink-0 shadow-sm z-30">
 			<div className="flex items-center gap-3">
@@ -41,13 +55,31 @@ export function Topbar({ isSidebarOpen }) {
 			<div className="flex items-center gap-4">
 				<div className="flex items-center gap-2 text-[13px] text-brand-neutral/75 font-medium hidden md:flex">
 					<CalendarDays className="w-4 h-4 text-brand-neutral/60" />
-					24 de Octubre, 2023
+					{new Date().toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" })}
 				</div>
 
-				<button className="relative text-brand-neutral/75 hover:text-brand-primary transition-colors p-1">
-					<Bell className="w-4 h-4" />
-					<span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-brand-white"></span>
-				</button>
+				<div className="relative">
+					<button onClick={handleBell} className="relative text-brand-neutral/75 hover:text-brand-primary transition-colors p-1">
+						<Bell className="w-4 h-4" />
+						{/* <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-brand-white"></span> */}
+					</button>
+
+					{open && (
+						<div className="absolute right-0 mt-2 w-72 bg-white border border-brand-neutral/20 rounded-md shadow-lg z-50">
+							<div className="p-2 text-xs font-bold text-brand-neutral border-b">Notificaciones</div>
+							{notificaciones.length === 0 ? (
+								<div className="p-4 text-xs text-center text-brand-neutral/50">Sin notificaciones</div>
+							) : (
+								notificaciones.map((n, i) => (
+									<div key={i} className="p-3 border-b last:border-0 hover:bg-gray-50">
+										<p className="text-xs text-brand-neutral">{n.comentario}</p>
+										<p className="text-[10px] text-brand-neutral/50 mt-1">{new Date(n.fechaRegistro).toLocaleString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+									</div>
+								))
+							)}
+						</div>
+					)}
+				</div>
 
 				<div className="h-6 w-px bg-brand-neutral/20 hidden sm:block"></div>
 
