@@ -627,10 +627,6 @@ export function ContratacionServiciosListadoFormView() {
 				throw new Error('El administrador general solo puede consultar requisiciones.');
 			}
 
-			if (!isRevisorPermisoRegistro(pendingObservationRow)) {
-				throw new Error('La requisición ya paso la etapa de revicion');
-			}
-
 			if (!motivo) {
 				throw new Error('Escribe un comentario antes de confirmar.');
 			}
