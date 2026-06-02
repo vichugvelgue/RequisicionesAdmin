@@ -919,7 +919,7 @@ export function AdquisicionBienesListadoFormView() {
 							<AdquisicionBienesFormShell
 								key={editingRow.id}
 								tipoCompra={editingRow.tipoCompra}
-								hideRevisorFields={canEditSolicitanteFields}						
+								hideRevisorFields={canEditSolicitanteFields}
 								readOnly={isReadOnly(editingRow)}
 								draft={draftForEdit}
 								onDraftChange={(next) => setDraftForId(editingRow.id, next)}
@@ -1030,29 +1030,49 @@ export function AdquisicionBienesListadoFormView() {
 				</ConfirmModal>
 
 				<Modal
-					title="Ver historial"
+					title="Historial de requisición"
 					open={Boolean(pendingHistoryRow)}
 					onClose={() => setPendingHistoryRow(null)}
 					icon={<History className="w-5 h-5" />}
 				>
-					<div>
-						<div className="overflow-y-auto max-h-[70dvh] pr-2">
+					<div className="max-h-[70dvh] overflow-y-auto pr-2">
+						<div className="space-y-3">
 							{historysRows.map((item, index) => (
-								<div key={index} className="flex gap-3">
-									{/* Línea + punto */}
-									<div className="flex flex-col items-center">
-										<div className="w-3 h-3 rounded-full bg-blue-500 mt-1 shrink-0" />
-										<div className={`w-0.5 flex-1 my-1 ${index < historysRows.length - 1 ? 'bg-gray-300' : 'bg-transparent'}`} />
+								<div
+									key={index}
+									className="relative rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+								>
+									<div className="flex items-start justify-between gap-4">
+										<div>
+											<p className="text-sm font-bold uppercase text-slate-800">
+												{formatStatus(item.accion)}
+											</p>
+
+											<p className="mt-1 text-xs text-slate-500">
+												{item.nombreUsuario} · {formatDate(item.fechaRegistro)}
+											</p>
+										</div>
+
+										<span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase text-blue-700">
+											#{historysRows.length - index}
+										</span>
 									</div>
 
-									{/* Contenido */}
-									<div className="pb-4">
-										<p className="font-semibold text-sm uppercase">{formatStatus(item.accion)}</p>
-										<p className="text-xs text-gray-500">{item.nombreUsuario} - {formatDate(item.fechaRegistro)}</p>
-										{item.comentario && (
-											<p className="text-sm text-gray-600 mt-1">{item.comentario}</p>
-										)}
-									</div>
+									{item.comentario ? (
+	<div className="mt-3 rounded-lg border-l-4 border-blue-500 pl-4 py-1">
+		<p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-blue-700">
+			Comentario
+		</p>
+
+		<p className="text-sm leading-relaxed text-slate-700">
+			{item.comentario}
+		</p>
+	</div>
+) : (
+	<p className="mt-3 text-xs italic text-slate-400">
+		Sin comentario registrado
+	</p>
+)}
 								</div>
 							))}
 						</div>
