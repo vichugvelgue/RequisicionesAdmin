@@ -5,16 +5,14 @@ import { useAuth, isRequisicionReadOnlyProfile } from '../../../auth';
 import {
 	BackLink,
 	Button,
-	ConfirmModal,
-	InfiniteScrollTable,
-	PageCard,
-	TableFilterBar,
+	ConfirmModal,	
+	PageCard,	
 	Toast,
 	ViewHeader,
 	StatusBadge,
 	resolveStatusBadge,
 	TextArea,
-	Label,
+	SimpleTable,	
 	Modal,
 } from '../../../components/UI';
 import type { OptionItem, SortConfig } from '../../../components/UI/types';
@@ -32,6 +30,7 @@ import {
 	type ContratacionServiciosRow,
 	type ContratacionServiciosSearchCriteria,
 	type TipoCompraServicios,
+
 } from './types';
 import {
 	requisicionApi,
@@ -112,6 +111,8 @@ const mapRequisicionViewToRow = (item: RequisicionView): ContratacionServiciosRo
 	solicitante: item.solicitante ?? '',
 	estatus: item.estatus ?? "",
 	fechaSolicitudIso: item.fechaSolicitud ?? '',
+	tipoObjetoRequisicion: item.tipoObjetoRequisicion,
+
 });
 
 function matchesSearch(
@@ -163,6 +164,8 @@ export function ContratacionServiciosListadoFormView() {
 	const [pendingSearchText, setPendingSearchText] = useState('');
 	const [pendingTipo, setPendingTipo] = useState('');
 	const [pendingEstatus, setPendingEstatus] = useState('');
+	const [fechaInicio, setFechaInicio] = useState('');
+	const [fechaFin, setFechaFin] = useState('');
 
 	const [appliedSearch, setAppliedSearch] = useState({
 		criteria: 'Coincidencia' as ContratacionServiciosSearchCriteria,
@@ -301,7 +304,7 @@ export function ContratacionServiciosListadoFormView() {
 		loadRequisiciones();
 	}, [isCreateMode]);
 
-	const loadRequisiciones = async () => {
+	/*const loadRequisiciones = async () => {
 		try {
 			setIsLoading(true);
 			setLoadError(null);
@@ -328,7 +331,80 @@ export function ContratacionServiciosListadoFormView() {
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	};*/
+
+	const loadRequisiciones = useCallback(async (fechaInicio?: string, fechaFin?: string, tipoMonto?: string, estatus?: string) => {
+		try {
+			setIsLoading(true);
+			setLoadError(null);
+
+			let data: RequisicionView[] = [];
+
+			const tipoMontoValue =
+				tipoMonto !== undefined && tipoMonto !== null && tipoMonto !== ''
+					? (isNaN(Number(tipoMonto)) ? null : Number(tipoMonto))
+					: null;
+
+			const estatusValue =
+				estatus !== undefined && estatus !== null && estatus !== ''
+					? (isNaN(Number(estatus)) ? null : Number(estatus))
+					: null;
+
+			if (isRequisicionReadOnly) {
+				data = await requisicionApi.listaTodo({
+					tipoObjeto: 2,
+					tipoMonto: tipoMontoValue,
+					estatus: estatusValue,
+					fechaInicio,
+					fechaFin,
+				});
+			} else if (isRevisorProfile) {
+				data = await requisicionApi.listarPorRevisor({
+					tipoObjeto: 2,
+					tipoMonto: tipoMontoValue,
+					estatus: estatusValue,
+					fechaInicio,
+					fechaFin,
+
+				});
+			} else if (isAutorizadorProfile) {
+				data = await requisicionApi.listaTodo({
+					tipoObjeto: 2,
+					tipoMonto: tipoMontoValue,
+					estatus: estatusValue,
+					fechaInicio,
+					fechaFin,
+				});
+			}
+			else {
+				data = await requisicionApi.listarPorSolicitante({
+					tipoObjeto: 2,
+					tipoMonto: tipoMontoValue,
+					estatus: estatusValue,
+					fechaInicio,
+					fechaFin,
+
+				});
+			}
+
+			console.log("Requisiciones recibidas del API vista:", data);
+
+			const rowsServicios = data
+				.filter((x) => Number(x.tipoObjetoRequisicion ?? 0) === 2)
+				.map(mapRequisicionViewToRow);			
+
+			setRows(rowsServicios);
+		} catch (error) {
+			setLoadError(
+				error instanceof Error
+					? error.message
+					: 'Error al cargar requisiciones de servicios'
+			);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [isRequisicionReadOnly, isRevisorProfile]);
+
 	const loadHistory = async (row: ContratacionServiciosRow) => {
 		try {
 			setHistoryRows([]);
@@ -375,19 +451,36 @@ export function ContratacionServiciosListadoFormView() {
 	}, [mode, editingRow?.id]);
 
 	const applyFilters = useCallback(() => {
-		setAppliedSearch({
-			criteria: pendingCriteria as ContratacionServiciosSearchCriteria,
-			text: pendingSearchText,
-		});
-		setAppliedTipo(pendingTipo);
-		setAppliedEstatus(pendingEstatus);
-	}, [pendingCriteria, pendingSearchText, pendingTipo, pendingEstatus]);
+	
+			if (!fechaInicio || !fechaFin) {
+				setLoadError('Selecciona fecha inicio y fecha fin para buscar.');
+				return;
+			}
+	
+			setLoadError(null);
+				
+	
+			setAppliedTipo(pendingTipo);
+			setAppliedEstatus(pendingEstatus);
+	
+			loadRequisiciones(
+				fechaInicio,
+				fechaFin,
+				pendingTipo,
+				pendingEstatus
+			);
+		}, [
+			fechaInicio,
+			fechaFin,
+			pendingCriteria,
+			pendingSearchText,
+			pendingTipo,
+			pendingEstatus,
+			loadRequisiciones,
+		]);
 
 	const filteredAndSortedRows = useMemo(() => {
-		const filtered = rows.filter((row) => {
-			if (!matchesSearch(row, appliedSearch.criteria, appliedSearch.text)) return false;
-			if (appliedTipo && row.tipoCompra !== appliedTipo) return false;
-			if (appliedEstatus && row.estatus !== appliedEstatus) return false;
+		const filtered = rows.filter((row) => {			
 			return (
 				String(row.numero).includes(inlineFilters.numero) &&
 				String(row.monto).toLowerCase().includes(inlineFilters.monto.toLowerCase()) &&
@@ -409,47 +502,6 @@ export function ContratacionServiciosListadoFormView() {
 		});
 	}, [rows, sortConfig, inlineFilters, appliedSearch, appliedTipo, appliedEstatus]);
 
-	const filterBarFilters = useMemo(
-		() => [
-			{
-				type: 'search' as const,
-				cols: 4,
-				criteriaOptions: SEARCH_CRITERIA_OPTIONS,
-				criteriaValue: pendingCriteria,
-				onCriteriaChange: (v: string) => setPendingCriteria(v),
-				labelInput: 'Búsqueda:',
-				searchValue: pendingSearchText,
-				onSearchChange: (v: string) => setPendingSearchText(v),
-				placeholder: 'Término de búsqueda…',
-			},
-			{
-				type: 'select' as const,
-				cols: 2,
-				label: 'Tipo',
-				options: [
-					{ value: '', label: 'Todos' },
-					{ value: 'MAYOR', label: 'Mayor' },
-					{ value: 'MENOR', label: 'Menor' },
-				],
-				value: pendingTipo,
-				onChange: (v: string) => setPendingTipo(v),
-			},
-			{
-				type: 'select' as const,
-				cols: 2,
-				label: 'Estatus',
-				options: [
-					{ value: '', label: 'Todos' },
-					{ value: 'PENDIENTE', label: 'Pendiente' },
-					{ value: 'APROBADA', label: 'Aprobada' },
-					{ value: 'RECHAZADA', label: 'Rechazada' },
-				],
-				value: pendingEstatus,
-				onChange: (v: string) => setPendingEstatus(v),
-			},
-		],
-		[pendingCriteria, pendingSearchText, pendingTipo, pendingEstatus]
-	);
 
 	const resetToListado = () => {
 		navigate(BASE_PATH);
@@ -897,14 +949,75 @@ export function ContratacionServiciosListadoFormView() {
 									/>
 								</div>
 							) : null}
-							<TableFilterBar
-								filters={filterBarFilters}
-								gridCols={12}
-								onApply={applyFilters}
-								applyLabel="Buscar"
-								className="shrink-0"
-							/>
-							<div className="flex-1 min-h-0">
+							<div className="shrink-0 rounded-xl border border-slate-200 bg-white p-3">
+								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[160px_160px_160px_180px_110px] items-end gap-3">
+									<div className="flex flex-col gap-1">
+										<label className="text-xs font-medium text-slate-600">Fecha inicio *</label>
+										<input
+											type="date"
+											value={fechaInicio}
+											onChange={(e) => setFechaInicio(e.target.value)}
+											className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+										/>
+									</div>
+
+									<div className="flex flex-col gap-1">
+										<label className="text-xs font-medium text-slate-600">Fecha fin *</label>
+										<input
+											type="date"
+											value={fechaFin}
+											onChange={(e) => setFechaFin(e.target.value)}
+											className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+										/>
+									</div>
+
+									<div className="flex flex-col gap-1">
+										<label className="text-xs font-medium text-slate-600">Tipo</label>
+										<select
+											value={pendingTipo}
+											onChange={(e) => setPendingTipo(e.target.value)}
+											className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+										>
+											<option value="">Todos</option>
+											<option value="1">Mayor</option>
+											<option value="2">Menor</option>
+										</select>
+									</div>
+
+									<div className="flex flex-col gap-1">
+										<label className="text-xs font-medium text-slate-600">Estatus</label>
+										<select
+											value={pendingEstatus}
+											onChange={(e) => setPendingEstatus(e.target.value)}
+											className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
+										>
+											<option value="">Todos</option>
+											<option value="1">Registrada</option>
+											<option value="2">En revisión</option>
+											<option value="3">Observada</option>
+											<option value="4">En autorización</option>
+											<option value="5">Autorizada</option>
+											<option value="6">Cancelada</option>
+										</select>
+									</div>
+
+									<Button
+										variant="primary"
+										size="md"
+										onClick={applyFilters}
+										className="h-10"
+									>
+										Buscar
+									</Button>
+								</div>
+							</div>
+
+							{loadError ? (
+								<div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+									{loadError}
+								</div>
+							) : null}
+							<div className="flex-1 min-h-0 overflow-hidden">
 								{isLoading ? (
 									<div className="flex items-center justify-center h-80">
 										<p>Cargando requisiciones...</p>
@@ -914,46 +1027,40 @@ export function ContratacionServiciosListadoFormView() {
 										<p className="text-red-600">{loadError}</p>
 									</div>
 								) : (
-									<InfiniteScrollTable<ContratacionServiciosRow>
-										data={filteredAndSortedRows}
-										pageSize={30}
-										resetKey={JSON.stringify({
-											appliedSearch,
-											appliedTipo,
-											appliedEstatus,
-											inlineFilters,
-											sortConfig,
-										})}
-										columns={TABLE_COLUMNS}
-										getRowKey={(row) => row.id}
-										sortConfig={sortConfig}
-										onSort={(key) =>
-											setSortConfig((prev) => ({
-												key,
-												direction:
-													prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
-											}))
-										}
-										onEdit={handleEditClick}
-										onDelete={isSolicitante ? setPendingDeleteRow : undefined}
-										customActions={[handleEnviarRevision, handleHistoryView]}
-										showInlineFilters={showInlineFilters}
-										onToggleInlineFilters={() => setShowInlineFilters((v) => !v)}
-										inlineFilters={inlineFilters}
-										onInlineFilterChange={(key, value) =>
-											setInlineFilters((prev) => ({ ...prev, [key]: value }))
-										}
-										onClearInlineFilters={() =>
-											setInlineFilters({
-												numero: '',
-												monto: '',
-												tipoCompra: '',
-												solicitante: '',
-												estatus: '',
-												fechaSolicitudIso: '',
-											})
-										}
-									/>
+									<div className="h-full min-h-0 overflow-auto">
+										<SimpleTable<ContratacionServiciosRow>
+											data={filteredAndSortedRows}
+											columns={TABLE_COLUMNS}
+											getRowKey={(row) => row.id}
+											sortConfig={sortConfig}
+											onSort={(key) =>
+												setSortConfig((prev) => ({
+													key,
+													direction:
+														prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+												}))
+											}
+											onEdit={handleEditClick}
+											onDelete={isSolicitante ? setPendingDeleteRow : undefined}
+											customActions={[handleEnviarRevision, handleHistoryView]}
+											showInlineFilters={showInlineFilters}
+											onToggleInlineFilters={() => setShowInlineFilters((v) => !v)}
+											inlineFilters={inlineFilters}
+											onInlineFilterChange={(key, value) =>
+												setInlineFilters((prev) => ({ ...prev, [key]: value }))
+											}
+											onClearInlineFilters={() =>
+												setInlineFilters({
+													numero: '',
+													monto: '',
+													tipoCompra: '',
+													solicitante: '',
+													estatus: '',
+													fechaSolicitudIso: '',
+												})
+											}
+										/>
+									</div>
 								)}
 							</div>
 						</div>

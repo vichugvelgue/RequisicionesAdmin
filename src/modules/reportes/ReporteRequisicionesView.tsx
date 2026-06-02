@@ -107,7 +107,7 @@ export function ReporteRequisicionesView() {
 	const { user } = useAuth();
 
 	const [requisiciones, setRequisiciones] = useState<RequisicionReport[]>([]);
-	const [loading, setLoading] = useState(false);	
+	const [loading, setLoading] = useState(false);
 
 	const [toastState, setToastState] = useState<{
 		visible: boolean;
@@ -119,9 +119,9 @@ export function ReporteRequisicionesView() {
 		variant: "success",
 	});
 
-	const { control, 
-		handleSubmit, 
-		reset, 
+	const { control,
+		handleSubmit,
+		reset,
 		watch,
 		formState: { errors },
 	} = useForm<FilterValues>({
@@ -130,11 +130,11 @@ export function ReporteRequisicionesView() {
 			fechaInicio: "",
 			fechaFin: "",
 			tipoMonto: "",
-			tipoObjeto: "",			
+			tipoObjeto: "",
 		},
 	});
 
-	const watchedFilters = watch();	
+	const watchedFilters = watch();
 
 
 	useEffect(() => {
@@ -299,9 +299,8 @@ export function ReporteRequisicionesView() {
 		const a = document.createElement("a");
 
 		a.href = url;
-		a.download = `reporte-requisiciones-${
-			new Date().toISOString().split("T")[0]
-		}.csv`;
+		a.download = `reporte-requisiciones-${new Date().toISOString().split("T")[0]
+			}.csv`;
 
 		document.body.appendChild(a);
 		a.click();
@@ -336,171 +335,173 @@ export function ReporteRequisicionesView() {
 	}
 
 	return (
-		<PageCard>
-			<ViewHeader title="Reporte de Requisiciones" />
+		<div className="p-4">
+			<PageCard>
+				<ViewHeader title="Reporte de Requisiciones" />
 
-			<Toast
-				visible={toastState.visible}
-				title={toastState.title}
-				variant={toastState.variant}
-				icon={<Check className="w-3.5 h-3.5 text-white" />}
-			/>
-
-			<div className="bg-white rounded-lg shadow p-6 mb-6">
-	<div className="flex items-center justify-between mb-4">
-		<h3 className="text-lg font-semibold flex items-center gap-2">
-			<Filter size={20} />
-			Filtros
-		</h3>
-
-		<div className="flex gap-3">
-			
-		</div>
-	</div>
-
-	<form className="space-y-4">
-		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-			<div>
-	<label className="block text-sm font-medium text-gray-700 mb-1">
-		Fecha inicio
-	</label>
-
-	<Controller
-		name="fechaInicio"
-		control={control}
-		render={({ field }) => (
-			<Input
-				{...field}
-				type="date"
-				placeholder="Fecha inicio"
-			/>
-		)}
-	/>
-
-	{errors.fechaInicio?.message ? (
-		<p className="text-[11px] mt-1 text-red-600">
-			{errors.fechaInicio.message}
-		</p>
-	) : null}
-	<p className="text-[11px] text-slate-500 mt-1">
-		El reporte se filtra por el periodo de fecha de solicitud de la requisición.
-	</p>
-</div>
-
-			<div>
-				<label className="block text-sm font-medium text-gray-700 mb-1">
-					Fecha fin
-				</label>
-
-				<Controller
-					name="fechaFin"
-					control={control}
-					render={({ field }) => (
-						<Input
-							{...field}
-							type="date"
-							placeholder="Fecha fin"
-						/>
-					)}
+				<Toast
+					visible={toastState.visible}
+					title={toastState.title}
+					variant={toastState.variant}
+					icon={<Check className="w-3.5 h-3.5 text-white" />}
 				/>
 
-				{errors.fechaFin?.message ? (
-					<p className="text-[11px] mt-1 text-red-600">
-						{errors.fechaFin.message}
-					</p>
-				) : null}
-			</div>
+				<div className="bg-white rounded-lg shadow p-6 mb-6">
+					<div className="flex items-center justify-between mb-4">
+						<h3 className="text-lg font-semibold flex items-center gap-2">
+							<Filter size={20} />
+							Filtros
+						</h3>
 
-			<div>
-				<label className="block text-sm font-medium text-gray-700 mb-1">
-					Mayor/Menor
-				</label>
+						<div className="flex gap-3">
 
-				<Controller
-					name="tipoMonto"
-					control={control}
-					render={({ field }) => (
-						<SearchableSelect
-							options={TIPO_MONTO_OPTIONS}
-							value={field.value}
-							onChange={field.onChange}
-							placeholder="Selecciona tipo..."
-						/>
-					)}
-				/>
-			</div>
+						</div>
+					</div>
 
-			<div>
-				<label className="block text-sm font-medium text-gray-700 mb-1">
-					Tipo
-				</label>
+					<form className="space-y-4">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-1">
+									Fecha inicio
+								</label>
 
-				<Controller
-					name="tipoObjeto"
-					control={control}
-					render={({ field }) => (
-						<SearchableSelect
-							options={TIPO_OBJETO_OPTIONS}
-							value={field.value}
-							onChange={field.onChange}
-							placeholder="Selecciona tipo..."
-						/>
-					)}
-				/>
-			</div>
-		</div>
+								<Controller
+									name="fechaInicio"
+									control={control}
+									render={({ field }) => (
+										<Input
+											{...field}
+											type="date"
+											placeholder="Fecha inicio"
+										/>
+									)}
+								/>
 
-		<div className="flex justify-end gap-2 mt-6">
-				<Button
-					type="button"
-					variant="primary"
-					onClick={handleSubmit(loadRequisiciones)}>
-					Buscar Requisiciones
-				</Button>
+								{errors.fechaInicio?.message ? (
+									<p className="text-[11px] mt-1 text-red-600">
+										{errors.fechaInicio.message}
+									</p>
+								) : null}
+								<p className="text-[11px] text-slate-500 mt-1">
+									El reporte se filtra por el periodo de fecha de solicitud de la requisición.
+								</p>
+							</div>
 
-				<Button
-					type="button"
-					variant="secondary"
-					onClick={handleResetFilters}>
-					Limpiar filtros
-				</Button>
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-1">
+									Fecha fin
+								</label>
 
-				<Button
-					type="button"
-					variant="secondary"
-					onClick={handleExport}
-				>
-					Exportar
-				</Button>
-			</div>
-	</form>
-</div>
+								<Controller
+									name="fechaFin"
+									control={control}
+									render={({ field }) => (
+										<Input
+											{...field}
+											type="date"
+											placeholder="Fecha fin"
+										/>
+									)}
+								/>
 
-			<div className="bg-white rounded-lg shadow">
-				<div className="p-4 border-b border-gray-200 flex items-center justify-between">
-					<p className="text-sm text-gray-600">
-						Se encontraron {filteredRequisiciones.length} requisiciones
-					</p>					
+								{errors.fechaFin?.message ? (
+									<p className="text-[11px] mt-1 text-red-600">
+										{errors.fechaFin.message}
+									</p>
+								) : null}
+							</div>
+
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-1">
+									Mayor/Menor
+								</label>
+
+								<Controller
+									name="tipoMonto"
+									control={control}
+									render={({ field }) => (
+										<SearchableSelect
+											options={TIPO_MONTO_OPTIONS}
+											value={field.value}
+											onChange={field.onChange}
+											placeholder="Selecciona tipo..."
+										/>
+									)}
+								/>
+							</div>
+
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-1">
+									Tipo
+								</label>
+
+								<Controller
+									name="tipoObjeto"
+									control={control}
+									render={({ field }) => (
+										<SearchableSelect
+											options={TIPO_OBJETO_OPTIONS}
+											value={field.value}
+											onChange={field.onChange}
+											placeholder="Selecciona tipo..."
+										/>
+									)}
+								/>
+							</div>
+						</div>
+
+						<div className="flex justify-end gap-2 mt-6">
+							<Button
+								type="button"
+								variant="primary"
+								onClick={handleSubmit(loadRequisiciones)}>
+								Buscar Requisiciones
+							</Button>
+
+							<Button
+								type="button"
+								variant="secondary"
+								onClick={handleResetFilters}>
+								Limpiar filtros
+							</Button>
+
+							<Button
+								type="button"
+								variant="secondary"
+								onClick={handleExport}
+							>
+								Exportar
+							</Button>
+						</div>
+					</form>
 				</div>
 
-				{loading ? (
-					<div className="flex items-center justify-center h-96">
-						<p>Cargando requisiciones...</p>
-					</div>
-				) : filteredRequisiciones.length === 0 ? (
-					<div className="flex items-center justify-center h-96">
-						<p className="text-gray-500">
-							No se encontraron requisiciones con los filtros seleccionados
+				<div className="bg-white rounded-lg shadow">
+					<div className="p-4 border-b border-gray-200 flex items-center justify-between">
+						<p className="text-sm text-gray-600">
+							Se encontraron {filteredRequisiciones.length} requisiciones
 						</p>
 					</div>
-				) : (
-					<SimpleTable
-						columns={TABLE_COLUMNS}
-						data={filteredRequisiciones}
-						getRowKey={(row) => String(row.id)}
-					/>
-				)}
-			</div>
-		</PageCard>
+
+					{loading ? (
+						<div className="flex items-center justify-center h-96">
+							<p>Cargando requisiciones...</p>
+						</div>
+					) : filteredRequisiciones.length === 0 ? (
+						<div className="flex items-center justify-center h-96">
+							<p className="text-gray-500">
+								No se encontraron requisiciones con los filtros seleccionados
+							</p>
+						</div>
+					) : (
+						<SimpleTable
+							columns={TABLE_COLUMNS}
+							data={filteredRequisiciones}
+							getRowKey={(row) => String(row.id)}
+						/>
+					)}
+				</div>
+			</PageCard>
+		</div>
 	);
 }

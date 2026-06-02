@@ -316,7 +316,8 @@ export function AdquisicionBienesListadoFormView() {
 					tipoObjeto: 1,
 					tipoMonto: tipoMontoValue,
 					estatus: estatusValue,
-
+					fechaInicio,
+					fechaFin,
 				});
 			} else if (isAutorizadorProfile) {
 				data = await requisicionApi.listaTodo({
@@ -332,6 +333,8 @@ export function AdquisicionBienesListadoFormView() {
 					tipoObjeto: 1,
 					tipoMonto: tipoMontoValue,
 					estatus: estatusValue,
+					fechaInicio,
+					fechaFin,
 
 				});
 			}
@@ -353,7 +356,7 @@ export function AdquisicionBienesListadoFormView() {
 	}, [isRequisicionReadOnly, isRevisorProfile]);
 
 	const applyFilters = useCallback(() => {
-
+		console.log('Applying filters with fechaInicio:', fechaInicio, 'fechaFin:', fechaFin, 'pendingTipo:', pendingTipo, 'pendingEstatus:', pendingEstatus);
 		if (!fechaInicio || !fechaFin) {
 			setLoadError('Selecciona fecha inicio y fecha fin para buscar.');
 			return;
@@ -916,8 +919,7 @@ export function AdquisicionBienesListadoFormView() {
 							<AdquisicionBienesFormShell
 								key={editingRow.id}
 								tipoCompra={editingRow.tipoCompra}
-								hideRevisorFields={canEditSolicitanteFields}
-								readOnly={isRequisicionReadOnly || canActions(editingRow)}
+								hideRevisorFields={canEditSolicitanteFields}						
 								readOnly={isReadOnly(editingRow)}
 								draft={draftForEdit}
 								onDraftChange={(next) => setDraftForId(editingRow.id, next)}

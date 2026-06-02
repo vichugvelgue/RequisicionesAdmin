@@ -263,12 +263,13 @@ export function ActividadView() {
 							onSearch={() => setAppliedSearchText(searchText)}
 						/>
 					</div>
-					<div className="p-4 flex-1 min-h-0">
+					<div className="p-4 flex-1 min-h-0 overflow-hidden flex flex-col">
 						{isLoading ? (
 							<div className="flex items-center justify-center h-32"><div className="text-slate-500">Cargando actividades...</div></div>
 						) : error ? (
 							<div className="flex flex-col items-center justify-center h-32 space-y-2"><div className="text-red-500">{error}</div><Button variant="secondary" onClick={loadActividades}>Reintentar</Button></div>
 						) : (
+							<div className="flex-1 min-h-0 overflow-y-auto">
 							<InlineInsertInfiniteTable<ActividadView>
 								columns={COLUMNS}
 								data={filteredAndSortedRows}
@@ -284,6 +285,7 @@ export function ActividadView() {
 								insertRow={showInsertRow ? renderInsertRow() : null}
 								renderRow={renderRow}
 							/>
+							</div>
 						)}
 					</div>
 				</PageCard>

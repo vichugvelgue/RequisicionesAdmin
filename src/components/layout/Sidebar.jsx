@@ -88,7 +88,7 @@ export function Sidebar({ isSidebarOpen }) {
 	return (
 		<aside
 			data-sidebar
-			className="fixed inset-y-0 left-0 z-50 w-60 bg-brand-white border-r border-brand-neutral/20 flex flex-col shadow-lg lg:shadow-none"
+			className="fixed inset-y-0 left-0 z-30 w-60 bg-brand-white border-r border-brand-neutral/20 flex flex-col shadow-lg lg:shadow-none"
 		>
 			<div className="h-14 flex items-center px-5 border-b border-brand-neutral/20 bg-brand-secondary/15">
 				<div className="flex items-center gap-2.5 text-brand-primary">
@@ -101,74 +101,74 @@ export function Sidebar({ isSidebarOpen }) {
 				</div>
 			</div>
 
-				<div className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-0.5 custom-scrollbar bg-brand-secondary/10">
-					{showComponentesMenu ? (
-						<SidebarParentExpandable
-							icon={<LayoutDashboard className="w-4 h-4" />}
-							label="Componentes"
-							open={isComponentesOpen}
-							onToggle={() => setIsComponentesOpen(!isComponentesOpen)}
-							isActive={isComponentesActive}
-						>
-							{COMPONENTES_SUBMENU.map((item) => {
-								const path = COMPONENTES_PATH_MAP[item.id];
-								return (
-									<SidebarSubmenuItem
-										key={item.id}
-										id={item.id}
-										label={item.label}
-										isActive={pathname === path}
-										onClick={() => path && handleNav(path)}
-									/>
-								);
-							})}
-						</SidebarParentExpandable>
-					) : null}
-
-					{showExamplesMenu ? (
-						<SidebarParentExpandable
-							icon={<LayoutDashboard className="w-4 h-4" />}
-							label="Ejemplos"
-							open={isEjemplosOpen}
-							onToggle={() => setIsEjemplosOpen(!isEjemplosOpen)}
-							isActive={isEjemplosActive}
-						>
-							{EJEMPLOS_SUBMENU.map((item) => {
-								const path = EJEMPLOS_PATH_MAP[item.id];
-								return (
-									<SidebarSubmenuItem
-										key={item.id}
-										id={item.id}
-										label={item.label}
-										isActive={pathname === path}
-										onClick={() => path && handleNav(path)}
-									/>
-								);
-							})}
-						</SidebarParentExpandable>
-					) : null}
-
+			<div className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-0.5 custom-scrollbar bg-brand-secondary/10">
+				{showComponentesMenu ? (
 					<SidebarParentExpandable
-						icon={<ClipboardList className="w-4 h-4" />}
-						label="Requisiciones"
-						open={isRequisicionesOpen}
-						onToggle={() => setIsRequisicionesOpen(!isRequisicionesOpen)}
-						isActive={isRequisicionesActive}
+						icon={<LayoutDashboard className="w-4 h-4" />}
+						label="Componentes"
+						open={isComponentesOpen}
+						onToggle={() => setIsComponentesOpen(!isComponentesOpen)}
+						isActive={isComponentesActive}
 					>
-						{REQUISICIONES_SUBMENU.map((item) => {
-							const path = REQUISICIONES_PATH_MAP[item.id];
+						{COMPONENTES_SUBMENU.map((item) => {
+							const path = COMPONENTES_PATH_MAP[item.id];
 							return (
 								<SidebarSubmenuItem
 									key={item.id}
 									id={item.id}
 									label={item.label}
-									isActive={pathname === path || pathname.startsWith(`${path}/`)}
+									isActive={pathname === path}
 									onClick={() => path && handleNav(path)}
 								/>
 							);
 						})}
-					</SidebarParentExpandable>				
-					{showCatalogosUsuarios ? (
+					</SidebarParentExpandable>
+				) : null}
+
+				{showExamplesMenu ? (
+					<SidebarParentExpandable
+						icon={<LayoutDashboard className="w-4 h-4" />}
+						label="Ejemplos"
+						open={isEjemplosOpen}
+						onToggle={() => setIsEjemplosOpen(!isEjemplosOpen)}
+						isActive={isEjemplosActive}
+					>
+						{EJEMPLOS_SUBMENU.map((item) => {
+							const path = EJEMPLOS_PATH_MAP[item.id];
+							return (
+								<SidebarSubmenuItem
+									key={item.id}
+									id={item.id}
+									label={item.label}
+									isActive={pathname === path}
+									onClick={() => path && handleNav(path)}
+								/>
+							);
+						})}
+					</SidebarParentExpandable>
+				) : null}
+
+				<SidebarParentExpandable
+					icon={<ClipboardList className="w-4 h-4" />}
+					label="Requisiciones"
+					open={isRequisicionesOpen}
+					onToggle={() => setIsRequisicionesOpen(!isRequisicionesOpen)}
+					isActive={isRequisicionesActive}
+				>
+					{REQUISICIONES_SUBMENU.map((item) => {
+						const path = REQUISICIONES_PATH_MAP[item.id];
+						return (
+							<SidebarSubmenuItem
+								key={item.id}
+								id={item.id}
+								label={item.label}
+								isActive={pathname === path || pathname.startsWith(`${path}/`)}
+								onClick={() => path && handleNav(path)}
+							/>
+						);
+					})}
+				</SidebarParentExpandable>
+				{showCatalogosUsuarios ? (
 					<SidebarParentExpandable
 						icon={<BarChart3 className="w-4 h-4" />}
 						label="Reportes"
@@ -190,50 +190,50 @@ export function Sidebar({ isSidebarOpen }) {
 						})}
 					</SidebarParentExpandable>
 				) : null}					{showCatalogosUsuarios ? (
-						<SidebarParentExpandable
-							icon={<Package className="w-4 h-4" />}
-							label="Catálogos"
-							open={isCatalogosOpen}
-							onToggle={() => setIsCatalogosOpen(!isCatalogosOpen)}
-							isActive={isCatalogosActive}
-						>
-							{CATALOGOS_SUBMENU.map((item) => {
-								const path = CATALOGOS_PATH_MAP[item.id];
-								return (
-									<SidebarSubmenuItem
-										key={item.id}
-										id={item.id}
-										label={item.label}
-										isActive={pathname === path}
-										onClick={() => path && handleNav(path)}
-									/>
-								);
-							})}
-						</SidebarParentExpandable>
-					) : null}
-					{showCatalogosUsuarios ? (
-						<SidebarParentExpandable
-							icon={<Users className="w-4 h-4" />}
-							label="Usuarios"
-							open={isUsuariosOpen}
-							onToggle={() => setIsUsuariosOpen(!isUsuariosOpen)}
-							isActive={isUsuariosActive}
-						>
-							{USUARIOS_SUBMENU.map((item) => {
-								const path = USUARIOS_PATH_MAP[item.id];
-								return (
-									<SidebarSubmenuItem
-										key={item.id}
-										id={item.id}
-										label={item.label}
-										isActive={pathname === path}
-										onClick={() => path && handleNav(path)}
-									/>
-								);
-							})}
-						</SidebarParentExpandable>
-					) : null}
-				</div>
-			</aside>
+					<SidebarParentExpandable
+						icon={<Package className="w-4 h-4" />}
+						label="Catálogos"
+						open={isCatalogosOpen}
+						onToggle={() => setIsCatalogosOpen(!isCatalogosOpen)}
+						isActive={isCatalogosActive}
+					>
+						{CATALOGOS_SUBMENU.map((item) => {
+							const path = CATALOGOS_PATH_MAP[item.id];
+							return (
+								<SidebarSubmenuItem
+									key={item.id}
+									id={item.id}
+									label={item.label}
+									isActive={pathname === path}
+									onClick={() => path && handleNav(path)}
+								/>
+							);
+						})}
+					</SidebarParentExpandable>
+				) : null}
+				{showCatalogosUsuarios ? (
+					<SidebarParentExpandable
+						icon={<Users className="w-4 h-4" />}
+						label="Usuarios"
+						open={isUsuariosOpen}
+						onToggle={() => setIsUsuariosOpen(!isUsuariosOpen)}
+						isActive={isUsuariosActive}
+					>
+						{USUARIOS_SUBMENU.map((item) => {
+							const path = USUARIOS_PATH_MAP[item.id];
+							return (
+								<SidebarSubmenuItem
+									key={item.id}
+									id={item.id}
+									label={item.label}
+									isActive={pathname === path}
+									onClick={() => path && handleNav(path)}
+								/>
+							);
+						})}
+					</SidebarParentExpandable>
+				) : null}
+			</div>
+		</aside>
 	);
 }
