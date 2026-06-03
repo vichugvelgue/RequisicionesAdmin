@@ -184,11 +184,11 @@ export function AdquisicionBienesListadoFormView() {
 
 	const canEditSolicitanteFields = isSolicitante;
 	const canEditRevisorFields = isRevisorProfile;
-	const isSolicitantePermisoRegistro = (row: ContratacionServiciosRow) => isSolicitante && [EnumRequisicionEstatus.Registrada, EnumRequisicionEstatus.Observada].includes(EnumRequisicionEstatus[row.estatus]);
-	const isRevisorPermisoRegistro = (row: ContratacionServiciosRow) => isRevisorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.EnRevision;
-	const isAutorizadorPermisoRegistro = (row: ContratacionServiciosRow) => isAutorizadorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.EnAutorizacion;
+	const isSolicitantePermisoRegistro = (row: ContratacionServiciosRow) => isSolicitante && [EnumRequisicionEstatus.En_Captura, EnumRequisicionEstatus.En_Revision].includes(EnumRequisicionEstatus[row.estatus]);
+	const isRevisorPermisoRegistro = (row: ContratacionServiciosRow) => isRevisorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.En_Revision;
+	const isAutorizadorPermisoRegistro = (row: ContratacionServiciosRow) => isAutorizadorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Validada;
 	const canDelete = (row: ContratacionServiciosRow) => {
-		if (EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Cancelada) return false
+		if (EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Rechazada) return false
 		if (isAutorizadorPermisoRegistro(row)) return true;
 		return isSolicitantePermisoRegistro(row) || isRevisorPermisoRegistro(row) || isAutorizadorPermisoRegistro(row);
 	}
@@ -453,7 +453,7 @@ export function AdquisicionBienesListadoFormView() {
 			monto,
 			tipoCompra,
 			solicitante,
-			estatus: 'PENDIENTE',
+			estatus: 'En_captura',
 			fechaSolicitudIso: new Date().toISOString().slice(0, 10),
 		};
 		setRows((prev) => [newRow, ...prev]);
@@ -782,32 +782,32 @@ export function AdquisicionBienesListadoFormView() {
 									/>
 
 									<IndicadorCard
-										titulo="Registradas"
-										valor={indicadores.registradas}
+										titulo="En captura"
+										valor={indicadores.en_captura}
 										color="bg-blue-50 border-blue-200 text-blue-700"
 									/>
 
 									<IndicadorCard
-										titulo="En revisión"
-										valor={indicadores.enRevision}
+										titulo="Pendientes"
+										valor={indicadores.pendiente}
 										color="bg-amber-50 border-amber-200 text-amber-700"
 									/>
 
 									<IndicadorCard
-										titulo="Observadas"
-										valor={indicadores.observadas}
+										titulo="En revisión"
+										valor={indicadores.en_revision}
 										color="bg-red-50 border-red-200 text-red-700"
 									/>
 
 									<IndicadorCard
-										titulo="En autorización"
-										valor={indicadores.enAutorizacion}
+										titulo="Validadas"
+										valor={indicadores.validada}
 										color="bg-purple-50 border-purple-200 text-purple-700"
 									/>
 
 									<IndicadorCard
-										titulo="Autorizadas"
-										valor={indicadores.autorizadas}
+										titulo="Definitivas"
+										valor={indicadores.definitivo}
 										color="bg-green-50 border-green-200 text-green-700"
 									/>
 								</div>

@@ -19,7 +19,6 @@ import {
 	ComponentesTabsView,
 	ComponentesFileUploadView,
 } from "./modules/componentes";
-import { CatalogoInlineView, EjemplosListadoFormView } from "./modules/ejemplos";
 import { UsuariosListadoFormView } from "./modules/usuarios";
 import {
 	AdquisicionBienesListadoFormView,
@@ -62,11 +61,7 @@ function App() {
 				<Route path="componentes/layout" element={<ComponentesLayoutView />} />
 				<Route path="componentes/tabs" element={<ComponentesTabsView />} />
 				<Route path="componentes/feedback" element={<ComponentesFeedbackView />} />
-				<Route path="componentes/file-upload" element={<ComponentesFileUploadView />} />
-				<Route path="ejemplos/catalogo-inline" element={<CatalogoInlineView />} />
-				<Route path="ejemplos/listado-form" element={<EjemplosListadoFormView />} />
-				<Route path="ejemplos/listado-form/nuevo" element={<EjemplosListadoFormView />} />
-				<Route path="ejemplos/listado-form/:id" element={<EjemplosListadoFormView />} />
+				<Route path="componentes/file-upload" element={<ComponentesFileUploadView />} />								
 				<Route element={<RequireCatalogosUsuariosAccess />}>
 				<Route path="usuarios" element={<UsuariosListadoFormView />} />
 				<Route path="usuarios/nuevo" element={<UsuariosListadoFormView />} />
