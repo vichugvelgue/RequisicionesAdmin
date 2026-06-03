@@ -9,6 +9,8 @@ export interface Requisicion {
 	tipo: string;
 	solicitante: string;
 	estatus: string;
+	revisor: string;
+	unidadSolicitante: string;
 	tipoObjetoRequisicion: number;
 	fechaSolicitud: string;
 }
@@ -29,12 +31,14 @@ export interface RequisicionView {
 	monto: number;
 	tipo: string;
 	solicitante: string;
+	revisor: string;
 	estatus: string;
 	fechaSolicitud: string;
 	tipoObjetoRequisicion: number;
 	tipoMontoRequisicion?: number | string;
 	tipoObjeto?: number | string;
 	tipoRequisicion?: number | string;
+	unidadSolicitante?: string;
 	estado?: string;
 }
 //Se utiliza para el listado
@@ -361,10 +365,11 @@ const mapRequisicionToView = (item: Requisicion): RequisicionView => ({
 	tipo: item.tipo ?? "",
 	solicitante: item.solicitante ?? "",
 	estatus: item.estatus ?? "",
+	revisor: item.revisor ?? "N/A",
+	unidadSolicitante: item.unidadSolicitante ?? "N/A",
 	fechaSolicitud: formatFecha(item.fechaSolicitud),
 	tipoObjetoRequisicion: item.tipoObjetoRequisicion,
 });
-
 const handleApiError = async (response: Response, fallback: string): Promise<never> => {
 	try {
 		const data = await response.json();
@@ -1102,6 +1107,7 @@ export const requisicionApi = {
 		fechaFin: string;
 		tipoMonto?: string;
 		tipoObjeto?: string;
+		unidadSolicitante?: string;
 	}): Promise<RequisicionView[]> {
 		const token = getAuthToken();
 		const query = new URLSearchParams();
@@ -1128,6 +1134,9 @@ export const requisicionApi = {
 						: params.tipoObjeto;
 
 			query.append('tipoObjeto', String(tipoObjeto));
+		}
+		if (params.unidadSolicitante != null) {
+			query.append('unidadSolicitante', params.unidadSolicitante);
 		}
 
 		const response = await fetch(

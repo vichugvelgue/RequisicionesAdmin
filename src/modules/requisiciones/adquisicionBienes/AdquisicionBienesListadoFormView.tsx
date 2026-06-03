@@ -75,12 +75,19 @@ const TABLE_COLUMNS: SimpleTableColumn<RequisicionRow>[] = [
 		cellClassName: 'uppercase',
 	},
 	{
+		key: 'revisor',
+		label: 'REVISOR',
+		sortable: true,
+		width: 'w-[26%]',
+		cellClassName: 'uppercase',
+	},
+	{
 		key: 'estatus',
 		label: 'ESTATUS',
 		sortable: true,
 		width: 'w-[14%]',
 		render: (_v, row) => {
-			const r = resolveStatusBadge(row.estatus.replace(/([a-z])([A-Z])/g, "$1 $2"));
+			const r = resolveStatusBadge(row.estatus.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " "));
 			return <StatusBadge variant={r.variant}>{r.label}</StatusBadge>;
 		},
 	},
@@ -100,6 +107,7 @@ const mapRequisicionViewToRow = (item: RequisicionView): RequisicionRow => ({
 	monto: Number(item.monto ?? 0),
 	tipoCompra: item.tipo?.toUpperCase() as TipoCompra,
 	solicitante: item.solicitante ?? "",
+	revisor: item.revisor ?? "N/A",
 	estatus: item.estatus ?? "",
 	fechaSolicitudIso: item.fechaSolicitud ?? "",
 });
@@ -184,15 +192,15 @@ export function AdquisicionBienesListadoFormView() {
 
 	const canEditSolicitanteFields = isSolicitante;
 	const canEditRevisorFields = isRevisorProfile;
-	const isSolicitantePermisoRegistro = (row: ContratacionServiciosRow) => isSolicitante && [EnumRequisicionEstatus.En_Captura, EnumRequisicionEstatus.En_Revision].includes(EnumRequisicionEstatus[row.estatus]);
-	const isRevisorPermisoRegistro = (row: ContratacionServiciosRow) => isRevisorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.En_Revision;
-	const isAutorizadorPermisoRegistro = (row: ContratacionServiciosRow) => isAutorizadorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Validada;
-	const canDelete = (row: ContratacionServiciosRow) => {
+		const isSolicitantePermisoRegistro = (row: RequisicionRow) => isSolicitante && [EnumRequisicionEstatus.En_Captura, EnumRequisicionEstatus.En_Revision].includes(EnumRequisicionEstatus[row.estatus]);
+		const isRevisorPermisoRegistro = (row: RequisicionRow) => isRevisorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Pendiente;
+		const isAutorizadorPermisoRegistro = (row: RequisicionRow) => isAutorizadorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Validado;
+	const canDelete = (row: RequisicionRow) => {
 		if (EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Rechazada) return false
 		if (isAutorizadorPermisoRegistro(row)) return true;
 		return isSolicitantePermisoRegistro(row) || isRevisorPermisoRegistro(row) || isAutorizadorPermisoRegistro(row);
 	}
-	const canActions = (row: ContratacionServiciosRow) => {
+	const canActions = (row: RequisicionRow) => {
 		if (isSolicitante || isAdministradorGeneralProfile) return false;
 		return isRevisorPermisoRegistro(row) || isAutorizadorPermisoRegistro(row);
 	}
@@ -209,7 +217,7 @@ export function AdquisicionBienesListadoFormView() {
 		cargarIndicadores();
 	}, [isSolicitante]);
 
-	const isReadOnly = (row: ContratacionServiciosRow) => {
+	const isReadOnly = (row: RequisicionRow) => {
 		if (isAdministradorGeneralProfile) return true;
 		return !(isSolicitantePermisoRegistro(row) || isRevisorPermisoRegistro(row));
 	}
@@ -453,7 +461,8 @@ export function AdquisicionBienesListadoFormView() {
 			monto,
 			tipoCompra,
 			solicitante,
-			estatus: 'En_captura',
+			revisor: "N/A",
+			estatus: 'En_Captura',
 			fechaSolicitudIso: new Date().toISOString().slice(0, 10),
 		};
 		setRows((prev) => [newRow, ...prev]);

@@ -332,27 +332,27 @@ export function ContratacionServiciosFormShell({
 								tipoProcedimiento: requisicionDetalle?.tipoProcedimiento ?? '',
 							}}
 							onSave={(data) => {
-								setRequisicionDetalle((prev) =>
-									prev
-										? {
-											...prev,
-											idUnidadSolicitante: Number(data.unidadSolicitanteId),
-											nombreSolicitante: data.nombreTitular,
-											cargoSolicitante: data.cargoSolicitante,
-											fechaSolicitud: data.fechaSolicitud,
-											caracterProcedimiento: data.caracterProcedimiento
-												? Number(data.caracterProcedimiento)
-												: null,
-											modalidadContratacion: data.modalidadContratacion
-												? Number(data.modalidadContratacion)
-												: null,
-											articulo: data.articuloConformidad
-												? Number(data.articuloConformidad)
-												: null,
-											tipoProcedimiento: data.tipoProcedimiento,
-										}
-										: prev
-								);
+								// setRequisicionDetalle((prev) =>
+								// 	prev
+								// 		? {
+								// 			...prev,
+								// 			idUnidadSolicitante: Number(data.unidadSolicitanteId),
+								// 			nombreSolicitante: data.nombreTitular,
+								// 			cargoSolicitante: data.cargoSolicitante,
+								// 			fechaSolicitud: data.fechaSolicitud,
+								// 			caracterProcedimiento: data.caracterProcedimiento
+								// 				? Number(data.caracterProcedimiento)
+								// 				: null,
+								// 			modalidadContratacion: data.modalidadContratacion
+								// 				? Number(data.modalidadContratacion)
+								// 				: null,
+								// 			articulo: data.articuloConformidad
+								// 				? Number(data.articuloConformidad)
+								// 				: null,
+								// 			tipoProcedimiento: data.tipoProcedimiento,
+								// 		}
+								// 		: prev
+								// );
 
 								onDraftChange({
 									...draft,

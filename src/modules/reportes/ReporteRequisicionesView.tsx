@@ -15,7 +15,7 @@ import {
 } from "../../components/UI";
 import type { SimpleTableColumn } from "../../components/UI/SimpleTable/SimpleTable";
 import { SearchableSelect } from "../../components/common/SearchableSelect";
-import { requisicionApi, type RequisicionView } from "../../api";
+import { requisicionApi, unidadSolicitanteApi, type RequisicionView } from "../../api";
 import type { OptionItem } from "../../components/UI/types";
 
 interface FilterValues {
@@ -24,6 +24,7 @@ interface FilterValues {
 	tipoMonto: string;
 	tipoObjeto: string;
 	solicitante: string;
+	unidadSolicitante: string;
 }
 
 interface RequisicionReport extends RequisicionView {
@@ -31,6 +32,7 @@ interface RequisicionReport extends RequisicionView {
 	tipoObjetoLabel: string;
 	tipoMontoLabel: string;
 	solicitanteLabel: string;
+	unidadSolicitanteLabel: string;
 	estatusLabel: string;
 	fechaSolicitudLabel: string;
 	montoLabel: string;
@@ -69,11 +71,17 @@ const TABLE_COLUMNS: SimpleTableColumn<RequisicionReport>[] = [
 		key: "tipoMontoLabel",
 		label: "MONTO TIPO",
 		sortable: true,
-		width: "w-[12%]",
+		width: "w-[8%]",
 	},
 	{
 		key: "solicitanteLabel",
 		label: "SOLICITANTE",
+		sortable: true,
+		width: "w-[20%]",
+	},
+	{
+		key: "unidadSolicitanteLabel",
+		label: "UNIDAD SOLICITADA",
 		sortable: true,
 		width: "w-[20%]",
 	},
@@ -107,6 +115,7 @@ export function ReporteRequisicionesView() {
 	const { user } = useAuth();
 
 	const [requisiciones, setRequisiciones] = useState<RequisicionReport[]>([]);
+	const [unidadesSolicitantes, setUnidadesSolicitantes] = useState<OptionItem[]>([]);
 	const [loading, setLoading] = useState(false);
 
 	const [toastState, setToastState] = useState<{
@@ -131,6 +140,7 @@ export function ReporteRequisicionesView() {
 			fechaFin: "",
 			tipoMonto: "",
 			tipoObjeto: "",
+			unidadSolicitante: "",
 		},
 	});
 
@@ -147,6 +157,28 @@ export function ReporteRequisicionesView() {
 
 		return () => clearTimeout(t);
 	}, [toastState.visible]);
+
+	useEffect(() => {
+		loadUnidades();
+	}, []);
+	const loadUnidades = async () => {
+		try {
+			const data = await unidadSolicitanteApi.listar();
+
+			setUnidadesSolicitantes(
+				data.map((x) => ({
+					value: String(x.id),
+					label: x.nombre,
+				}))
+			);
+		} catch {
+			setToastState({
+				visible: true,
+				title: 'No se pudo cargar unidad solicitante',
+				variant: 'error',
+			});
+		}
+	};
 
 	const formatCurrency = (value: unknown) => {
 		const numberValue = Number(value ?? 0);
@@ -210,8 +242,10 @@ export function ReporteRequisicionesView() {
 				fechaFin: watchedFilters.fechaFin,
 				tipoMonto: watchedFilters.tipoMonto ? watchedFilters.tipoMonto : null,
 				tipoObjeto: watchedFilters.tipoObjeto ? watchedFilters.tipoObjeto : null,
+				unidadSolicitante: watchedFilters.unidadSolicitante ? watchedFilters.unidadSolicitante : null,
 				//estatus: watchedFilters.estatus ? Number(watchedFilters.estatus) : null,
 			});
+			console.log(data[0]);
 
 			const requisicionesConDatos: RequisicionReport[] = data.map((req) => ({
 				...req,
@@ -229,6 +263,8 @@ export function ReporteRequisicionesView() {
 				),
 
 				solicitanteLabel: req.solicitante ?? "",
+				
+				unidadSolicitanteLabel: req.unidadSolicitante ?? '',
 
 				estatusLabel: req.estatus ?? req.estado ?? "",
 
@@ -444,6 +480,25 @@ export function ReporteRequisicionesView() {
 											value={field.value}
 											onChange={field.onChange}
 											placeholder="Selecciona tipo..."
+										/>
+									)}
+								/>
+							</div>
+
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-1">
+									Unidad solicitadas
+								</label>
+
+								<Controller
+									name="unidadSolicitante"
+									control={control}
+									render={({ field }) => (
+										<SearchableSelect
+											options={unidadesSolicitantes}
+											value={field.value}
+											onChange={field.onChange}
+											placeholder="Selecciona..."
 										/>
 									)}
 								/>
