@@ -3,10 +3,10 @@ import type { AuthUser } from '../../../auth/types';
 export type RequisicionEstatus = 'PENDIENTE' | 'APROBADA' | 'RECHAZADA' | 'CAMBIOS_SOLICITADOS';
 
 export enum EnumRequisicionEstatus {
-	En_Captura = 'En_Captura',
+	En_Captura = 'EN CAPTURA',
 	Pendiente = 'PENDIENTE',
 	En_Revision = 'EN REVISION',
-	Validada = 'VALIDADA',
+	Validado = 'VALIDADO',
 	Definitivo = 'DEFINITIVO',
 	Rechazada = 'RECHAZADA'
 };
@@ -14,7 +14,7 @@ export enum EnumRequisicionEstatusId {
 	En_Captura = 1,
 	Pendiente = 2,
 	En_Revision = 3,
-	Validada = 4,
+	Validado = 4,
 	Definitivo = 5,
 	Rechazada = 6
 }
@@ -33,6 +33,7 @@ export interface RequisicionRow extends Record<string, unknown> {
 	monto: number;
 	tipoCompra: TipoCompra;
 	solicitante: string;
+	revisor: string;
 	estatus: string;
 	/** yyyy-mm-dd para filtros */
 	fechaSolicitudIso: string;

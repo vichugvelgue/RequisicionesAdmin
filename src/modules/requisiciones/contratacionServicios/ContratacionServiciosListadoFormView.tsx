@@ -86,12 +86,19 @@ const TABLE_COLUMNS: SimpleTableColumn<ContratacionServiciosRow>[] = [
 		cellClassName: 'uppercase',
 	},
 	{
+		key: 'revisor',
+		label: 'REVISOR',
+		sortable: true,
+		width: 'w-[26%]',
+		cellClassName: 'uppercase',
+	},
+	{
 		key: 'estatus',
 		label: 'ESTATUS',
 		sortable: true,
 		width: 'w-[14%]',
 		render: (_v, row) => {
-			const r = resolveStatusBadge(row.estatus.replace(/([a-z])([A-Z])/g, "$1 $2"));
+			const r = resolveStatusBadge(row.estatus.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " "));
 			return <StatusBadge variant={r.variant}>{r.label}</StatusBadge>;
 		},
 	},
@@ -111,8 +118,8 @@ const mapRequisicionViewToRow = (item: RequisicionView): ContratacionServiciosRo
 	solicitante: item.solicitante ?? '',
 	estatus: item.estatus ?? "",
 	fechaSolicitudIso: item.fechaSolicitud ?? '',
+	revisor: item.revisor ?? '',
 	tipoObjetoRequisicion: item.tipoObjetoRequisicion,
-
 });
 
 function matchesSearch(
@@ -205,6 +212,7 @@ export function ContratacionServiciosListadoFormView() {
 				monto: 0,
 				tipoCompra: 'MAYOR' as TipoCompra,
 				solicitante: '',
+				revisor: '',
 				estatus: 'REGISTRADA',
 				fechaSolicitudIso: '',
 			}
@@ -223,8 +231,8 @@ export function ContratacionServiciosListadoFormView() {
 	/** Solo el solicitante oculta bloques de revisor; `isNewRecord` no debe acortar el formulario al revisor al consultar. */
 	const hideRevisorFields = userHidesRevisorFields(user) || (isNewRecord && !isRevisorProfile);
 	const isSolicitantePermisoRegistro = (row: ContratacionServiciosRow) => isSolicitante && [EnumRequisicionEstatus.En_Captura, EnumRequisicionEstatus.En_Revision].includes(EnumRequisicionEstatus[row.estatus]);
-	const isRevisorPermisoRegistro = (row: ContratacionServiciosRow) => isRevisorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.En_Revision;
-	const isAutorizadorPermisoRegistro = (row: ContratacionServiciosRow) => isAutorizadorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Validada;
+	const isRevisorPermisoRegistro = (row: ContratacionServiciosRow) => isRevisorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Pendiente;
+	const isAutorizadorPermisoRegistro = (row: ContratacionServiciosRow) => isAutorizadorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Validado;
 	const canDelete = (row: ContratacionServiciosRow) => {
 		if (EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Rechazada) return false
 		if (isAutorizadorPermisoRegistro(row)) return true;
@@ -568,7 +576,8 @@ export function ContratacionServiciosListadoFormView() {
 				monto,
 				tipoCompra,
 				solicitante: user?.displayName?.toUpperCase() ?? '',
-				estatus: 'REGISTRADA',
+				revisor: 'N/A',
+				estatus: 'En_Captura',
 				fechaSolicitudIso: new Date().toISOString().slice(0, 10),
 			};
 
