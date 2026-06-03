@@ -312,12 +312,12 @@ export interface RequisicionBienDocumento {
 
 export interface IndicadoresSolicitante {
 	total: number;
-	registradas: number;
-	enRevision: number;
-	observadas: number;
-	enAutorizacion: number;
-	autorizadas: number;
-	canceladas: number;
+	en_captura: number;
+	pendiente: number;
+	en_revision: number;
+	validada: number;
+	definitivo: number;
+	rechazada: number;
 	bienes: number;
 	servicios: number;
 	mayores: number;

@@ -1,21 +1,22 @@
 import type { AuthUser } from '../../../auth/types';
 
 export type RequisicionEstatus = 'PENDIENTE' | 'APROBADA' | 'RECHAZADA' | 'CAMBIOS_SOLICITADOS';
+
 export enum EnumRequisicionEstatus {
-	Registrada = 'REGISTRADA',
-	EnRevision = 'EN_REVISION',
-	Observada = 'OBSERVADA',
-	EnAutorizacion = 'EN_AUTORIZACION',
-	Autorizada = 'AUTORIZADA',
-	Cancelada = 'CANCELADA'
+	En_Captura = 'En_Captura',
+	Pendiente = 'PENDIENTE',
+	En_Revision = 'EN REVISION',
+	Validada = 'VALIDADA',
+	Definitivo = 'DEFINITIVO',
+	Rechazada = 'RECHAZADA'
 };
 export enum EnumRequisicionEstatusId {
-	Registrada = 1,
-	EnRevision = 2,
-	Observada = 3,
-	EnAutorizacion = 4,
-	Autorizada = 5,
-	Cancelada = 6
+	En_Captura = 1,
+	Pendiente = 2,
+	En_Revision = 3,
+	Validada = 4,
+	Definitivo = 5,
+	Rechazada = 6
 }
 export type TipoCompra = 'MAYOR' | 'MENOR';
 
