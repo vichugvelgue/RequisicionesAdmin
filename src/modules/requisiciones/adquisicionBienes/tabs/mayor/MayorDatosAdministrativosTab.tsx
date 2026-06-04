@@ -76,7 +76,7 @@ export function MayorDatosAdministrativosTab({
 
 	useEffect(() => {
 		reset({ ...empty, ...initialValues });
-	}, [initialValues, reset]);
+	}, [reset]);
 
 	useEffect(() => {
 		if (!toast.visible) return;

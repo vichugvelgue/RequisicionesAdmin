@@ -8,6 +8,7 @@ import {
 	SearchableSelect,
 	SimpleTable,
 	TextArea,
+	Toast,
 } from '../../../../components/UI';
 import type { SimpleTableColumn } from '../../../../components/UI/SimpleTable/SimpleTable';
 import { FieldRoleLabel } from '../fieldRoleLabel';
@@ -57,6 +58,7 @@ export function AdquisicionPartidasSection({
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [isSavingPartidas, setIsSavingPartidas] = useState(false);
 	const [unidadesMedida, setUnidadesMedida] = useState<OptionItem[]>([]);
+	const [toast, setToast] = useState<{ visible: boolean; title: string; variant: 'success' | 'error' }>({ visible: false, title: '', variant: 'success' });
 
 	const nextNumeroPartida = useMemo(() => {
 		const max = partidas.reduce((acc, item) => Math.max(acc, item.numeroPartida), 0);
@@ -109,6 +111,12 @@ export function AdquisicionPartidasSection({
 	);
 
 	useEffect(() => {
+		if (!toast.visible) return;
+		const t = setTimeout(() => setToast((s) => ({ ...s, visible: false })), 2800);
+		return () => clearTimeout(t);
+	}, [toast.visible]);
+
+	useEffect(() => {
 		const loadUnidadesMedida = async () => {
 			try {
 				const data = await unidadMedidaApi.listar();
@@ -151,6 +159,9 @@ export function AdquisicionPartidasSection({
 					condicionesGeneralesContratacion: '',
 				})),
 			});
+			setToast({ visible: true, title: 'Partidas guardadas con éxito', variant: 'success' });
+		} catch (error) {
+			setToast({ visible: true, title: error instanceof Error ? error.message : 'Error al guardar partidas', variant: 'error' });
 		} finally {
 			setIsSavingPartidas(false);
 		}
@@ -162,6 +173,13 @@ export function AdquisicionPartidasSection({
 		setShowErrors(true);
 		if (!draft.cantidad.trim() || !draft.unidadMedidaId || !draft.descripcion.trim()) return;
 
+		try {
+			
+			
+		} catch (error) {
+			setToast({ visible: true, title: error instanceof Error ? error.message : 'Error al guardar partida', variant: 'error' });
+			return;
+		}
 		const unidadSeleccionada = unidadesMedida.find((u) => u.value === draft.unidadMedidaId);
 		const basePartida = {
 			cantidad: draft.cantidad,
@@ -201,6 +219,8 @@ export function AdquisicionPartidasSection({
 			];
 			onChange(next);
 		}
+
+		setToast({ visible: true, title: 'Partida guardada con éxito', variant: 'success' });
 
 		setDraft(EMPTY_FORM);
 		setShowErrors(false);
@@ -357,6 +377,11 @@ export function AdquisicionPartidasSection({
 					wrapperClassName="h-[40vh]"
 				/>
 			</div>
+			<Toast
+				visible={toast.visible}
+				title={toast.title}
+				variant={toast.variant}
+			/>
 		</div>
 	);
 }

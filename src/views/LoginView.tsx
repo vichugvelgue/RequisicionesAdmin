@@ -185,10 +185,11 @@ export function LoginView() {
 					>
 						{isSubmitting ? 'Ingresando…' : 'Ingresar'}
 					</Button>
-
-					<button onClick={recuperarContraseña} type='button' className='text-gray-500 text-center'>
-						Recuperar contraseña
-					</button>
+					<div className="text-center">
+						<button onClick={recuperarContraseña} type='button' className='text-gray-500 text-center hover:underline hover:text-brand-primary'>
+							Recuperar contraseña
+						</button>
+					</div>
 				</form>
 			</div>
 			<Toast

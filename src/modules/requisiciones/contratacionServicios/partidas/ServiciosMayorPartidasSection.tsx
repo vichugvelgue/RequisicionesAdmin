@@ -250,6 +250,12 @@ export function ServiciosMayorPartidasSection({
 		}
 	};
 
+	useEffect(() => {
+		if (!toast.visible) return;
+		const t = setTimeout(() => setToast((s) => ({ ...s, visible: false })), 2800);
+		return () => clearTimeout(t);
+	}, [toast.visible]);
+	
 	const canEditRows = canEditSolicitanteFields || !hideRevisorFields;
 	const sortedPartidas = useMemo(
 		() => [...partidas].sort((a, b) => a.numeroPartida - b.numeroPartida),

@@ -53,6 +53,7 @@ export function MenorDatosRequisicionTab({
 	const { id } = useParams();
 	const requisicionIdFinal = Number(id ?? idRequisicion ?? 0);
 
+
 	const {
 		register,
 		handleSubmit,
