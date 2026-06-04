@@ -65,8 +65,8 @@ export function MayorEjecucionTab({
 	});
 
 	useEffect(() => {
-	reset(withDefaultFecha(initialValues));
-}, [initialValues, reset]);
+		reset(withDefaultFecha(initialValues));
+	}, [reset]);
 
 	const getUsuarioId = (): number => {
 		try {

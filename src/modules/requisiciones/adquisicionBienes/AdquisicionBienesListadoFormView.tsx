@@ -219,6 +219,7 @@ export function AdquisicionBienesListadoFormView() {
 
 	const isReadOnly = (row: RequisicionRow) => {
 		if (isAdministradorGeneralProfile) return true;
+		if (row.tipoCompra === 'MENOR' && !isSolicitante) return true;
 		return !(isSolicitantePermisoRegistro(row) || isRevisorPermisoRegistro(row));
 	}
 	useEffect(() => {
@@ -398,6 +399,7 @@ export function AdquisicionBienesListadoFormView() {
 
 	const resetToListado = () => {
 		navigate(BASE_PATH);
+		loadRequisiciones();
 	};
 
 	const handleGuardarRequisicion = () => {
@@ -463,7 +465,7 @@ export function AdquisicionBienesListadoFormView() {
 			solicitante,
 			revisor: "N/A",
 			estatus: 'En_Captura',
-			fechaSolicitudIso: new Date().toISOString().slice(0, 10),
+			fechaSolicitudIso: new Date().toLocaleDateString("es", { month: "2-digit", day: "2-digit", year: "numeric" }),
 		};
 		setRows((prev) => [newRow, ...prev]);
 		setDraftById((prev) => ({
@@ -731,29 +733,20 @@ export function AdquisicionBienesListadoFormView() {
 								>
 									Agregar
 								</Button>
-							) : showGuardarRequisicionEnHeader ? (
-								<Button
-									type="button"
-									variant="success"
-									size="md"
-									leftIcon={<Save className="w-4 h-4" />}
-									onClick={handleGuardarRequisicion}
-								>
-									Guardar
-								</Button>
 							) : mode === 'form-edicion' && editingRow && canActions(editingRow) ? (
 								<div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
-									<Button
-										type="button"
-										variant="outline"
-										size="md"
-										onClick={() => {
-											setPendingObservationRow(editingRow);
-											setRevisorModalText('');
-										}}
-									>
-										Solicitar cambios
-									</Button>
+									{isRevisorProfile &&
+										<Button
+											hidden={!isRevisorProfile}
+											type="button"
+											variant="outline"
+											size="md"
+											onClick={() => {
+												setPendingObservationRow(editingRow);
+												setRevisorModalText('');
+											}} >
+											Solicitar cambios
+										</Button>}
 									<Button
 										type="button"
 										variant="success"
@@ -772,7 +765,7 @@ export function AdquisicionBienesListadoFormView() {
 											setPendingDeleteRow(editingRow);
 										}}
 									>
-										Cancelar
+										Rechazar
 									</Button>
 								</div>
 							) : null
