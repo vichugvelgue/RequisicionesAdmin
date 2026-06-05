@@ -440,18 +440,17 @@ export function AdquisicionBienesListadoFormView() {
 
 
 	const handleMontoContinue = ({
+		idRequisicion,
 		montoStr,
 		tipoCompra,
 	}: {
+		idRequisicion: number;
 		montoStr: string;
 		tipoCompra: TipoCompra;
 	}) => {
 		const monto = parseFloat(montoStr) || 0;
-		const nextNum =
-			rows.reduce((max, r) => Math.max(max, r.numero || 0), 0) + 1;
-		const newId = String(
-			rows.reduce((max, r) => Math.max(max, Number(r.id) || 0), 0) + 1
-		);
+		const nextNum = idRequisicion;
+		const newId = String(idRequisicion);
 		const solicitante = (
 			user?.displayName?.trim() ||
 			user?.email?.trim() ||
