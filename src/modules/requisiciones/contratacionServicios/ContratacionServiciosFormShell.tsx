@@ -332,27 +332,27 @@ export function ContratacionServiciosFormShell({
 								tipoProcedimiento: requisicionDetalle?.tipoProcedimiento ?? '',
 							}}
 							onSave={(data) => {
-								// setRequisicionDetalle((prev) =>
-								// 	prev
-								// 		? {
-								// 			...prev,
-								// 			idUnidadSolicitante: Number(data.unidadSolicitanteId),
-								// 			nombreSolicitante: data.nombreTitular,
-								// 			cargoSolicitante: data.cargoSolicitante,
-								// 			fechaSolicitud: data.fechaSolicitud,
-								// 			caracterProcedimiento: data.caracterProcedimiento
-								// 				? Number(data.caracterProcedimiento)
-								// 				: null,
-								// 			modalidadContratacion: data.modalidadContratacion
-								// 				? Number(data.modalidadContratacion)
-								// 				: null,
-								// 			articulo: data.articuloConformidad
-								// 				? Number(data.articuloConformidad)
-								// 				: null,
-								// 			tipoProcedimiento: data.tipoProcedimiento,
-								// 		}
-								// 		: prev
-								// );
+								setRequisicionDetalle((prev) =>
+									prev
+										? {
+											...prev,
+											idUnidadSolicitante: Number(data.unidadSolicitanteId),
+											nombreSolicitante: data.nombreTitular,
+											cargoSolicitante: data.cargoSolicitante,
+											fechaSolicitud: data.fechaSolicitud,
+											caracterProcedimiento: data.caracterProcedimiento
+												? Number(data.caracterProcedimiento)
+												: null,
+											modalidadContratacion: data.modalidadContratacion
+												? Number(data.modalidadContratacion)
+												: null,
+											articulo: data.articuloConformidad
+												? Number(data.articuloConformidad)
+												: null,
+											tipoProcedimiento: data.tipoProcedimiento,
+										}
+										: prev
+								);
 
 								onDraftChange({
 									...draft,
@@ -497,6 +497,24 @@ export function ContratacionServiciosFormShell({
 										requisicionDetalle?.servicioDetalle?.extencionTelefonoEntrega ?? '',
 								}}
 								onSave={(data) => {
+									setRequisicionDetalle((prev) =>
+										prev
+											? {
+												...prev,
+												servicioDetalle: {
+													...prev.servicioDetalle,
+													experienciaLicitante: data.experienciaLicitante,
+													ciudad: data.ciudad,
+													calle: data.calle,
+													cp: data.cp,
+													colonia: data.colonia,
+													nombreDependenciaEntrega: data.nombreDependenciaEntrega,
+													telefonoEntrega: data.telefonoEntrega,
+													extencionTelefonoEntrega: data.extencionTelefonoEntrega,
+												},
+											}
+											: prev
+									);
 									onDraftChange({
 										...draft,
 										mayorEjecucion: {

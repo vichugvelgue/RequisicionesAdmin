@@ -181,10 +181,8 @@ export function MayorDatosGeneralesTab({
 				fechaSolicitud: payloadFinal.fechaSolicitud,
 
 				caracterProcedimiento:
-					payloadFinal.caracterProcedimiento === 'NACIONAL'
-						? 0
-						: payloadFinal.caracterProcedimiento === 'INTERNACIONAL'
-							? 1
+					payloadFinal.caracterProcedimiento === 'NACIONAL' ? 0
+						: payloadFinal.caracterProcedimiento === 'INTERNACIONAL' ? 1
 							: null,
 
 				modalidadContratacion: payloadFinal.modalidadContratacion

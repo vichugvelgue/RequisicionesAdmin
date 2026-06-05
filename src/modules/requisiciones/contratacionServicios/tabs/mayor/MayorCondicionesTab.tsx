@@ -54,7 +54,7 @@ export function MayorCondicionesTab({
 
 	useEffect(() => {
 		reset({ ...empty, ...initialValues, })
-	}, [initialValues]);
+	}, [initialValues, reset]);
 
 	useEffect(() => {
 		if (!toast.visible) return;

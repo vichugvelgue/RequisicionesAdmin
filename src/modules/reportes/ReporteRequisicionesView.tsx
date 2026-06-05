@@ -28,11 +28,11 @@ interface FilterValues {
 }
 
 interface RequisicionReport extends RequisicionView {
-	numeroRequisicion: string;
 	tipoObjetoLabel: string;
 	tipoMontoLabel: string;
 	solicitanteLabel: string;
 	unidadSolicitanteLabel: string;
+	revisorLabel: string;
 	estatusLabel: string;
 	fechaSolicitudLabel: string;
 	montoLabel: string;
@@ -48,12 +48,6 @@ const filterSchema = yup.object({
 
 const TABLE_COLUMNS: SimpleTableColumn<RequisicionReport>[] = [
 	{ key: "id", label: "ID", sortable: true, width: "w-[7%]" },
-	{
-		key: "numeroRequisicion",
-		label: "NÚMERO",
-		sortable: true,
-		width: "w-[12%]",
-	},
 	{
 		key: "montoLabel",
 		label: "MONTO",
@@ -76,6 +70,12 @@ const TABLE_COLUMNS: SimpleTableColumn<RequisicionReport>[] = [
 	{
 		key: "solicitanteLabel",
 		label: "SOLICITANTE",
+		sortable: true,
+		width: "w-[20%]",
+	},
+	{
+		key: "revisorLabel",
+		label: "REVISOR",
 		sortable: true,
 		width: "w-[20%]",
 	},
@@ -250,8 +250,6 @@ export function ReporteRequisicionesView() {
 			const requisicionesConDatos: RequisicionReport[] = data.map((req) => ({
 				...req,
 
-				numeroRequisicion: `REQ-${req.id}`,
-
 				montoLabel: formatCurrency(req.monto),
 
 				tipoObjetoLabel: getTipoObjetoLabel(
@@ -263,7 +261,8 @@ export function ReporteRequisicionesView() {
 				),
 
 				solicitanteLabel: req.solicitante ?? "",
-				
+				revisorLabel: req.revisor ?? "",
+							
 				unidadSolicitanteLabel: req.unidadSolicitante ?? '',
 
 				estatusLabel: req.estatus ?? req.estado ?? "",
@@ -298,22 +297,24 @@ export function ReporteRequisicionesView() {
 	const handleExport = () => {
 		const headers = [
 			"ID",
-			"Número",
 			"Monto",
 			"Tipo",
 			"Mayor/Menor",
 			"Solicitante",
+			"Revisor",
+			"Unidad solicitante",
 			"Estatus",
 			"Fecha de solicitud",
 		];
 
 		const rows = filteredRequisiciones.map((r) => [
 			r.id,
-			r.numeroRequisicion,
 			r.monto,
 			r.tipoObjetoLabel,
 			r.tipoMontoLabel,
 			r.solicitanteLabel,
+			r.revisorLabel,
+			r.unidadSolicitanteLabel,
 			r.estatusLabel,
 			r.fechaSolicitudLabel,
 		]);

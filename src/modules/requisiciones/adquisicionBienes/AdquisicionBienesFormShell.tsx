@@ -186,31 +186,31 @@ export function AdquisicionBienesFormShell({
 							tipoProcedimiento: requisicionDetalle?.tipoProcedimiento ?? '',
 						}}
 						onSave={(data) => {
-							// setRequisicionDetalle((prev) =>
-							// 	prev
-							// 		? {
-							// 				...prev,
-							// 				idUnidadSolicitante: Number(data.unidadSolicitanteId),
-							// 				nombreSolicitante: data.nombreTitular,
-							// 				cargoSolicitante: data.cargoSolicitante,
-							// 				fechaSolicitud: data.fechaSolicitud,
+							setRequisicionDetalle((prev) =>
+								prev
+									? {
+											...prev,
+											idUnidadSolicitante: Number(data.unidadSolicitanteId),
+											nombreSolicitante: data.nombreTitular,
+											cargoSolicitante: data.cargoSolicitante,
+											fechaSolicitud: data.fechaSolicitud,
 
-							// 				caracterProcedimiento: data.caracterProcedimiento
-							// 					? Number(data.caracterProcedimiento)
-							// 					: null,
+											caracterProcedimiento: data.caracterProcedimiento
+												? Number(data.caracterProcedimiento)
+												: null,
 
-							// 				modalidadContratacion: data.modalidadContratacion
-							// 					? Number(data.modalidadContratacion)
-							// 					: null,
+											modalidadContratacion: data.modalidadContratacion
+												? Number(data.modalidadContratacion)
+												: null,
 
-							// 				/*articulo: data.articulo
-							// 					? Number(data.articulo)
-							// 					: null,*/
+											/*articulo: data.articulo
+												? Number(data.articulo)
+												: null,*/
 
-							// 				tipoProcedimiento: data.tipoProcedimiento,
-							// 		}
-							// 		: prev
-							// );
+											tipoProcedimiento: data.tipoProcedimiento,
+									}
+									: prev
+							);
 
 							onDraftChange({
 								...draft,
