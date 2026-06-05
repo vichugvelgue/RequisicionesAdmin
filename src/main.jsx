@@ -7,7 +7,7 @@ import { AuthProvider } from './auth'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter  basename={import.meta.env.VITE_BASE_URL.replace(/\/$/, '')}>
       <AuthProvider>
         <App />
       </AuthProvider>
