@@ -140,6 +140,14 @@ export function AdquisicionBienesFormShell({
 	loadDetalle();
 	}, [editingRow?.id]);
 
+	const generarIdTemporal = () => {
+		if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+			return crypto.randomUUID();
+		}
+
+		return `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+	};
+
 	if (tipoCompra === 'MAYOR') {
 		let step = 0;
 		const tabsList: { id: string; label: React.ReactNode; panel: React.ReactNode }[] = [
@@ -331,7 +339,7 @@ export function AdquisicionBienesFormShell({
 						idUsuario={Number(editingRow.idUsuario ?? 0)}
 						partidas={
 							requisicionDetalle?.partidas?.map((p) => ({
-								id: crypto.randomUUID(),
+								id: generarIdTemporal(),
 								numeroPartida: p.numeroPartida,
 								cantidad: String(p.cantidad ?? ''),
 								unidadMedidaId: String(p.idUnidadMedida ?? ''),
@@ -954,7 +962,7 @@ export function AdquisicionBienesFormShell({
 					idUsuario={Number(editingRow.idUsuario ?? 0)}
 					partidas={
 						requisicionDetalle?.partidas?.map((p) => ({
-							id: crypto.randomUUID(),
+							id: generarIdTemporal(),
 							numeroPartida: p.numeroPartida,
 							cantidad: String(p.cantidad ?? ''),
 							unidadMedidaId: String(p.idUnidadMedida ?? ''),

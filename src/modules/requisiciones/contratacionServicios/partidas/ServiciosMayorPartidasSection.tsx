@@ -113,8 +113,17 @@ export function ServiciosMayorPartidasSection({
 		loadUnidades();
 	}, []);
 
+		const generarIdTemporal = () => {
+		if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+			return crypto.randomUUID();
+		}
+
+		return `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+	};
+
+
 	function openNew() {
-		const id = crypto.randomUUID();
+		const id = generarIdTemporal();
 		setModalDraft(createEmptyServiciosPartidaMayor(id, nextNumeroPartida));
 		setModalError('');
 		setModalTab('base');

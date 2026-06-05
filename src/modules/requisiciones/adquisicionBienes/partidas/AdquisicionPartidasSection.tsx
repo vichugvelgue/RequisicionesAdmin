@@ -132,7 +132,7 @@ export function AdquisicionPartidasSection({
 		};
 
 		loadUnidadesMedida();
-			}, []);			
+	}, []);
 
 
 	async function handleGuardarPartidasApi() {
@@ -167,6 +167,14 @@ export function AdquisicionPartidasSection({
 		}
 	}
 
+	const generarIdTemporal = () => {
+		if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+			return crypto.randomUUID();
+		}
+
+		return `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+	};
+
 
 
 	function handleSavePartida() {
@@ -174,8 +182,8 @@ export function AdquisicionPartidasSection({
 		if (!draft.cantidad.trim() || !draft.unidadMedidaId || !draft.descripcion.trim()) return;
 
 		try {
-			
-			
+
+
 		} catch (error) {
 			setToast({ visible: true, title: error instanceof Error ? error.message : 'Error al guardar partida', variant: 'error' });
 			return;
@@ -203,7 +211,7 @@ export function AdquisicionPartidasSection({
 				...(partidas as AdquisicionPartidaMayor[]),
 				{
 					...basePartida,
-					id: crypto.randomUUID(),
+					id: generarIdTemporal(),
 					numeroPartida: nextNumeroPartida,
 				},
 			];
@@ -213,7 +221,7 @@ export function AdquisicionPartidasSection({
 				...(partidas as AdquisicionPartidaMenor[]),
 				{
 					...basePartida,
-					id: crypto.randomUUID(),
+					id: generarIdTemporal(),
 					numeroPartida: nextNumeroPartida,
 				},
 			];
@@ -290,15 +298,15 @@ export function AdquisicionPartidasSection({
 						</div>
 						<div className="flex justify-end pt-2">
 							<Button
-	type="button"
-	variant="primary"
-	size="md"
-	className="!px-3 !py-1 text-xs h-8 min-h-0"
-	onClick={handleSavePartida}
-	disabled={!canEditSolicitanteFields}
->
-	{editingId ? 'Actualizar partida' : 'Agregar partida'}
-</Button>
+								type="button"
+								variant="primary"
+								size="md"
+								className="!px-3 !py-1 text-xs h-8 min-h-0"
+								onClick={handleSavePartida}
+								disabled={!canEditSolicitanteFields}
+							>
+								{editingId ? 'Actualizar partida' : 'Agregar partida'}
+							</Button>
 						</div>
 					</div>
 
@@ -324,27 +332,27 @@ export function AdquisicionPartidasSection({
 					</div>
 
 					<div className="flex items-center justify-end gap-2">
+						<Button
+							type="button"
+							variant="success"
+							size="md"
+							leftIcon={<Save className="w-4 h-4" />}
+							disabled={!canEditSolicitanteFields || !partidas.length || isSavingPartidas}
+							onClick={handleGuardarPartidasApi}
+						>
+							{isSavingPartidas ? 'Guardando...' : 'Guardar partidas'}
+						</Button>
+						{editingId ? (
 							<Button
 								type="button"
-								variant="success"
+								variant="outline"
 								size="md"
-								leftIcon={<Save className="w-4 h-4" />}
-								disabled={!canEditSolicitanteFields || !partidas.length || isSavingPartidas}
-								onClick={handleGuardarPartidasApi}
+								leftIcon={<X className="w-4 h-4" />}
+								onClick={handleCancelEdit}
 							>
-								{isSavingPartidas ? 'Guardando...' : 'Guardar partidas'}
+								Cancelar edicion
 							</Button>
-							{editingId ? (
-								<Button
-									type="button"
-									variant="outline"
-									size="md"
-									leftIcon={<X className="w-4 h-4" />}
-									onClick={handleCancelEdit}
-								>
-									Cancelar edicion
-								</Button>
-							) : null}
+						) : null}
 					</div>
 				</div>
 			</FormSection>
@@ -359,19 +367,19 @@ export function AdquisicionPartidasSection({
 					customActions={
 						canEditSolicitanteFields
 							? [
-									{
-										icon: <Pencil className="w-4 h-4" />,
-										title: 'Editar',
-										variant: 'iconAmber',
-										onClick: (row) => handleEditPartida(row),
-									},
-									{
-										icon: <Trash2 className="w-4 h-4" />,
-										title: 'Eliminar',
-										variant: 'iconRed',
-										onClick: (row) => handleDeletePartida(row),
-									},
-							  ]
+								{
+									icon: <Pencil className="w-4 h-4" />,
+									title: 'Editar',
+									variant: 'iconAmber',
+									onClick: (row) => handleEditPartida(row),
+								},
+								{
+									icon: <Trash2 className="w-4 h-4" />,
+									title: 'Eliminar',
+									variant: 'iconRed',
+									onClick: (row) => handleDeletePartida(row),
+								},
+							]
 							: []
 					}
 					wrapperClassName="h-[40vh]"

@@ -60,6 +60,14 @@ export function ServiciosMenorPartidasSection({
 		[editingId, partidas]
 	);
 
+		const generarIdTemporal = () => {
+		if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+			return crypto.randomUUID();
+		}
+
+		return `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+	};
+
 	function handleSavePartida() {
 		setShowErrors(true);
 		if (!unidadMedidaIdDraft || !cantidadDraft.trim()) return;
@@ -70,6 +78,12 @@ export function ServiciosMenorPartidasSection({
 			unidadMedidaId: unidadMedidaIdDraft,
 			unidadMedidaLabel: (unidadSeleccionada?.label ?? unidadMedidaIdDraft).toUpperCase(),
 			cantidad: cantidadDraft,
+			defDescripcionGeneral: '',
+	defDescripcionEspecifica: '',
+	defLugarPeriodoEjecucion: '',
+	defPersonalRequerido: '',
+	defEntregablesAcreditacion: '',
+	defCondicionesGeneralesContratacion: '',
 		};
 
 		if (editingId) {
@@ -87,7 +101,7 @@ export function ServiciosMenorPartidasSection({
 			...partidas,
 			{
 				...base,
-				id: crypto.randomUUID(),
+				id: generarIdTemporal(),
 				numeroPartida: nextNumeroPartida,
 			},
 		]);

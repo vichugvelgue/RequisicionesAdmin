@@ -6,7 +6,7 @@ export const servicioGenerarWordDesdePlantilla = async (
 	requisicionDetalle: any
 ) => {
 
-	const response = await fetch("/plantillas/requisicionserviciosmayor.docx");
+	const response = await fetch(`${import.meta.env.BASE_URL}/plantillas/requisicionserviciosmayor.docx`);
 
 	const content = await response.arrayBuffer();
 

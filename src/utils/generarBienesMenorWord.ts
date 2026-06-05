@@ -21,8 +21,8 @@ const fecha = (value: any) => {
 	});
 };
 
-export const generarBienesMenorWord = async (requisicionDetalle: any) => {
-	const response = await fetch("/plantillas/requisicionbienesmenor.docx");
+export const generarBienesMenorWord = async (requisicionDetalle: any) => {	
+	const response = await fetch(`${import.meta.env.BASE_URL}/plantillas/requisicionbienesmenor.docx`)
 	const content = await response.arrayBuffer();
 
 	const zip = new PizZip(content);
