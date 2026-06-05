@@ -48,6 +48,7 @@ export function ServiciosMayorPartidasSection({
 	onChange,
 	idRequisicion,
 	idUsuario,
+	isReadOnly,
 }: {
 	partidas: ServiciosPartidaMayor[];
 	hideRevisorFields: boolean;
@@ -55,6 +56,7 @@ export function ServiciosMayorPartidasSection({
 	onChange: (next: ServiciosPartidaMayor[]) => void;
 	idRequisicion?: number;
 	idUsuario?: number;
+	isReadOnly: boolean;
 }) {
 	const [modalOpen, setModalOpen] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
@@ -341,7 +343,7 @@ export function ServiciosMayorPartidasSection({
 												<ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
 											)}
 										</button>
-										{canEditRows ? (
+										{canEditRows && !isReadOnly ? (
 											<div className="ml-auto flex shrink-0 items-center gap-1">
 												<Button
 													type="button"
@@ -422,7 +424,7 @@ export function ServiciosMayorPartidasSection({
 					type="button"
 					variant="success"
 					size="md"
-					disabled={isSaving || partidas.length === 0}
+					disabled={isSaving || partidas.length === 0 || isReadOnly}
 					onClick={handleGuardarSeccion}
 				>
 					{isSaving ? 'Guardando...' : 'Guardar partidas'}

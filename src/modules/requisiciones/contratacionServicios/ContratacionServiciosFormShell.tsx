@@ -93,6 +93,7 @@ export function ContratacionServiciosFormShell({
 	const [requisicionDetalle, setRequisicionDetalle] = useState<RequisicionDetalle | null>(null);
 	const [isLoadingDetalle, setIsLoadingDetalle] = useState(false);
 	const isSolicitante = isSolicitanteProfile(user)
+	const readOnlySolicitante = readOnly || !isSolicitante;
 	const [documentoServicios, setDocumentoServicios] = useState<any | null>(null);
 	const [loadingDocumento, setLoadingDocumento] = useState(false);
 
@@ -369,7 +370,7 @@ export function ContratacionServiciosFormShell({
 					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g2" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<RequisicionTabPanelFieldset readOnly={readOnly}>
+					<RequisicionTabPanelFieldset readOnly={readOnlySolicitante}>
 						<MayorDatosPresupuestalesTab
 							idRequisicion={Number(editingRow.id)}
 							idUsuario={Number(editingRow.idUsuario ?? 0)}
@@ -420,7 +421,7 @@ export function ContratacionServiciosFormShell({
 					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g3" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<RequisicionTabPanelFieldset readOnly={readOnly}>
+					<RequisicionTabPanelFieldset readOnly={readOnlySolicitante}>
 						<MayorDatosRequisicionTab
 							idRequisicion={Number(editingRow.id)}
 							idUsuario={Number(editingRow.idUsuario ?? 0)}
@@ -454,6 +455,7 @@ export function ContratacionServiciosFormShell({
 				<TabsPanel value="cs-g4" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 					<RequisicionTabPanelFieldset readOnly={readOnly}>
 						<MayorPartidasTab
+							isReadOnly={readOnlySolicitante}
 							partidas={draft.mayorPartidas}
 							hideRevisorFields={hideRevisorFields}
 							canEditSolicitanteFields={canEditSolicitanteFields}
@@ -546,7 +548,7 @@ export function ContratacionServiciosFormShell({
 					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g9" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<RequisicionTabPanelFieldset readOnly={readOnly}>
+					<RequisicionTabPanelFieldset readOnly={readOnlySolicitante}>
 						<MayorRepresentantesTab
 							idRequisicion={Number(editingRow.id)}
 							idUsuario={Number(editingRow.idUsuario ?? 0)}
@@ -562,7 +564,7 @@ export function ContratacionServiciosFormShell({
 					</RequisicionTabPanelFieldset>
 				</TabsPanel>
 				<TabsPanel value="cs-g10" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<RequisicionTabPanelFieldset readOnly={readOnly}>
+					<RequisicionTabPanelFieldset readOnly={readOnlySolicitante}>
 						<MayorAdministradorContratoTab
 							idRequisicion={Number(editingRow.id)}
 							idUsuario={Number(editingRow.idUsuario ?? 0)}
@@ -680,6 +682,7 @@ export function ContratacionServiciosFormShell({
 						}}
 						idRequisicion={Number(editingRow.id)}
 						idUsuario={Number(editingRow.idUsuario ?? 0)}
+						isReadOnly={readOnlySolicitante}
 					/>
 				</RequisicionTabPanelFieldset>
 			</TabsPanel>

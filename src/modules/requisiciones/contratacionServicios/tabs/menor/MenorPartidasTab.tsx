@@ -8,12 +8,14 @@ export function MenorPartidasTab({
 	onChange,
 	idRequisicion,
 	idUsuario,
+	isReadOnly = false,
 }: {
 	partidas: ServiciosPartidaMenor[];
 	canEditSolicitanteFields: boolean;
 	onChange: (next: ServiciosPartidaMenor[]) => void;
 	idRequisicion?: number;
 	idUsuario?: number;
+	isReadOnly: boolean;
 }) {
 	const handleChange = (next: ServiciosPartidaMenor[]) => {
 		onChange(next);
@@ -27,6 +29,7 @@ export function MenorPartidasTab({
 			onChange={handleChange}
 			idRequisicion={idRequisicion}
 			idUsuario={idUsuario}
+			isReadOnly={isReadOnly}
 		/>
 	);
 }
