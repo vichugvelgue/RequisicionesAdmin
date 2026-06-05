@@ -9,6 +9,7 @@ export function MayorPartidasTab({
 	onChange,
 	idRequisicion,
 	idUsuario,
+	isReadOnly = false,
 }: {
 	partidas: ServiciosPartidaMayor[];
 	hideRevisorFields: boolean;
@@ -16,6 +17,7 @@ export function MayorPartidasTab({
 	onChange: (next: ServiciosPartidaMayor[]) => void;
 	idRequisicion?: number;
 	idUsuario?: number;
+	isReadOnly: boolean;
 }) {
 	return (
 		<ServiciosMayorPartidasSection
@@ -25,6 +27,7 @@ export function MayorPartidasTab({
 			onChange={onChange}
 			idRequisicion={idRequisicion}
 			idUsuario={idUsuario}
+			isReadOnly={isReadOnly}
 		/>
 	);
 }
