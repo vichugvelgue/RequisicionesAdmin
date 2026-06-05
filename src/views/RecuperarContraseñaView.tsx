@@ -31,12 +31,13 @@ function resolvePostLoginPath(fromState: unknown): string {
 }
 
 export function RecuperarContraseñaView() {
-	const { id } = useParams();
+	const { token } = useParams();
 	const { isAuthenticated, isHydrated, login } = useAuth();
 	const navigate = useNavigate();
 	const location = useLocation();
 
-	const [correoTelefono, setCorreoTelefono] = useState('');
+	const [id, setId] = useState('');
+	const [validando, setValidando] = useState(false);
 	const [contrasena, setContrasena] = useState('');
 	const [contrasenaConfirm, setContrasenaConfirm] = useState('');
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -53,7 +54,24 @@ export function RecuperarContraseñaView() {
 
 	const from = location.state?.from as Location | undefined;
 
-	if (!isHydrated) {
+	useEffect(() => {
+		validarToken();
+	}, [token]);
+
+
+	const validarToken = async () => {
+		setValidando(true);
+		try {
+			const res = await usuarioApi.validarToken(token);
+			setId(res.id.toString());
+		} catch (error) {
+			navigate('/', { replace: true });
+		} finally {
+			setValidando(false);
+		}
+	};
+
+	if (!isHydrated || validando) {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-brand-secondary text-brand-neutral text-sm font-medium">
 				Cargando…
@@ -77,6 +95,7 @@ export function RecuperarContraseñaView() {
 
 		return () => clearTimeout(timer);
 	};
+
 
 	const handleSubmit = async () => {
 		setErrorMessage(null);

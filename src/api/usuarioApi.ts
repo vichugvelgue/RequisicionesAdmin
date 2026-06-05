@@ -226,6 +226,23 @@ export const usuarioApi = {
 		}
 	},
 
+	async validarToken(codigo: string): Promise<{id: number}> {
+		const token = getAuthToken();
+		const response = await fetch(`${API_BASE_URL}/ValidarToken/${codigo}`, {
+			method: 'GET',
+			headers: {
+				'Authorization': `Bearer ${token}`,
+				'Content-Type': 'application/json',
+			},
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData?.mensaje || `Error al validar token: ${response.statusText}`);
+		}
+		const data = await response.json();
+		return data.data;
+	},
 	async enviarRecuperarContraseña(request: LoginCredentials): Promise<void> {
 		const token = getAuthToken();
 		const response = await fetch(`${API_BASE_URL}/EnviarRecuperarContrasena`, {
