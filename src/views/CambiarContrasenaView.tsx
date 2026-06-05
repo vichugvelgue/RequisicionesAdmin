@@ -3,7 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Button, Input, Label, PasswordRequirements, Toast } from '../components/UI';
 import { getPasswordStrengthError } from '../utils/passwordPolicy';
 
-const LOGO_SRC = '/assets/logos/logo_horizontal_beige.png';
+const LOGO_SRC = `${import.meta.env.VITE_BASE_URL}assets/logos/logo_horizontal_beige.png`;
 
 /** Tokens aceptados solo en prototipo (sin API). Documentados en docs/acceso-publico-cambiar-contrasena.md */
 const PROTOTYPE_VALID_TOKENS = new Set(['demo', '550e8400-e29b-41d4-a716-446655440000']);
