@@ -40,8 +40,8 @@ function App() {
 		<Routes>			
 			<Route path="/login" element={<LoginView />} />
 			<Route path="/cambiar-contrasena" element={<CambiarContrasenaView />} />
-			<Route path="/invitacion/:id" element={<InvitacionUsuarioView />} />
-			<Route path="/RecuperarContrasena/:id" element={<RecuperarContraseñaView />} />
+			<Route path="/invitacion/:token" element={<InvitacionUsuarioView />} />
+			<Route path="/RecuperarContrasena/:token" element={<RecuperarContraseñaView />} />
 			<Route element={<RequireAuth />}>
 				<Route path="/" element={<MainLayout />}>
 				<Route index element={<DashboardView />} />

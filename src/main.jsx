@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './auth'
 
+console.log(import.meta.env)
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter  basename={import.meta.env.VITE_BASE_URL.replace(/\/$/, '')}>
