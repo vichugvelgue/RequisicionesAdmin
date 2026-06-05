@@ -11,7 +11,7 @@ import { useAuth } from '../auth';
 import { usuarioApi } from '../api';
 import { Check } from 'lucide-react';
 
-const LOGO_SRC = '/assets/logos/logo_horizontal_beige.png';
+const LOGO_SRC = `${import.meta.env.VITE_BASE_URL}assets/logos/logo_horizontal_beige.png`;
 
 function isSafeInternalPath(pathname: string): boolean {
 	return pathname.startsWith('/') && !pathname.startsWith('//');
