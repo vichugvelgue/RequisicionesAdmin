@@ -20,10 +20,11 @@ npm run dev
 
 ## Variables de entorno (mock)
 
-En desarrollo local, actualmente se usan estas variables en `.env`:
+En desarrollo local, actualmente se usan estas variables en `.env.development`:
 
-```env
+```env.development
 VITE_API_BASE_URL=http://localhost:5214
+VITE_BASE_URL=/
 VITE_SHOW_COMPONENTES=false
 VITE_SHOW_EXAMPLES=false
 ```
@@ -32,21 +33,24 @@ VITE_SHOW_EXAMPLES=false
 | Variable | Descripción |
 |-----------|------------|
 | `VITE_API_BASE_URL` | URL base de la API utilizada por la aplicación. |
+| `VITE_BASE_URL` | URL base donde se publica la app. |
 | `VITE_SHOW_COMPONENTES` | Habilita el módulo de demostración de componentes UI. |
 | `VITE_SHOW_EXAMPLES` | Habilita vistas de ejemplo y demostraciones internas. |
 
 ### Ejemplo para ambiente local
 
 ```env
-VITE_API_BASE_URL=http://localhost:5214
-VITE_SHOW_COMPONENTES=true
-VITE_SHOW_EXAMPLES=true
+VITE_API_BASE_URL=http://localhost/RequisicionesAPI
+VITE_BASE_URL=/Requisiciones/
+VITE_SHOW_COMPONENTES=false
+VITE_SHOW_EXAMPLES=false
 ```
 
 ### Ejemplo para ambiente productivo
 
 ```env
-VITE_API_BASE_URL=https://api.midominio.com
+VITE_API_BASE_URL=http://62.151.179.204/RequisicionesAPI
+VITE_BASE_URL=/Requisiciones/
 VITE_SHOW_COMPONENTES=false
 VITE_SHOW_EXAMPLES=false
 ```
@@ -76,6 +80,12 @@ El módulo **Componentes** expone pantallas de referencia (inputs, tablas, infin
 ## Arquitectura
 
 La aplicación está basada en una arquitectura modular orientada a ERP.
+
+## Configuración del router
+
+<BrowserRouter
+    basename={import.meta.env.VITE_BASE_URL.replace(/\/$/, '')}
+>
 
 ### Flujo general
 
@@ -302,7 +312,7 @@ La aplicación utiliza plantillas de Microsoft Word para la generación de docum
 Las plantillas se encuentran en:
 
 ```text
-public/documentos/plantillas/
+public/plantillas/
 ```
 
 ### Plantillas disponibles
@@ -310,7 +320,7 @@ public/documentos/plantillas/
 | Archivo | Descripción |
 |----------|------------|
 | `requisicionbienesmayor.docx` | Documento de requisición para bienes de monto mayor. |
-| `requisicionBbienesMenor.docx` | Documento de requisición para bienes de monto menor. |
+| `requisicionbienesMenor.docx` | Documento de requisición para bienes de monto menor. |
 | `requisicionserviciosmayor.docx` | Documento de requisición para servicios de monto mayor. |
 | `requisicionServiciosmenor.docx` | Documento de requisición para servicios de monto menor. |
 
