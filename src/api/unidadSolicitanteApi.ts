@@ -1,6 +1,4 @@
-import type { AuthSession } from "../auth/types";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5214";
+import { authorizedFetch } from "./httpClient";
 
 export interface UnidadSolicitante {
 	id: number;
@@ -25,17 +23,6 @@ export interface UpdateUnidadSolicitanteRequest {
 	nombre: string;
 }
 
-const getAuthToken = (): string | null => {
-	try {
-		const session: AuthSession | null = JSON.parse(
-			localStorage.getItem("requisiciones_admin_auth_v1") || "null"
-		);
-		return session?.accessToken || null;
-	} catch {
-		return null;
-	}
-};
-
 const mapUnidadSolicitanteToView = (item: UnidadSolicitante): UnidadSolicitanteView => ({
 	id: item.id,
 	nombre: item.nombre || "",
@@ -44,17 +31,9 @@ const mapUnidadSolicitanteToView = (item: UnidadSolicitante): UnidadSolicitanteV
 
 export const unidadSolicitanteApi = {
 	async listar(): Promise<UnidadSolicitanteView[]> {
-		const token = getAuthToken();
-
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorUnidadSolicitante/ListarUnidadSolicitante`,
-			{
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-			}
+		const response = await authorizedFetch(
+			"/ControladorUnidadSolicitante/ListarUnidadSolicitante",
+			{ method: "GET" }
 		);
 
 		if (!response.ok) {
@@ -67,17 +46,9 @@ export const unidadSolicitanteApi = {
 	},
 
 	async obtenerPorId(id: number): Promise<UnidadSolicitanteView> {
-		const token = getAuthToken();
-
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorUnidadSolicitante/ObtenerUnidadSolicitantePorID?id=${id}`,
-			{
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-			}
+		const response = await authorizedFetch(
+			`/ControladorUnidadSolicitante/ObtenerUnidadSolicitantePorID?id=${id}`,
+			{ method: "GET" }
 		);
 
 		if (!response.ok) {
@@ -90,27 +61,17 @@ export const unidadSolicitanteApi = {
 	},
 
 	async crear(request: CreateUnidadSolicitanteRequest): Promise<UnidadSolicitanteView> {
-		const token = getAuthToken();
-
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorUnidadSolicitante/CrearUnidadSolicitante`,
+		const response = await authorizedFetch(
+			"/ControladorUnidadSolicitante/CrearUnidadSolicitante",
 			{
 				method: "PUT",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 				body: JSON.stringify({ nombre: request.nombre }),
 			}
 		);
 
 		if (!response.ok) {
             const errorData = await response.json();
-            console.log("Error response:", errorData);
-            console.log("errorData.mensaje:", errorData?.mensaje);
-            throw new Error(
-                errorData?.mensaje 
-            );
+            throw new Error(errorData?.mensaje);
         }
 
 		const data = await response.json();
@@ -119,28 +80,17 @@ export const unidadSolicitanteApi = {
 	},
 
 	async actualizar(request: UpdateUnidadSolicitanteRequest): Promise<UnidadSolicitanteView> {
-		const token = getAuthToken();
-
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorUnidadSolicitante/ActualizarUnidadSolicitante`,
+		const response = await authorizedFetch(
+			"/ControladorUnidadSolicitante/ActualizarUnidadSolicitante",
 			{
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					id: request.id,
-					nombre: request.nombre,
-				}),
+				body: JSON.stringify({ id: request.id, nombre: request.nombre }),
 			}
 		);
 
 		if (!response.ok) {
-			const errorData = await response.json();            
-            throw new Error(
-                errorData?.mensaje 
-            );
+			const errorData = await response.json();
+            throw new Error(errorData?.mensaje);
 		}
 
 		const data = await response.json();
@@ -149,17 +99,9 @@ export const unidadSolicitanteApi = {
 	},
 
 	async eliminar(id: number): Promise<void> {
-		const token = getAuthToken();
-
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorUnidadSolicitante/DarDebajaUnidadSolicitante?id=${id}`,
-			{
-				method: "DELETE",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-			}
+		const response = await authorizedFetch(
+			`/ControladorUnidadSolicitante/DarDebajaUnidadSolicitante?id=${id}`,
+			{ method: "DELETE" }
 		);
 
 		if (!response.ok) {

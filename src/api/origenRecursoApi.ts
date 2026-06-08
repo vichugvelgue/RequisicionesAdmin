@@ -1,6 +1,4 @@
-import type { AuthSession } from '../auth/types';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5214';
+import { authorizedFetch } from "./httpClient";
 
 export interface OrigenRecurso {
 	id: number;
@@ -25,17 +23,6 @@ export interface UpdateOrigenRecursoRequest {
 	nombre: string;
 }
 
-const getAuthToken = (): string | null => {
-	try {
-		const session: AuthSession | null = JSON.parse(
-			localStorage.getItem('requisiciones_admin_auth_v1') || 'null'
-		);
-		return session?.accessToken || null;
-	} catch {
-		return null;
-	}
-};
-
 const mapOrigenRecursoToView = (item: OrigenRecurso): OrigenRecursoView => ({
 	id: item.id,
 	nombre: item.nombre || '',
@@ -44,14 +31,8 @@ const mapOrigenRecursoToView = (item: OrigenRecurso): OrigenRecursoView => ({
 
 export const origenRecursoApi = {
 	async listar(): Promise<OrigenRecursoView[]> {
-		const token = getAuthToken();
-
-		const response = await fetch(`${API_BASE_URL}/ControladorOrigenRecurso/ListarOrigenRecurso`, {
+		const response = await authorizedFetch("/ControladorOrigenRecurso/ListarOrigenRecurso", {
 			method: 'GET',
-			headers: {
-				Authorization: `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 		});
 
 		if (!response.ok) {
@@ -64,14 +45,8 @@ export const origenRecursoApi = {
 	},
 
 	async crear(request: CreateOrigenRecursoRequest): Promise<OrigenRecursoView> {
-		const token = getAuthToken();
-
-		const response = await fetch(`${API_BASE_URL}/ControladorOrigenRecurso/CrearOrigenRecurso`, {
+		const response = await authorizedFetch("/ControladorOrigenRecurso/CrearOrigenRecurso", {
 			method: 'PUT',
-			headers: {
-				Authorization: `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 			body: JSON.stringify({ nombre: request.nombre }),
 		});
 
@@ -86,14 +61,8 @@ export const origenRecursoApi = {
 	},
 
 	async actualizar(request: UpdateOrigenRecursoRequest): Promise<OrigenRecursoView> {
-		const token = getAuthToken();
-
-		const response = await fetch(`${API_BASE_URL}/ControladorOrigenRecurso/ActualizarOrigenRecurso`, {
+		const response = await authorizedFetch("/ControladorOrigenRecurso/ActualizarOrigenRecurso", {
 			method: 'POST',
-			headers: {
-				Authorization: `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 			body: JSON.stringify({ id: request.id, nombre: request.nombre }),
 		});
 
@@ -108,14 +77,8 @@ export const origenRecursoApi = {
 	},
 
 	async eliminar(id: number): Promise<void> {
-		const token = getAuthToken();
-
-		const response = await fetch(`${API_BASE_URL}/ControladorOrigenRecurso/DarDebajaOrigenRecurso?id=${id}`, {
+		const response = await authorizedFetch(`/ControladorOrigenRecurso/DarDebajaOrigenRecurso?id=${id}`, {
 			method: 'DELETE',
-			headers: {
-				Authorization: `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 		});
 
 		if (!response.ok) {

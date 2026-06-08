@@ -1,6 +1,5 @@
-import type { AuthSession, LoginCredentials, RecuperationCredentials } from '../auth/types';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5214';
+import type { LoginCredentials, RecuperationCredentials } from '../auth/types';
+import { authorizedFetch } from "./httpClient";
 
 const TIPO_USUARIO_ID_TO_LABEL: Record<string, string> = {
 	'1': 'Administrador',
@@ -72,18 +71,6 @@ export interface EnviarInvitacionRequest {
 	id: number;
 }
 
-// Utility to get auth token
-const getAuthToken = (): string | null => {
-	try {
-		const session: AuthSession | null = JSON.parse(
-			localStorage.getItem('requisiciones_admin_auth_v1') || 'null'
-		);
-		return session?.accessToken || null;
-	} catch {
-		return null;
-	}
-};
-
 const mapUsuarioToView = (usuario: Usuario): UsuarioView => {
 	const rawTipoUsuario =
 		usuario.tipoUsuarioNavigation?.nombre ??
@@ -113,13 +100,8 @@ const mapUsuarioToView = (usuario: Usuario): UsuarioView => {
 export const usuarioApi = {
 	// GET /ControladorUsuarioAdministrador/ListarUsuarios
 	async listar(): Promise<UsuarioView[]> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorUsuarioAdministrador/ListarUsuarios`, {
+		const response = await authorizedFetch('/ControladorUsuarioAdministrador/ListarUsuarios', {
 			method: 'GET',
-			headers: {
-				'Authorization': `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 		});
 
 		if (!response.ok) {
@@ -139,16 +121,10 @@ export const usuarioApi = {
 
 	// PUT /ControladorUsuarioAdministrador/CrearUsuarioAdministrador
 	async crear(request: CreateUsuarioRequest): Promise<UsuarioView> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorUsuarioAdministrador/CrearUsuarioAdministrador`, {
+		const response = await authorizedFetch('/ControladorUsuarioAdministrador/CrearUsuarioAdministrador', {
 			method: 'PUT',
-			headers: {
-				'Authorization': `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 			body: JSON.stringify(request),
 		});
-		console.log('Request para crear usuario:', request);
 
 		if (!response.ok) {
 			const errorData = await response.json();
@@ -167,13 +143,8 @@ export const usuarioApi = {
 
 	// POST /ControladorUsuarioAdministrador/ActualizarUsuario
 	async actualizar(request: UpdateUsuarioRequest): Promise<UsuarioView> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorUsuarioAdministrador/ActualizarUsuario`, {
+		const response = await authorizedFetch('/ControladorUsuarioAdministrador/ActualizarUsuario', {
 			method: 'POST',
-			headers: {
-				'Authorization': `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 			body: JSON.stringify(request),
 		});
 
@@ -194,13 +165,8 @@ export const usuarioApi = {
 
 	// DELETE /ControladorUsuarioAdministrador/DarDebajaUsuario
 	async eliminar(id: number): Promise<void> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorUsuarioAdministrador/DarDebajaUsuario?id=${id}`, {
+		const response = await authorizedFetch(`/ControladorUsuarioAdministrador/DarDebajaUsuario?id=${id}`, {
 			method: 'DELETE',
-			headers: {
-				'Authorization': `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 		});
 
 		if (!response.ok) {
@@ -211,13 +177,8 @@ export const usuarioApi = {
 
 	// POST /ControladorUsuarioAdministrador/ActualizarUsuario (para invitación)
 	async enviarInvitacion(idUsuario: number): Promise<void> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorUsuarioAdministrador/InvitarUsuario/${idUsuario}`, {
+		const response = await authorizedFetch(`/ControladorUsuarioAdministrador/InvitarUsuario/${idUsuario}`, {
 			method: 'POST',
-			headers: {
-				'Authorization': `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 		});
 
 		if (!response.ok) {
@@ -227,13 +188,8 @@ export const usuarioApi = {
 	},
 
 	async validarToken(codigo: string): Promise<{id: number}> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ValidarToken/${codigo}`, {
+		const response = await authorizedFetch(`/ValidarToken/${codigo}`, {
 			method: 'GET',
-			headers: {
-				'Authorization': `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 		});
 
 		if (!response.ok) {
@@ -244,13 +200,8 @@ export const usuarioApi = {
 		return data.data;
 	},
 	async enviarRecuperarContraseña(request: LoginCredentials): Promise<void> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/EnviarRecuperarContrasena`, {
+		const response = await authorizedFetch('/EnviarRecuperarContrasena', {
 			method: 'POST',
-			headers: {
-				'Authorization': `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 			body: JSON.stringify(request),
 		});
 
@@ -260,13 +211,8 @@ export const usuarioApi = {
 		}
 	},
 	async recuperarContraseña(request: RecuperationCredentials): Promise<void> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/RecuperarContrasena`, {
+		const response = await authorizedFetch('/RecuperarContrasena', {
 			method: 'POST',
-			headers: {
-				'Authorization': `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 			body: JSON.stringify(request),
 		});
 

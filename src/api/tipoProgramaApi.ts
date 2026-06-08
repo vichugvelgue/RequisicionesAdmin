@@ -1,6 +1,4 @@
-import type { AuthSession } from "../auth/types";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5214";
+import { authorizedFetch } from "./httpClient";
 
 export interface TipoPrograma {
 	id: number;
@@ -23,17 +21,6 @@ export interface UpdateTipoProgramaRequest {
 	nombre: string;
 }
 
-const getAuthToken = (): string | null => {
-	try {
-		const session: AuthSession | null = JSON.parse(
-			localStorage.getItem("requisiciones_admin_auth_v1") || "null"
-		);
-		return session?.accessToken || null;
-	} catch {
-		return null;
-	}
-};
-
 const mapTipoProgramaToView = (item: TipoPrograma): TipoProgramaView => ({
 	id: item.id,
 	nombre: item.nombre || "",
@@ -42,14 +29,8 @@ const mapTipoProgramaToView = (item: TipoPrograma): TipoProgramaView => ({
 
 export const tipoProgramaApi = {
 	async listar(): Promise<TipoProgramaView[]> {
-		const token = getAuthToken();
-
-		const response = await fetch(`${API_BASE_URL}/ControladorTipoPrograma/ListarTipoPrograma`, {
+		const response = await authorizedFetch("/ControladorTipoPrograma/ListarTipoPrograma", {
 			method: "GET",
-			headers: {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			},
 		});
 
 		if (!response.ok) {
@@ -62,17 +43,9 @@ export const tipoProgramaApi = {
 	},
 
 	async obtenerPorId(id: number): Promise<TipoProgramaView> {
-		const token = getAuthToken();
-
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorTipoPrograma/ObtenerTipoProgramaPorID?id=${id}`,
-			{
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-			}
+		const response = await authorizedFetch(
+			`/ControladorTipoPrograma/ObtenerTipoProgramaPorID?id=${id}`,
+			{ method: "GET" }
 		);
 
 		if (!response.ok) {
@@ -85,14 +58,8 @@ export const tipoProgramaApi = {
 	},
 
 	async crear(request: CreateTipoProgramaRequest): Promise<TipoProgramaView> {
-		const token = getAuthToken();
-
-		const response = await fetch(`${API_BASE_URL}/ControladorTipoPrograma/CrearTipoPrograma`, {
+		const response = await authorizedFetch("/ControladorTipoPrograma/CrearTipoPrograma", {
 			method: "PUT",
-			headers: {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			},
 			body: JSON.stringify({ nombre: request.nombre }),
 		});
 
@@ -107,18 +74,9 @@ export const tipoProgramaApi = {
 	},
 
 	async actualizar(request: UpdateTipoProgramaRequest): Promise<TipoProgramaView> {
-		const token = getAuthToken();
-
-		const response = await fetch(`${API_BASE_URL}/ControladorTipoPrograma/ActualizarTipoPrograma`, {
+		const response = await authorizedFetch("/ControladorTipoPrograma/ActualizarTipoPrograma", {
 			method: "POST",
-			headers: {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				id: request.id,
-				nombre: request.nombre,
-			}),
+			body: JSON.stringify({ id: request.id, nombre: request.nombre }),
 		});
 
 		if (!response.ok) {
@@ -132,17 +90,9 @@ export const tipoProgramaApi = {
 	},
 
 	async eliminar(id: number): Promise<void> {
-		const token = getAuthToken();
-
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorTipoPrograma/DarDebajaTipoPrograma?id=${id}`,
-			{
-				method: "DELETE",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-			}
+		const response = await authorizedFetch(
+			`/ControladorTipoPrograma/DarDebajaTipoPrograma?id=${id}`,
+			{ method: "DELETE" }
 		);
 
 		if (!response.ok) {
