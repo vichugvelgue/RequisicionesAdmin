@@ -56,7 +56,7 @@ export function RecuperarContraseñaView() {
 
 	useEffect(() => {
 		validarToken();
-	}, [token]);
+	}, []);
 
 
 	const validarToken = async () => {
