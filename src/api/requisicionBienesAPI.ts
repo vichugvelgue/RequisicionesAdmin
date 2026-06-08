@@ -1,6 +1,4 @@
-import type { AuthSession } from "../auth/types";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5214";
+import { authorizedFetch } from "./httpClient";
 
 //Se utiliza para el listado
 export interface Requisicion {
@@ -328,17 +326,6 @@ export interface IndicadoresSolicitante {
 	menores: number;
 }
 
-const getAuthToken = (): string | null => {
-	try {
-		const session: AuthSession | null = JSON.parse(
-			localStorage.getItem("requisiciones_admin_auth_v1") || "null"
-		);
-		return session?.accessToken || null;
-	} catch {
-		return null;
-	}
-};
-
 const getUsuarioId = (): number => {
 	try {
 		const session = JSON.parse(
@@ -384,34 +371,13 @@ const handleApiError = async (response: Response, fallback: string): Promise<nev
 
 export const requisicionApi = {
 	// Obtener el listado de requisiciones para el usuario autenticado
-	/*async listarPorSolicitante(): Promise<RequisicionView[]> {
-		console.log("requisicionApi.listarPorSolicitante called");
-		const token = getAuthToken();
+	/*async listarPorSolicitanteOld(): Promise<RequisicionView[]> {
 		const idUsuario = getUsuarioId();
-
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/ListarPorSolicitante/${idUsuario}`,
-			{
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-			}
-		);
-
-		if (!response.ok) {
-			await handleApiError(response, "Error al listar requisiciones por solicitante");
-		}
-
+		const response = await authorizedFetch(`/ControladorRequisicion/ListarPorSolicitante/${idUsuario}`, { method: "GET" });
+		if (!response.ok) await handleApiError(response, "Error al listar requisiciones por solicitante");
 		const data = await response.json();
-
 		const requisiciones: Requisicion[] = data.dataList || [];
-		console.log("Requisiciones recibidas del API:", requisiciones);
-
-		return requisiciones
-			.filter((item) => item && typeof item === "object" && item.id)
-			.map(mapRequisicionToView);
+		return requisiciones.filter((item) => item && typeof item === "object" && item.id).map(mapRequisicionToView);
 	},*/
 
 	async listarPorSolicitante(params?: {
@@ -421,7 +387,6 @@ export const requisicionApi = {
 		fechaInicio?: string | null;
 		fechaFin?: string | null;
 	}): Promise<RequisicionView[]> {
-		const token = getAuthToken();
 		const idUsuario = getUsuarioId();
 
 		const query = new URLSearchParams();
@@ -448,15 +413,11 @@ export const requisicionApi = {
 
 		const queryString = query.toString();
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/ListarPorSolicitante/${idUsuario}${queryString ? `?${queryString}` : ''
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/ListarPorSolicitante/${idUsuario}${queryString ? `?${queryString}` : ''
 			}`,
 			{
 				method: 'GET',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/json',
-				},
 			}
 		);
 
@@ -479,7 +440,6 @@ export const requisicionApi = {
 		fechaInicio?: string | null;
 		fechaFin?: string | null;
 	}): Promise<RequisicionView[]> {
-		const token = getAuthToken();
 		const idUsuario = getUsuarioId();
 
 		const query = new URLSearchParams();
@@ -506,14 +466,10 @@ export const requisicionApi = {
 
 		const queryString = query.toString();
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/ListarPorRevisor/${idUsuario}${queryString ? `?${queryString}` : ''}`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/ListarPorRevisor/${idUsuario}${queryString ? `?${queryString}` : ''}`,
 			{
 				method: 'GET',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/json',
-				},
 			}
 		);
 
@@ -536,7 +492,6 @@ export const requisicionApi = {
 		fechaInicio?: string | null;
 		fechaFin?: string | null;
 	}): Promise<RequisicionView[]> {
-		const token = getAuthToken();
 
 		const query = new URLSearchParams();
 
@@ -562,14 +517,10 @@ export const requisicionApi = {
 
 		const queryString = query.toString();
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/ListarTodas${queryString ? `?${queryString}` : ''}`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/ListarTodas${queryString ? `?${queryString}` : ''}`,
 			{
 				method: 'GET',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/json',
-				},
 			}
 		);
 
@@ -587,16 +538,11 @@ export const requisicionApi = {
 
 	// Crear una nueva requisición al inicio del proceso, antes de guardar datos generales
 	async crear(data: CrearRequisicionRequest) {
-		const token = getAuthToken();
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/CrearRequisicion`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/CrearRequisicion`,
 			{
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 				body: JSON.stringify(data),
 			}
 		);
@@ -615,15 +561,10 @@ export const requisicionApi = {
 	},
 
 	async EnviarObservacion(data: EnviarObservacionRequest): Promise<void> {
-		const token = getAuthToken();
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/RegistrarObservacionRevision`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/RegistrarObservacionRevision`,
 			{
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 				body: JSON.stringify(data),
 			}
 		);
@@ -637,15 +578,10 @@ export const requisicionApi = {
 	},
 
 	async EnviarRevision(data: GuardarRequisicionDTO): Promise<void> {
-		const token = getAuthToken();
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/EnviarRevision`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/EnviarRevision`,
 			{
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 				body: JSON.stringify(data),
 			}
 		);
@@ -659,15 +595,10 @@ export const requisicionApi = {
 	},
 
 	async Cancelar(data: GuardarRequisicionDTO): Promise<void> {
-		const token = getAuthToken();
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/Cancelar`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/Cancelar`,
 			{
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 				body: JSON.stringify(data),
 			}
 		);
@@ -681,15 +612,10 @@ export const requisicionApi = {
 	},
 
 	async EnviarAutorizacion(data: GuardarRequisicionDTO): Promise<void> {
-		const token = getAuthToken();
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/EnviarAutorizacion`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/EnviarAutorizacion`,
 			{
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 				body: JSON.stringify(data),
 			}
 		);
@@ -703,15 +629,10 @@ export const requisicionApi = {
 	},
 
 	async Autorizar(data: GuardarRequisicionDTO): Promise<void> {
-		const token = getAuthToken();
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/Autorizar`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/Autorizar`,
 			{
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 				body: JSON.stringify(data),
 			}
 		);
@@ -725,15 +646,10 @@ export const requisicionApi = {
 	},
 
 	async ObtenerObservaciones(idRequisicion: string): Promise<ObservacionRequisicionView[]> {
-		const token = getAuthToken();
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/ObtenerObservaciones/${idRequisicion}`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/ObtenerObservaciones/${idRequisicion}`,
 			{
 				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 			}
 		);
 
@@ -751,15 +667,10 @@ export const requisicionApi = {
 	},
 
 	async ObtenerHistorial(idRequisicion: string): Promise<HistorialRequisicionView[]> {
-		const token = getAuthToken();
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/ObtenerHistorial/${idRequisicion}`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/ObtenerHistorial/${idRequisicion}`,
 			{
 				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 			}
 		);
 
@@ -779,16 +690,11 @@ export const requisicionApi = {
 
 	//Guardar datos generales en el paso 1 del formulario
 	async guardarDatosGenerales(data: GuardarDatosGeneralesRequest): Promise<void> {
-		const token = getAuthToken();
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/GuardarDatosGenerales`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/GuardarDatosGenerales`,
 			{
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 				body: JSON.stringify(data),
 			}
 		);
@@ -803,16 +709,11 @@ export const requisicionApi = {
 
 	// Obtener detalles de una requisición por su ID
 	async obtenerPorId(idRequisicion: number): Promise<RequisicionDetalle> {
-		const token = getAuthToken();
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/ObtenerRequisicionPorID?idRequisicion=${idRequisicion}`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/ObtenerRequisicionPorID?idRequisicion=${idRequisicion}`,
 			{
 				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 			}
 		);
 		if (!response.ok) {
@@ -828,16 +729,11 @@ export const requisicionApi = {
 
 	//Registrar Justificación de gasto bien menor y los otros para bien mayor
 	async guardarDatosRequisicion(data: GuardarDatosRequisicionRequest): Promise<void> {
-		const token = getAuthToken();
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/GuardarDatosRequisicion`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/GuardarDatosRequisicion`,
 			{
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 				body: JSON.stringify({
 					idRequisicion: data.idRequisicion,
 					idUsuario: data.idUsuario,
@@ -857,16 +753,11 @@ export const requisicionApi = {
 	},
 
 	async guardarPartidas(data: GuardarPartidasRequest): Promise<void> {
-		const token = getAuthToken();
 		const idUsuario = getUsuarioId();
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/GuardarPartidas`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/GuardarPartidas`,
 			{
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 				body: JSON.stringify({
 					idRequisicion: data.idRequisicion,
 					idUsuario: idUsuario,
@@ -898,16 +789,11 @@ export const requisicionApi = {
 	async guardarDatosPresupuestales(
 		data: GuardarDatosPresupuestalesRequest
 	): Promise<void> {
-		const token = getAuthToken();
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/GuardarDatosPresupuestales`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/GuardarDatosPresupuestales`,
 			{
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 				body: JSON.stringify(data),
 			}
 		);
@@ -923,16 +809,11 @@ export const requisicionApi = {
 	async guardarDatosEjecucion(
 		data: guardarDatosEjecucionRequest
 	): Promise<void> {
-		const token = getAuthToken();
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/GuardarServicioEjecucion`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/GuardarServicioEjecucion`,
 			{
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 				body: JSON.stringify(data),
 			}
 		);
@@ -948,16 +829,11 @@ export const requisicionApi = {
 	async guardarDatosCondiciones(
 		data: guardarDatosCondicionesRequest
 	): Promise<void> {
-		const token = getAuthToken();
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/GuardarServicioCondiciones`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/GuardarServicioCondiciones`,
 			{
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 				body: JSON.stringify(data),
 			}
 		);
@@ -972,16 +848,11 @@ export const requisicionApi = {
 
 	// Guardar representante
 	async guardarRepresentante(data: GuardarRepresentanteRequest): Promise<void> {
-		const token = getAuthToken();
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/GuardarRepresentante`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/GuardarRepresentante`,
 			{
 				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/json',
-				},
 				body: JSON.stringify(data),
 			}
 		);
@@ -998,16 +869,11 @@ export const requisicionApi = {
 	async guardarAdministradorContrato(
 		data: GuardarAdministradorContratoRequest
 	): Promise<void> {
-		const token = getAuthToken();
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/GuardarAdministradorContrato`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/GuardarAdministradorContrato`,
 			{
 				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/json',
-				},
 				body: JSON.stringify(data),
 			}
 		);
@@ -1024,16 +890,11 @@ export const requisicionApi = {
 
 	// Obtener información completa de bienes para documento
 	async obtenerInformacionBienesDocumento(idRequisicion: number): Promise<RequisicionBienDocumento> {
-		const token = getAuthToken();
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/ObtenerDocumentoBienes?idRequisicion=${idRequisicion}`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/ObtenerDocumentoBienes?idRequisicion=${idRequisicion}`,
 			{
 				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 			}
 		);
 
@@ -1051,16 +912,11 @@ export const requisicionApi = {
 
 	// obtenerDocumentoServicios
 	async obtenerDocumentoServicios(idRequisicion: number): Promise<RequisicionBienDocumento> {
-		const token = getAuthToken();
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/ObtenerDocumentoServicios?idRequisicion=${idRequisicion}`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/ObtenerDocumentoServicios?idRequisicion=${idRequisicion}`,
 			{
 				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 			}
 		);
 
@@ -1078,15 +934,10 @@ export const requisicionApi = {
 	},
 
 	async guardarDatosAdministrativosBien(data: DatosAdministrativosBienDTO) {
-		const token = getAuthToken();
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/GuardarDatosAdministrativosBien`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/GuardarDatosAdministrativosBien`,
 			{
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
 				body: JSON.stringify(data),
 			}
 		);
@@ -1109,7 +960,6 @@ export const requisicionApi = {
 		tipoObjeto?: string;
 		unidadSolicitante?: string;
 	}): Promise<RequisicionView[]> {
-		const token = getAuthToken();
 		const query = new URLSearchParams();
 
 		query.append('FechaInicio', params.fechaInicio);
@@ -1139,14 +989,10 @@ export const requisicionApi = {
 			query.append('unidadSolicitante', params.unidadSolicitante);
 		}
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/ObtenerReporteRequisiciones?${query.toString()}`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/ObtenerReporteRequisiciones?${query.toString()}`,
 			{
 				method: 'GET',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/json',
-				},
 			}
 		);
 
@@ -1163,17 +1009,12 @@ export const requisicionApi = {
 	},
 
 	async obtenerIndicadoresSolicitante(tipoObjeto: number): Promise<IndicadoresSolicitante> {
-		const token = getAuthToken();
 		const idUsuario = getUsuarioId();
 
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorRequisicion/ObtenerIndicadoresSolicitante?idUsuario=${idUsuario}&tipoObjeto=${tipoObjeto}`,
+		const response = await authorizedFetch(
+			`/ControladorRequisicion/ObtenerIndicadoresSolicitante?idUsuario=${idUsuario}&tipoObjeto=${tipoObjeto}`,
 			{
 				method: 'GET',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/json',
-				},
 			}
 		);
 

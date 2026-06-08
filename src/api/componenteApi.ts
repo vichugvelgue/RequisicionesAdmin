@@ -1,8 +1,5 @@
-import type { AuthSession } from '../auth/types';
+import { authorizedFetch } from "./httpClient";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5214';
-
-// Types
 export interface Componente {
 	id: number;
 	nombre: string;
@@ -26,19 +23,6 @@ export interface UpdateComponenteRequest {
 	nombre: string;
 }
 
-// Utility to get auth token
-const getAuthToken = (): string | null => {
-	try {
-		const session: AuthSession | null = JSON.parse(
-			localStorage.getItem('requisiciones_admin_auth_v1') || 'null'
-		);
-		return session?.accessToken || null;
-	} catch {
-		return null;
-	}
-};
-
-// Utility functions
 const mapComponenteToView = (componente: Componente): ComponenteView => {
 	if (!componente || typeof componente !== 'object') {
 		throw new Error('Datos de componente inválidos');
@@ -54,21 +38,14 @@ const mapViewToComponente = (view: ComponenteView): Componente => ({
 	id: view.id,
 	nombre: view.nombre,
 	estado: view.estatus === 'ACTIVO' ? 1 : 0,
-	fechaRegistro: '', // No tenemos esta info en la vista
+	fechaRegistro: '',
 	fechaModificacion: '',
 });
 
-// API functions
 export const componenteApi = {
-	// GET /ControladorComponente/ListarComponente
 	async listar(): Promise<ComponenteView[]> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorComponente/ListarComponente`, {
+		const response = await authorizedFetch("/ControladorComponente/ListarComponente", {
 			method: 'GET',
-			headers: {
-				'Authorization': `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 		});
 
 		if (!response.ok) {
@@ -76,7 +53,6 @@ export const componenteApi = {
 		}
 
 		const data = await response.json();
-		// API returns { dataList: Componente[] }
 		const componentes: Componente[] = data.dataList || [];
 		const mapped = componentes
 			.filter((item) => item && typeof item === "object" && item.id && item.nombre)
@@ -84,15 +60,9 @@ export const componenteApi = {
 		return mapped;
 	},
 
-	// GET /ControladorComponente/ObtenerComponentePorID?id={id}
 	async obtenerPorId(id: number): Promise<Componente> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorComponente/ObtenerComponentePorID?id=${id}`, {
+		const response = await authorizedFetch(`/ControladorComponente/ObtenerComponentePorID?id=${id}`, {
 			method: 'GET',
-			headers: {
-				'Authorization': `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 		});
 
 		if (!response.ok) {
@@ -103,81 +73,51 @@ export const componenteApi = {
 		return data.data || data;
 	},
 
-	// PUT /ControladorComponente/CrearComponente
 	async crear(request: CreateComponenteRequest): Promise<ComponenteView> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorComponente/CrearComponente`, {
+		const response = await authorizedFetch("/ControladorComponente/CrearComponente", {
 			method: 'PUT',
-			headers: {
-				'Authorization': `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 			body: JSON.stringify(request),
 		});
 
 		if (!response.ok) {
 			const errorData = await response.json();
-			console.log("Error response:", errorData);
-			throw new Error(
-				errorData?.mensaje
-			);
+			throw new Error(errorData?.mensaje);
 		}
 
 		const data = await response.json();
-		console.log("Respuesta crear componente:", data);
 		const componente: Componente = data.data || data;
-		console.log("Componente mapeado:", componente);
-		
+
 		if (!componente || typeof componente !== 'object') {
 			throw new Error('Respuesta del servidor inválida: estructura no esperada');
 		}
-		
+
 		return mapComponenteToView(componente);
 	},
 
-	// POST /ControladorComponente/ActualizarComponente
 	async actualizar(request: UpdateComponenteRequest): Promise<ComponenteView> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorComponente/ActualizarComponente`, {
+		const response = await authorizedFetch("/ControladorComponente/ActualizarComponente", {
 			method: 'POST',
-			headers: {
-				'Authorization': `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 			body: JSON.stringify(request),
 		});
 
-		if (!response.ok) {            
+		if (!response.ok) {
 			const errorData = await response.json();
-            console.log("Error response:", errorData);
-			throw new Error(
-				errorData?.mensaje
-			);
+			throw new Error(errorData?.mensaje);
 		}
 
 		const data = await response.json();
-		console.log("Respuesta actualizar componente:", data);
 		const componente: Componente = data.data || data;
-		console.log("Componente mapeado:", componente);
-		
+
 		if (!componente || typeof componente !== 'object') {
 			throw new Error('Respuesta del servidor inválida: estructura no esperada');
 		}
-		
-		const mapped = mapComponenteToView(componente);
-		console.log("ComponenteView mapeada:", mapped);
-		return mapped;
+
+		return mapComponenteToView(componente);
 	},
 
-	// DELETE /ControladorComponente/DarDebajaComponente
 	async eliminar(id: number): Promise<void> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorComponente/DarDebajaComponente?id=${id}`, {
+		const response = await authorizedFetch(`/ControladorComponente/DarDebajaComponente?id=${id}`, {
 			method: 'DELETE',
-			headers: {
-				'Authorization': `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 		});
 
 		if (!response.ok) {

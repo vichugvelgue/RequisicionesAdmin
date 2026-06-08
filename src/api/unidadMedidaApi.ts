@@ -1,6 +1,4 @@
-import type { AuthSession } from "../auth/types";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5214";
+import { authorizedFetch } from "./httpClient";
 
 export interface UnidadMedida {
 	id: number;
@@ -25,17 +23,6 @@ export interface UpdateUnidadMedidaRequest {
 	nombre: string;
 }
 
-const getAuthToken = (): string | null => {
-	try {
-		const session: AuthSession | null = JSON.parse(
-			localStorage.getItem("requisiciones_admin_auth_v1") || "null"
-		);
-		return session?.accessToken || null;
-	} catch {
-		return null;
-	}
-};
-
 const mapUnidadMedidaToView = (item: UnidadMedida): UnidadMedidaView => ({
 	id: item.id,
 	nombre: item.nombre || "",
@@ -44,14 +31,8 @@ const mapUnidadMedidaToView = (item: UnidadMedida): UnidadMedidaView => ({
 
 export const unidadMedidaApi = {
 	async listar(): Promise<UnidadMedidaView[]> {
-		const token = getAuthToken();
-
-		const response = await fetch(`${API_BASE_URL}/ControladorUnidadMedida/ListarUnidadMedida`, {
+		const response = await authorizedFetch("/ControladorUnidadMedida/ListarUnidadMedida", {
 			method: "GET",
-			headers: {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			},
 		});
 
 		if (!response.ok) {
@@ -64,17 +45,9 @@ export const unidadMedidaApi = {
 	},
 
 	async obtenerPorId(id: number): Promise<UnidadMedidaView> {
-		const token = getAuthToken();
-
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorUnidadMedida/ObtenerUnidadMedidaPorID?id=${id}`,
-			{
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-			}
+		const response = await authorizedFetch(
+			`/ControladorUnidadMedida/ObtenerUnidadMedidaPorID?id=${id}`,
+			{ method: "GET" }
 		);
 
 		if (!response.ok) {
@@ -87,14 +60,8 @@ export const unidadMedidaApi = {
 	},
 
 	async crear(request: CreateUnidadMedidaRequest): Promise<UnidadMedidaView> {
-		const token = getAuthToken();
-
-		const response = await fetch(`${API_BASE_URL}/ControladorUnidadMedida/CrearUnidadMedida`, {
+		const response = await authorizedFetch("/ControladorUnidadMedida/CrearUnidadMedida", {
 			method: "PUT",
-			headers: {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			},
 			body: JSON.stringify({ nombre: request.nombre }),
 		});
 
@@ -109,18 +76,9 @@ export const unidadMedidaApi = {
 	},
 
 	async actualizar(request: UpdateUnidadMedidaRequest): Promise<UnidadMedidaView> {
-		const token = getAuthToken();
-
-		const response = await fetch(`${API_BASE_URL}/ControladorUnidadMedida/ActualizarUnidadMedida`, {
+		const response = await authorizedFetch("/ControladorUnidadMedida/ActualizarUnidadMedida", {
 			method: "POST",
-			headers: {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				id: request.id,
-				nombre: request.nombre,
-			}),
+			body: JSON.stringify({ id: request.id, nombre: request.nombre }),
 		});
 
 		if (!response.ok) {
@@ -134,17 +92,9 @@ export const unidadMedidaApi = {
 	},
 
 	async eliminar(id: number): Promise<void> {
-		const token = getAuthToken();
-
-		const response = await fetch(
-			`${API_BASE_URL}/ControladorUnidadMedida/DarDebajaUnidadMedida?id=${id}`,
-			{
-				method: "DELETE",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-			}
+		const response = await authorizedFetch(
+			`/ControladorUnidadMedida/DarDebajaUnidadMedida?id=${id}`,
+			{ method: "DELETE" }
 		);
 
 		if (!response.ok) {

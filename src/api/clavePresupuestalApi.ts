@@ -1,6 +1,4 @@
-import type { AuthSession } from '../auth/types';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5214';
+import { authorizedFetch } from "./httpClient";
 
 export interface ClavePresupuestal {
 	id: number;
@@ -25,17 +23,6 @@ export interface UpdateClavePresupuestalRequest {
 	nombre: string;
 }
 
-const getAuthToken = (): string | null => {
-	try {
-		const session: AuthSession | null = JSON.parse(
-			localStorage.getItem('requisiciones_admin_auth_v1') || 'null'
-		);
-		return session?.accessToken || null;
-	} catch {
-		return null;
-	}
-};
-
 const mapClavePresupuestalToView = (item: ClavePresupuestal): ClavePresupuestalView => ({
 	id: item.id,
 	nombre: item.nombre || '',
@@ -44,32 +31,22 @@ const mapClavePresupuestalToView = (item: ClavePresupuestal): ClavePresupuestalV
 
 export const clavePresupuestalApi = {
 	async listar(): Promise<ClavePresupuestalView[]> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorClavePresupuestal/ListarClavePresupuestal`, {
+		const response = await authorizedFetch("/ControladorClavePresupuestal/ListarClavePresupuestal", {
 			method: 'GET',
-			headers: {
-				Authorization: `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 		});
 
 		if (!response.ok) {
 			throw new Error(`Error al listar claves presupuestales: ${response.statusText}`);
 		}
 
-		const data = await response.json();        
+		const data = await response.json();
 		const items: ClavePresupuestal[] = data.dataList || [];
 		return items.filter(Boolean).map(mapClavePresupuestalToView);
 	},
 
 	async obtenerPorId(id: number): Promise<ClavePresupuestalView> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorClavePresupuestal/ObtenerClavePresupuestalPorID?id=${id}`, {
+		const response = await authorizedFetch(`/ControladorClavePresupuestal/ObtenerClavePresupuestalPorID?id=${id}`, {
 			method: 'GET',
-			headers: {
-				Authorization: `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 		});
 
 		if (!response.ok) {
@@ -82,13 +59,8 @@ export const clavePresupuestalApi = {
 	},
 
 	async crear(request: CreateClavePresupuestalRequest): Promise<ClavePresupuestalView> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorClavePresupuestal/CrearClavePresupuestal`, {
+		const response = await authorizedFetch("/ControladorClavePresupuestal/CrearClavePresupuestal", {
 			method: 'PUT',
-			headers: {
-				Authorization: `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 			body: JSON.stringify({ nombre: request.nombre }),
 		});
 
@@ -103,13 +75,8 @@ export const clavePresupuestalApi = {
 	},
 
 	async actualizar(request: UpdateClavePresupuestalRequest): Promise<ClavePresupuestalView> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorClavePresupuestal/ActualizarClavePresupuestal`, {
+		const response = await authorizedFetch("/ControladorClavePresupuestal/ActualizarClavePresupuestal", {
 			method: 'POST',
-			headers: {
-				Authorization: `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 			body: JSON.stringify({ id: request.id, nombre: request.nombre }),
 		});
 
@@ -124,13 +91,8 @@ export const clavePresupuestalApi = {
 	},
 
 	async eliminar(id: number): Promise<void> {
-		const token = getAuthToken();
-		const response = await fetch(`${API_BASE_URL}/ControladorClavePresupuestal/DarDebajaClavePresupuestal?id=${id}`, {
+		const response = await authorizedFetch(`/ControladorClavePresupuestal/DarDebajaClavePresupuestal?id=${id}`, {
 			method: 'DELETE',
-			headers: {
-				Authorization: `Bearer ${token}`,
-				'Content-Type': 'application/json',
-			},
 		});
 
 		if (!response.ok) {

@@ -39,10 +39,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		setIsHydrated(true);
 	}, []);
 
+	useEffect(() => {
+		const onUnauthorized = () => {
+			clearStoredSession();
+			setUser(null);
+			setAccessToken(null);
+		};
+		window.addEventListener('auth:unauthorized', onUnauthorized);
+		return () => window.removeEventListener('auth:unauthorized', onUnauthorized);
+	}, []);
+
 	const login = useCallback(async (credentials: LoginCredentials) => {
-		const result = await signInWithAPI(credentials);
+		const result = await signInWithAPI(credentials); 
 		if (!result.ok) {
-			return { ok: false as const, message: result.message };
+    		return { ok: false, message: 'message' in result ? result.message : 'Error desconocido' } 
 		}
 		writeStoredSession(result.session);
 		setUser(result.session.user);

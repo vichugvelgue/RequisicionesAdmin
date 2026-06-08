@@ -1,3 +1,4 @@
+import { getJWTExpiration } from './jwt';
 import type {
 	AuthResult,
 	LoginCredentials,
@@ -97,7 +98,7 @@ export async function signInWithAPI(
 		const session: AuthSession = {
 			user,
 			accessToken: data.data.jwt,
-			expiresAt: null, // TODO: decode JWT exp if needed
+			expiresAt: getJWTExpiration(data.data.jwt), // TODO: decode JWT exp if needed
 		};
 
 		return {
