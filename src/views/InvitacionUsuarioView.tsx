@@ -56,7 +56,7 @@ export function InvitacionUsuarioView() {
 
 	useEffect(() => {
 		validarToken();
-	}, [token]);
+	}, []);
 
 
 	const validarToken = async () => {
