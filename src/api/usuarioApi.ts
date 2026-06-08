@@ -137,6 +137,9 @@ export const usuarioApi = {
 		if (!usuario || typeof usuario !== 'object') {
 			throw new Error('Respuesta del servidor inválida: estructura no esperada');
 		}
+		if (request.generarInvitacion) {
+			await usuarioApi.enviarInvitacion(usuario.id);
+		}
 
 		return mapUsuarioToView(usuario);
 	},
