@@ -313,9 +313,19 @@ Las plantillas se encuentran en:
 
 ```text
 public/plantillas/
+public/plantillassolicitante/
 ```
 
 ### Plantillas disponibles
+
+| Archivo | Descripción |
+|----------|------------|
+| `requisicionbienesmayor.docx` | Documento de requisición para bienes de monto mayor. |
+| `requisicionbienesMenor.docx` | Documento de requisición para bienes de monto menor. |
+| `requisicionserviciosmayor.docx` | Documento de requisición para servicios de monto mayor. |
+| `requisicionServiciosmenor.docx` | Documento de requisición para servicios de monto menor. |
+
+### Plantillas disponibles para el solicitante (marca de agua Borrador)
 
 | Archivo | Descripción |
 |----------|------------|
