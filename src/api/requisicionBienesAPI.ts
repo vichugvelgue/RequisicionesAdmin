@@ -11,6 +11,7 @@ export interface Requisicion {
 	unidadSolicitante: string;
 	tipoObjetoRequisicion: number;
 	fechaSolicitud: string;
+	fechaSolicitudCadena: string;
 }
 
 export interface GuardarRequisicionDTO {
@@ -32,6 +33,7 @@ export interface RequisicionView {
 	revisor: string;
 	estatus: string;
 	fechaSolicitud: string;
+	fechaSolicitudCadena: string;
 	tipoObjetoRequisicion: number;
 	tipoMontoRequisicion?: number | string;
 	tipoObjeto?: number | string;
@@ -280,6 +282,7 @@ export interface RequisicionBienDocumento {
 	nombreSolicitante: string;
 	cargoSolicitante: string;
 	fechaSolicitud: string;
+	fechaSolicitudCadena: string;
 	caracterProcedimiento: string;
 	modalidadContratacion: string;
 	presupuestoAutorizado: number;
@@ -355,6 +358,7 @@ const mapRequisicionToView = (item: Requisicion): RequisicionView => ({
 	revisor: item.revisor ?? "N/A",
 	unidadSolicitante: item.unidadSolicitante ?? "N/A",
 	fechaSolicitud: formatFecha(item.fechaSolicitud),
+	fechaSolicitudCadena: item.fechaSolicitudCadena,
 	tipoObjetoRequisicion: item.tipoObjetoRequisicion,
 });
 const handleApiError = async (response: Response, fallback: string): Promise<never> => {

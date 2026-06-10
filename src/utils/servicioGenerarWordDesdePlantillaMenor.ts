@@ -2,11 +2,20 @@ import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 import { saveAs } from "file-saver";
 
-export const servicioGenerarWordDesdePlantillaMenor = async (
-    requisicionDetalle: any
-) => {
 
-    const response = await fetch(`${import.meta.env.BASE_URL}/plantillas/requisicionserviciosmenor.docx`);
+export const servicioGenerarWordDesdePlantillaMenor = async (
+    requisicionDetalle: any,
+    activeProfileLabel: string
+) => {
+    
+     
+		const rutaPlantilla =
+			activeProfileLabel === "SOLICITANTE"
+				? `${import.meta.env.BASE_URL}plantillassolicitante/requisicionserviciosmenor.docx`
+				: `${import.meta.env.BASE_URL}plantillas/requisicionserviciosmenor.docx`;
+	
+		const response = await fetch(rutaPlantilla);
+    
 
     const content = await response.arrayBuffer();
 
@@ -28,7 +37,7 @@ export const servicioGenerarWordDesdePlantillaMenor = async (
             requisicionDetalle?.cargoSolicitante ?? "",
         
         fechaSolicitud:
-            requisicionDetalle?.fechaSolicitud ?? "",
+            requisicionDetalle?.fechaSolicitudCadena ?? "",
 
         justificacionGasto:
             requisicionDetalle?.justificacionGasto ?? "",

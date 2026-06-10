@@ -17,6 +17,7 @@ import type { SimpleTableColumn } from "../../components/UI/SimpleTable/SimpleTa
 import { SearchableSelect } from "../../components/common/SearchableSelect";
 import { requisicionApi, unidadSolicitanteApi, type RequisicionView } from "../../api";
 import type { OptionItem } from "../../components/UI/types";
+import * as XLSX from "xlsx";
 
 interface FilterValues {
 	fechaInicio: string;
@@ -233,10 +234,7 @@ export function ReporteRequisicionesView() {
 		setLoading(true);
 
 		try {
-			console.log("Filtros aplicados:", {
-				tipoMonto: watchedFilters.tipoMonto,
-				tipoObjeto: watchedFilters.tipoObjeto
-			});
+			
 			const data = await requisicionApi.obtenerReporteRequisiciones({
 				fechaInicio: watchedFilters.fechaInicio,
 				fechaFin: watchedFilters.fechaFin,
@@ -244,8 +242,7 @@ export function ReporteRequisicionesView() {
 				tipoObjeto: watchedFilters.tipoObjeto ? watchedFilters.tipoObjeto : null,
 				unidadSolicitante: watchedFilters.unidadSolicitante ? watchedFilters.unidadSolicitante : null,
 				//estatus: watchedFilters.estatus ? Number(watchedFilters.estatus) : null,
-			});
-			console.log(data[0]);
+			});			
 
 			const requisicionesConDatos: RequisicionReport[] = data.map((req) => ({
 				...req,
@@ -267,7 +264,7 @@ export function ReporteRequisicionesView() {
 
 				estatusLabel: req.estatus ?? req.estado ?? "",
 
-				fechaSolicitudLabel: formatDate(req.fechaSolicitud),
+				fechaSolicitudLabel: req.fechaSolicitudCadena,
 			}));
 
 			setRequisiciones(requisicionesConDatos);
@@ -294,7 +291,7 @@ export function ReporteRequisicionesView() {
 		});
 	};
 
-	const handleExport = () => {
+	/*const handleExport = () => {
 		const headers = [
 			"ID",
 			"Monto",
@@ -344,7 +341,37 @@ export function ReporteRequisicionesView() {
 
 		window.URL.revokeObjectURL(url);
 		document.body.removeChild(a);
-	};
+	};*/
+
+	const handleExport = () => {
+    const data = filteredRequisiciones.map((r) => ({
+        ID: r.id,
+        Monto: r.monto,
+        Tipo: r.tipoObjetoLabel,
+        "Mayor/Menor": r.tipoMontoLabel,
+        Solicitante: r.solicitanteLabel,
+        Revisor: r.revisorLabel,
+        "Unidad solicitante": r.unidadSolicitanteLabel,
+        Estatus: r.estatusLabel,
+        "Fecha de solicitud": r.fechaSolicitudLabel,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Requisiciones"
+    );
+
+    XLSX.writeFile(
+        workbook,
+        `reporte-requisiciones-${new Date()
+            .toISOString()
+            .split("T")[0]}.xlsx`
+    );
+};
 
 	const handleResetFilters = () => {
 		reset({

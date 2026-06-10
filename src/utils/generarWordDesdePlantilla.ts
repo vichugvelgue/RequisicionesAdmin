@@ -3,10 +3,15 @@ import Docxtemplater from "docxtemplater";
 import { saveAs } from "file-saver";
 
 export const generarWordDesdePlantilla = async (
-	requisicionDetalle: any
-) => {
+	requisicionDetalle: any,
+	activeProfileLabel: string
+) => {    
+    const rutaPlantilla =
+    activeProfileLabel === "SOLICITANTE"
+        ? `${import.meta.env.BASE_URL}plantillassolicitante/requisicionbienesmayor.docx`
+        : `${import.meta.env.BASE_URL}plantillas/requisicionbienesmayor.docx`;
 
-	const response = await fetch(`${import.meta.env.BASE_URL}/plantillas/requisicionbienesmayor.docx`);    
+    const response = await fetch(rutaPlantilla);
 
 	const content = await response.arrayBuffer();
 
@@ -29,7 +34,7 @@ export const generarWordDesdePlantilla = async (
 			requisicionDetalle?.cargoSolicitante ?? "",
         
         fechaSolicitud:
-			requisicionDetalle?.fechaSolicitud ?? "",
+			requisicionDetalle?.fechaSolicitudCadena ?? "",
 
         caracterProcedimiento:
 			requisicionDetalle?.caracterProcedimiento ?? "",

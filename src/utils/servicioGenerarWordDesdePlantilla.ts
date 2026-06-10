@@ -3,10 +3,17 @@ import Docxtemplater from "docxtemplater";
 import { saveAs } from "file-saver";
 
 export const servicioGenerarWordDesdePlantilla = async (
-	requisicionDetalle: any
+	requisicionDetalle: any,
+	activeProfileLabel: string
 ) => {
-
-	const response = await fetch(`${import.meta.env.BASE_URL}/plantillas/requisicionserviciosmayor.docx`);
+	    console.log("Generando Word desde plantilla con datos:", requisicionDetalle);
+		const rutaPlantilla =
+			activeProfileLabel === "SOLICITANTE"
+				? `${import.meta.env.BASE_URL}plantillassolicitante/requisicionserviciosmayor.docx`
+				: `${import.meta.env.BASE_URL}plantillas/requisicionserviciosmayor.docx`;
+	
+		const response = await fetch(rutaPlantilla);
+    
 
 	const content = await response.arrayBuffer();
 
@@ -31,7 +38,7 @@ export const servicioGenerarWordDesdePlantilla = async (
 			requisicionDetalle?.cargoSolicitante ?? "",
         
         fechaSolicitud:
-			requisicionDetalle?.fechaSolicitud ?? "",
+			requisicionDetalle?.fechaSolicitudCadena ?? "",
 
         caracterProcedimiento:
 			requisicionDetalle?.caracterProcedimiento ?? "",

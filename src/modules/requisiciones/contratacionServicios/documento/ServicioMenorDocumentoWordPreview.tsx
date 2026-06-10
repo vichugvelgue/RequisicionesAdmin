@@ -4,6 +4,7 @@ import { DocumentoTabChrome } from './DocumentoTabChrome';
 
 import { servicioGenerarWordDesdePlantillaMenor } from "../../../../utils/servicioGenerarWordDesdePlantillaMenor";
 import { Download } from 'lucide-react';
+import { useAuth } from "../../../../auth";
 
 type Props = {
     requisicionDetalle: any;
@@ -47,15 +48,14 @@ export function ServicioMenorDocumentoWordPreview({
 }: Props) {
 
 
-    
-console.log('requisicionDetalle', requisicionDetalle);
+const { user } = useAuth();
+    const activeProfileLabel = user?.tipoPerfil ?? "SIN PERFIL";
     return (
         <DocumentoTabChrome actions={
                     <button
                         type="button"
-                        onClick={() => servicioGenerarWordDesdePlantillaMenor(requisicionDetalle)}
-                        className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-                    >
+                        onPointerDown={() => servicioGenerarWordDesdePlantillaMenor(requisicionDetalle, activeProfileLabel)}
+                        className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
                         Descargar Word
                     </button>
                 }
@@ -107,7 +107,7 @@ console.log('requisicionDetalle', requisicionDetalle);
                                     FECHA DE SOLICITUD:
                                 </td>
                                 <td className="border border-black p-2">
-                                    {txt(requisicionDetalle?.fechaSolicitud)}
+                                    {txt(requisicionDetalle?.fechaSolicitudCadena)}
                                 </td>
                             </tr>      
 
@@ -188,13 +188,12 @@ console.log('requisicionDetalle', requisicionDetalle);
                                 <td className="w-1/2 px-8 pb-12 text-center align-top">
                                     <div className="border-t border-black pt-2 font-bold">
                                         ELABORÓ
-                                    </div>
-
-                                    <p className="mt-2 font-bold">
-                                        DIRECTOR RESPONSABLE DE LA CONTRATACIÓN
-                                    </p>
+                                    </div>                                                                    
                                      <p className="mt-2 font-bold">
                                         {txt(requisicionDetalle?.nombreSolicitante) ?? '________________'}
+                                    </p>
+                                    <p className="mt-2 font-bold">
+                                        DIRECTOR RESPONSABLE DE LA CONTRATACIÓN
                                     </p>
                                 </td>
 

@@ -1,5 +1,6 @@
 import { DocumentoTabChrome } from "./DocumentoTabChrome";
 import { generarBienesMenorWord } from "../../../../utils/generarBienesMenorWord";
+import { useAuth } from "../../../../auth";
 
 const txt = (v: any) =>
 	v === null || v === undefined || v === "" ? "________________" : String(v);
@@ -22,18 +23,23 @@ type Props = {
 	requisicionDetalle: any;
 };
 
+
+
 export default function BienesMenorDocumentoPreview({
 	requisicionDetalle,
 }: Props) {
-    console.log("BienesMenorDocumentoPreview - requisicionDetalle:", requisicionDetalle);
+	console.log("BienesMenorDocumentoPreview - requisicionDetalle:", requisicionDetalle);
 	const partidas = requisicionDetalle?.partidas ?? [];
+
+	const { user } = useAuth();
+	const activeProfileLabel = user?.tipoPerfil ?? "SIN PERFIL";
 
 	return (
 		<DocumentoTabChrome
 			actions={
 				<button
 					type="button"
-					onClick={() => generarBienesMenorWord(requisicionDetalle)}
+					onPointerDown={() => generarBienesMenorWord(requisicionDetalle, activeProfileLabel)}
 					className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
 				>
 					Descargar Word
@@ -84,8 +90,8 @@ export default function BienesMenorDocumentoPreview({
 									FECHA DE SOLICITUD:
 								</td>
 								<td className="border border-black p-2">
-									{fecha(requisicionDetalle?.fechaSolicitud)}
-								</td>
+								{txt(requisicionDetalle?.fechaSolicitudCadena)}
+							</td>
 							</tr>
 
 							<tr>

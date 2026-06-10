@@ -10,13 +10,11 @@ import {
 	TextArea,
 	Toast,
 	ViewHeader,
-	StatusBadge,
-	resolveStatusBadge,
+	StatusBadge,	
 	SimpleTable,
-	Input,
 	Modal,
 } from '../../../components/UI';
-import type { OptionItem, SortConfig } from '../../../components/UI/types';
+import type { OptionItem, SortConfig, StatusBadgeVariant } from '../../../components/UI/types';
 import type { SimpleTableColumn, SimpleTableCustomAction } from '../../../components/UI/SimpleTable/SimpleTable';
 import { MontoInicialStep } from './MontoInicialStep';
 import {
@@ -32,9 +30,8 @@ import {
 	type RequisicionRow,
 	type SearchCriteria,
 	type TipoCompra,
-	EnumRequisicionEstatusId,
 	isAutorizadorProfileUser,
-	EnumRequisicionEstatus,
+	EnumRequisicionEstatus,	
 } from './types';
 
 import { GuardarRequisicionDTO, requisicionApi, CancelarRequest, type RequisicionView, EnviarObservacionRequest, ObservacionRequisicionView, HistorialRequisicionView, IndicadoresSolicitante } from '../../../api/requisicionBienesAPI';
@@ -42,6 +39,32 @@ import { ContratacionServiciosRow } from '../contratacionServicios/types';
 import { FieldRoleLabel } from './fieldRoleLabel';
 
 
+const resolveRequisicionStatusBadge = (
+    estatus: string
+): { label: string; variant: StatusBadgeVariant } => {
+    switch (estatus) {
+        case "En_Captura":
+            return { label: "En Captura", variant: "Borrador" };
+
+        case "Pendiente":
+            return { label: "Pendiente", variant: "Pendiente" };
+
+        case "En_Revision":
+            return { label: "En Revisión", variant: "Solicitado" };
+
+        case "Validado":
+            return { label: "Validado", variant: "Aprobada" };
+
+        case "Definitivo":
+            return { label: "Definitivo", variant: "Cerrada" };
+
+        case "Rechazada":
+            return { label: "Rechazada", variant: "Rechazada" };
+
+        default:
+            return { label: estatus || "Sin estatus", variant: "Pendiente" };
+    }
+};
 
 const BASE_PATH = '/requisiciones/adquisicion-bienes';
 
@@ -82,15 +105,20 @@ const TABLE_COLUMNS: SimpleTableColumn<RequisicionRow>[] = [
 		cellClassName: 'uppercase',
 	},
 	{
-		key: 'estatus',
-		label: 'ESTATUS',
-		sortable: true,
-		width: 'w-[14%]',
-		render: (_v, row) => {
-			const r = resolveStatusBadge(row.estatus.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " "));
-			return <StatusBadge variant={r.variant}>{r.label}</StatusBadge>;
-		},
-	},
+    key: 'estatus',
+    label: 'ESTATUS',
+    sortable: true,
+    width: 'w-[14%]',
+    render: (_v, row) => {
+        const r = resolveRequisicionStatusBadge(row.estatus);
+
+        return (
+            <StatusBadge variant={r.variant}>
+                {r.label}
+            </StatusBadge>
+        );
+    },
+},
 	{
 		key: 'fechaSolicitudIso',
 		label: 'FECHA SOL.',
@@ -192,9 +220,9 @@ export function AdquisicionBienesListadoFormView() {
 
 	const canEditSolicitanteFields = isSolicitante;
 	const canEditRevisorFields = isRevisorProfile;
-		const isSolicitantePermisoRegistro = (row: RequisicionRow) => isSolicitante && [EnumRequisicionEstatus.En_Captura, EnumRequisicionEstatus.En_Revision].includes(EnumRequisicionEstatus[row.estatus]);
-		const isRevisorPermisoRegistro = (row: RequisicionRow) => isRevisorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Pendiente;
-		const isAutorizadorPermisoRegistro = (row: RequisicionRow) => isAutorizadorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Validado;
+	const isSolicitantePermisoRegistro = (row: RequisicionRow) => isSolicitante && [EnumRequisicionEstatus.En_Captura, EnumRequisicionEstatus.En_Revision].includes(EnumRequisicionEstatus[row.estatus]);
+	const isRevisorPermisoRegistro = (row: RequisicionRow) => isRevisorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Pendiente;
+	const isAutorizadorPermisoRegistro = (row: RequisicionRow) => isAutorizadorProfile && EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Validado;
 	const canDelete = (row: RequisicionRow) => {
 		if (EnumRequisicionEstatus[row.estatus] == EnumRequisicionEstatus.Rechazada) return false
 		if (isAutorizadorPermisoRegistro(row)) return true;
@@ -937,14 +965,14 @@ export function AdquisicionBienesListadoFormView() {
 					open={Boolean(pendingDeleteRow)}
 					onClose={() => setPendingDeleteRow(null)}
 					onConfirm={handleDeleteConfirm}
-					title="Confirmar eliminación"
+					title="Rechazar requisición"
 					icon={<Trash2 className="w-5 h-5" />}
 					variant="danger"
-					confirmLabel="Eliminar"
+					confirmLabel="Rechazar"
 					cancelLabel="Cancelar"
 				>
 					<p className="text-sm text-slate-600">
-						¿Deseas eliminar la requisición{' '}
+						¿Deseas rechazar la requisición{' '}
 						<strong>
 							{pendingDeleteRow ? String(pendingDeleteRow.numero).padStart(7, '0') : ''}
 						</strong>
