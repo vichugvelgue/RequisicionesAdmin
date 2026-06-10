@@ -82,7 +82,7 @@ const usuarioSchema = yup.object({
 	contrasena: yup.string().when("$isEditMode", {
 		is: true,
 		then: (schema) => schema.trim(),
-		otherwise: (schema) => schema.trim().required("*Requerido"),
+		otherwise: (schema) => schema.trim(),
 	}),
 	tipoUsuario: yup
 		.string()
@@ -407,11 +407,11 @@ export function UsuariosListadoFormView() {
 					apellidoPaterno: normalizeText(values.apellidoPaterno),
 					apellidoMaterno: normalizeText(values.apellidoMaterno),
 					correo: values.correo.trim().toLowerCase(),
-					contrasena: values.contrasena,
+					contrasena: "",
 					idTipoUsuario: parseInt(values.tipoUsuario, 10),
 					puesto: normalizeText(values.puesto),
 					area: normalizeText(values.area),
-					generarInvitacion: values.generarInvitacion,
+					generarInvitacion: true,
 				});
 
 				setRows((prev) => [nuevoUsuario, ...prev]);
