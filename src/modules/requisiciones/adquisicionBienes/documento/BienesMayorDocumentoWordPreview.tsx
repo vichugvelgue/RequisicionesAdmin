@@ -4,6 +4,7 @@ import { DocumentoTabChrome } from './DocumentoTabChrome';
 
 import { generarWordDesdePlantilla } from "../../../../utils/generarWordDesdePlantilla";
 import { Download } from 'lucide-react';
+import { useAuth } from "../../../../auth";
 
 type Props = {
 	requisicionDetalle: any;
@@ -46,14 +47,15 @@ export function BienesMayorDocumentoWordPreview({
 	partidas = [],
 }: Props) {
 
-
+	const { user } = useAuth();
+	const activeProfileLabel = user?.tipoPerfil ?? "SIN PERFIL";
 	
 
 	return (
 		<DocumentoTabChrome actions={
 					<button
 						type="button"
-						onClick={() => generarWordDesdePlantilla(requisicionDetalle)}
+						onPointerDown={() => generarWordDesdePlantilla(requisicionDetalle, activeProfileLabel)}
 						className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
 					>
 						Descargar Word
@@ -107,7 +109,7 @@ export function BienesMayorDocumentoWordPreview({
 				FECHA DE SOLICITUD:
 			</td>
 			<td className="border border-black p-2">
-				{txt(requisicionDetalle?.fechaSolicitud)}
+				{txt(requisicionDetalle?.fechaSolicitudCadena)}
 			</td>
 		</tr>
 
@@ -942,7 +944,10 @@ export function BienesMayorDocumentoWordPreview({
 			<td className="w-1/2 px-8 pb-12 text-center align-top">
 				<div className="border-t border-black pt-2 font-bold">
 					ELABORÓ
-				</div>
+				</div>	
+							<p className="pt-2 font-bold">
+								{txt(requisicionDetalle?.nombreSolicitante)}
+							</p>
 
 				<p className="mt-2 font-bold">
 					DIRECTOR RESPONSABLE DE LA CONTRATACIÓN

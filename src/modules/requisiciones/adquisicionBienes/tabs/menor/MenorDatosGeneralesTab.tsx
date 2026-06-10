@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Check, Save } from 'lucide-react';
 import {
@@ -11,11 +10,10 @@ import {
 	Toast,
 	DateInputWithClear,
 } from '../../../../../components/UI';
-import { MOCK_UNIDAD_SOLICITANTE } from '../../catalogMockOptions';
 import { FieldRoleLabel } from '../../fieldRoleLabel';
 import { dateToInputValue } from '../../../../../utils/dateFormat';
 import { unidadSolicitanteApi } from '../../../../../api/unidadSolicitanteApi';
-import { requisicionApi, RequisicionDetalle } from '../../../../../api/requisicionBienesAPI';
+import { requisicionApi } from '../../../../../api/requisicionBienesAPI';
 import { OptionItem } from '@/components/UI/types';
 import { useParams } from "react-router-dom";
 

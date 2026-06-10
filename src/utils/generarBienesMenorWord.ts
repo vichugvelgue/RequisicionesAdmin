@@ -21,11 +21,18 @@ const fecha = (value: any) => {
 	});
 };
 
-export const generarBienesMenorWord = async (requisicionDetalle: any) => {	
-	const response = await fetch(`${import.meta.env.BASE_URL}/plantillas/requisicionbienesmenor.docx`)
+export const generarBienesMenorWord = async (requisicionDetalle: any, tipoPerfil?: string) => {			
+		const rutaPlantilla =
+			tipoPerfil === "SOLICITANTE"
+				? `${import.meta.env.BASE_URL}plantillassolicitante/requisicionbienesmenor.docx`
+				: `${import.meta.env.BASE_URL}plantillas/requisicionbienesmenor.docx`;
+	
+		const response = await fetch(rutaPlantilla);
 	const content = await response.arrayBuffer();
 
 	const zip = new PizZip(content);
+
+	console.log("generarBienesMenorWord - datos para plantilla:", requisicionDetalle);
 
 	const doc = new Docxtemplater(zip, {
 		paragraphLoop: true,
@@ -37,7 +44,7 @@ export const generarBienesMenorWord = async (requisicionDetalle: any) => {
 		unidadSolicitante: txt(requisicionDetalle?.unidadSolicitante),
 		nombreSolicitante: txt(requisicionDetalle?.nombreSolicitante),
 		cargoSolicitante: txt(requisicionDetalle?.cargoSolicitante),
-		fechaSolicitud: fecha(requisicionDetalle?.fechaSolicitud),
+		fechaSolicitud: txt(requisicionDetalle?.fechaSolicitudCadena),
 		justificacionGasto: txt(requisicionDetalle?.justificacionGasto),
 
 		partidas: (requisicionDetalle?.partidas ?? []).map((p: any, index: number) => ({

@@ -15,7 +15,7 @@ import {
 	SimpleTable,	
 	Modal,
 } from '../../../components/UI';
-import type { OptionItem, SortConfig } from '../../../components/UI/types';
+import type { SortConfig, StatusBadgeVariant } from '../../../components/UI/types';
 import type { SimpleTableColumn, SimpleTableCustomAction } from '../../../components/UI/SimpleTable/SimpleTable';
 import { MontoInicialStep } from './MontoInicialStep';
 import {
@@ -48,13 +48,33 @@ import { FieldRoleLabel } from './fieldRoleLabel';
 
 const BASE_PATH = '/requisiciones/contratacion-servicios';
 
-const SEARCH_CRITERIA_OPTIONS: OptionItem[] = [
-	{ value: 'Coincidencia', label: 'Coincidencia' },
-	{ value: 'ID', label: 'ID' },
-	{ value: 'Solicitante', label: 'Solicitante' },
-	{ value: 'Tipo', label: 'Tipo' },
-	{ value: 'Estatus', label: 'Estatus' },
-];
+
+const resolveRequisicionStatusBadge = (
+	estatus: string
+): { label: string; variant: StatusBadgeVariant } => {
+	switch (estatus) {
+		case "En_Captura":
+			return { label: "En Captura", variant: "Borrador" };
+
+		case "Pendiente":
+			return { label: "Pendiente", variant: "Pendiente" };
+
+		case "En_Revision":
+			return { label: "En Revisión", variant: "Solicitado" };
+
+		case "Validado":
+			return { label: "Validado", variant: "Aprobada" };
+
+		case "Definitivo":
+			return { label: "Definitivo", variant: "Cerrada" };
+
+		case "Rechazada":
+			return { label: "Rechazada", variant: "Rechazada" };
+
+		default:
+			return { label: estatus || "Sin estatus", variant: "Pendiente" };
+	}
+};
 
 const TABLE_COLUMNS: SimpleTableColumn<ContratacionServiciosRow>[] = [
 	{
@@ -98,8 +118,13 @@ const TABLE_COLUMNS: SimpleTableColumn<ContratacionServiciosRow>[] = [
 		sortable: true,
 		width: 'w-[14%]',
 		render: (_v, row) => {
-			const r = resolveStatusBadge(row.estatus.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " "));
-			return <StatusBadge variant={r.variant}>{r.label}</StatusBadge>;
+			const r = resolveRequisicionStatusBadge(row.estatus);
+	
+			return (
+				<StatusBadge variant={r.variant}>
+					{r.label}
+				</StatusBadge>
+			);
 		},
 	},
 	{
@@ -1085,14 +1110,14 @@ export function ContratacionServiciosListadoFormView() {
 					open={Boolean(pendingDeleteRow)}
 					onClose={() => setPendingDeleteRow(null)}
 					onConfirm={handleDeleteConfirm}
-					title="Confirmar eliminación"
+					title="Rechazar requisición"
 					icon={<Trash2 className="w-5 h-5" />}
 					variant="danger"
-					confirmLabel="Eliminar"
+					confirmLabel="Rechazar"
 					cancelLabel="Cancelar"
 				>
 					<p className="text-sm text-slate-600">
-						¿Deseas eliminar la requisición{' '}
+						¿Deseas rechazar la requisición{' '}
 						<strong>
 							{pendingDeleteRow ? String(pendingDeleteRow.numero).padStart(7, '0') : ''}
 						</strong>

@@ -151,9 +151,9 @@ export function MayorDatosGeneralesTab({
 				? (initialValues.fechaSolicitud ?? data.fechaSolicitud ?? '').trim()
 				: (data.fechaSolicitud ?? '').trim();
 			
-			const modalidadContratacion = hideRevisorFields
+			/*const modalidadContratacion = hideRevisorFields
 				? initialValues.modalidadContratacion ?? data.modalidadContratacion
-				: data.modalidadContratacion;
+				: data.modalidadContratacion;*/
 
 			const articuloConformidad = hideRevisorFields
 				? initialValues.articuloConformidad ?? data.articuloConformidad
@@ -161,8 +161,7 @@ export function MayorDatosGeneralesTab({
 
 			const payloadFinal: ServiciosMayorDatosGeneralesValues = {
 				...data,
-				fechaSolicitud,
-				modalidadContratacion,
+				fechaSolicitud,				
 				articuloConformidad,
 				nombreTitular: data.nombreTitular.trim().toUpperCase(),
 				cargoSolicitante: data.cargoSolicitante.trim().toUpperCase(),
@@ -299,28 +298,7 @@ export function MayorDatosGeneralesTab({
 										{errors.fechaSolicitud?.message ? (
 											<p className="text-[11px] mt-1 text-red-600">{errors.fechaSolicitud.message}</p>
 										) : null}
-									</div>
-									<Controller
-										name="modalidadContratacion"
-										control={control}
-										render={({ field }) => (
-											<RadioGroup
-												label="Modalidad de contratación"
-												name="cs-mayor-modalidad"
-												value={field.value}
-												onChange={(e) => field.onChange(e.target.value)}
-												options={[
-													{ value: '1', label: 'Fija' },
-													{ value: '2', label: 'Abierta' },
-												]}
-											/>
-										)}
-									/>
-									{errors.modalidadContratacion?.message ? (
-										<p className="text-[11px] mt-1 text-red-600">
-											{errors.modalidadContratacion.message}
-										</p>
-									) : null}
+									</div>									
 									<Controller
 										name="articuloConformidad"
 										control={control}
@@ -360,6 +338,27 @@ export function MayorDatosGeneralesTab({
 									/>
 								)}
 							/>
+							<Controller
+										name="modalidadContratacion"
+										control={control}
+										render={({ field }) => (
+											<RadioGroup
+												label="Modalidad de contratación"
+												name="cs-mayor-modalidad"
+												value={field.value}
+												onChange={(e) => field.onChange(e.target.value)}
+												options={[
+													{ value: '1', label: 'Fija' },
+													{ value: '2', label: 'Abierta' },
+												]}
+											/>
+										)}
+									/>
+									{errors.modalidadContratacion?.message ? (
+										<p className="text-[11px] mt-1 text-red-600">
+											{errors.modalidadContratacion.message}
+										</p>
+									) : null}
 						</div>
 					</div>
 					<div className="flex justify-end pt-2">
