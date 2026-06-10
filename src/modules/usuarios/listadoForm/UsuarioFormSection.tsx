@@ -100,15 +100,6 @@ export function UsuarioFormSection({
 							) : null}
 						</div>
 						<div className="col-span-12 lg:col-span-3">
-							<Label required>Contraseña</Label>
-							<Input type="password" {...register("contrasena")} />
-							{errors.contrasena?.message ? (
-								<p className="text-[11px] mt-1 text-red-600">
-									{errors.contrasena.message}
-								</p>
-							) : null}
-						</div>
-						<div className="col-span-12 lg:col-span-3">
 							<Label htmlFor="usuario-tipo-usuario" required>
 								Tipo usuario
 							</Label>
@@ -138,49 +129,19 @@ export function UsuarioFormSection({
 								</p>
 							) : null}
 						</div>
-						{showGenerarInvitacion ? (
-							<div className="col-span-12 lg:col-span-6 min-w-0">
-								<Label required>Area</Label>
-								<div className="grid grid-cols-12 gap-4 lg:grid-cols-6">
-									<div className="col-span-12 lg:col-span-3 min-w-0">
-										<Input {...register("area")} className="uppercase" />
-										{errors.area?.message ? (
-											<p className="text-[11px] mt-1 text-red-600">
-												{errors.area.message}
-											</p>
-										) : null}
-									</div>
-									<div className="col-span-12 lg:col-span-3 flex min-h-0 items-center gap-2">
-										<input
-											id="usuario-generar-invitacion"
-											type="checkbox"
-											className="h-4 w-4 shrink-0 rounded border-brand-neutral/40 text-brand-primary focus:ring-brand-primary/30"
-											{...register("generarInvitacion")}
-										/>
-										<Label
-											htmlFor="usuario-generar-invitacion"
-											className="mb-0 font-medium"
-										>
-											Generar invitación
-										</Label>
-									</div>
-								</div>
-							</div>
-						) : (
-							<div className="col-span-12 lg:col-span-3">
-								<Label required>Area</Label>
-								<Input {...register("area")} className="uppercase" />
-								{errors.area?.message ? (
-									<p className="text-[11px] mt-1 text-red-600">
-										{errors.area.message}
-									</p>
-								) : null}
-							</div>
-						)}
+						<div className="col-span-12 lg:col-span-3">
+							<Label required>Area</Label>
+							<Input {...register("area")} className="uppercase" />
+							{errors.area?.message ? (
+								<p className="text-[11px] mt-1 text-red-600">
+									{errors.area.message}
+								</p>
+							) : null}
+						</div>
 					</div>
 				</form>
 
-				<div className="mt-8 border-t border-brand-neutral/15 pt-4">
+				{/* <div className="mt-8 border-t border-brand-neutral/15 pt-4">
 					<h3 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
 						Histórico de invitaciones enviadas
 					</h3>
@@ -196,7 +157,7 @@ export function UsuarioFormSection({
 							/>
 						</div>
 					</div>
-				</div>
+				</div> */}
 			</FormSection>
 		</div>
 	);
