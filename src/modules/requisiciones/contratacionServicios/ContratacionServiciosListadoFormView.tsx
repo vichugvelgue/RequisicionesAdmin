@@ -1014,12 +1014,12 @@ export function ContratacionServiciosListadoFormView() {
 											className="h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
 										>
 											<option value="">Todos</option>
-											<option value="1">Registrada</option>
-											<option value="2">En revisión</option>
-											<option value="3">Observada</option>
-											<option value="4">En autorización</option>
-											<option value="5">Autorizada</option>
-											<option value="6">Cancelada</option>
+											<option value="1">En captura</option>
+											<option value="2">Pendiente</option>
+											<option value="3">En revisión</option>
+											<option value="4">Validada</option>
+											<option value="5">Definitiva</option>
+											<option value="6">Rechazada</option>
 										</select>
 									</div>
 

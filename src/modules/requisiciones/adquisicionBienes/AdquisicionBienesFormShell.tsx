@@ -91,23 +91,27 @@ export function AdquisicionBienesFormShell({
 
 
 	const cargarDocumentoBienes = async () => {
-		console.log('Cargando documento de bienes...');
-		if (documentoBienesCargado) return;
+		
+		if (!requisicionDetalle?.id || loadingDocumento) return;
+		setLoadingDocumento(true);
 
 		try {
 			const data = await requisicionApi.obtenerInformacionBienesDocumento(
 				requisicionDetalle.id
 			);
-			
+
 			setDocumentoBienes(data);
 			setDocumentoBienesCargado(true);
 		} catch (error) {
 			console.error('Error al cargar documento de bienes:', error);
+		} finally {
+			setLoadingDocumento(false);
 		}
 	};
 
-	useEffect(() => {		
-		if (activeStep === 'g8' && !documentoBienesCargado) {
+	useEffect(() => {
+		//if (activeStep === 'g8' && !documentoBienesCargado) {
+		if (activeStep === 'g8') {
 			cargarDocumentoBienes();
 		}
 	}, [activeStep, documentoBienesCargado]);
@@ -130,14 +134,14 @@ export function AdquisicionBienesFormShell({
 			setIsLoadingDetalle(true);
 
 			try {
-				const data = await requisicionApi.obtenerPorId(Number(editingRow.id));			
-				setRequisicionDetalle(data);			
+				const data = await requisicionApi.obtenerPorId(Number(editingRow.id));
+				setRequisicionDetalle(data);
 			} finally {
 				setIsLoadingDetalle(false);
 			}
 		};
 
-	loadDetalle();
+		loadDetalle();
 	}, [editingRow?.id]);
 
 	const generarIdTemporal = () => {
@@ -156,7 +160,7 @@ export function AdquisicionBienesFormShell({
 				label: <StepperTabLabel step={++step} title="Datos generales" />,
 				panel: (
 					<MayorDatosGeneralesTab
-						idRequisicion={Number(editingRow.id)}	
+						idRequisicion={Number(editingRow.id)}
 						hideRevisorFields={hideRevisorFields}
 						initialValues={{
 							unidadSolicitanteId: requisicionDetalle?.idUnidadSolicitante
@@ -189,25 +193,25 @@ export function AdquisicionBienesFormShell({
 							setRequisicionDetalle((prev) =>
 								prev
 									? {
-											...prev,
-											idUnidadSolicitante: Number(data.unidadSolicitanteId),
-											nombreSolicitante: data.nombreTitular,
-											cargoSolicitante: data.cargoSolicitante,
-											fechaSolicitud: data.fechaSolicitud,
+										...prev,
+										idUnidadSolicitante: Number(data.unidadSolicitanteId),
+										nombreSolicitante: data.nombreTitular,
+										cargoSolicitante: data.cargoSolicitante,
+										fechaSolicitud: data.fechaSolicitud,
 
-											caracterProcedimiento: data.caracterProcedimiento
-												? Number(data.caracterProcedimiento)
-												: null,
+										caracterProcedimiento: data.caracterProcedimiento
+											? Number(data.caracterProcedimiento)
+											: null,
 
-											modalidadContratacion: data.modalidadContratacion
-												? Number(data.modalidadContratacion)
-												: null,
+										modalidadContratacion: data.modalidadContratacion
+											? Number(data.modalidadContratacion)
+											: null,
 
-											/*articulo: data.articulo
-												? Number(data.articulo)
-												: null,*/
+										/*articulo: data.articulo
+											? Number(data.articulo)
+											: null,*/
 
-											tipoProcedimiento: data.tipoProcedimiento,
+										tipoProcedimiento: data.tipoProcedimiento,
 									}
 									: prev
 							);
@@ -230,67 +234,67 @@ export function AdquisicionBienesFormShell({
 				label: <StepperTabLabel step={++step} title="Datos presupuestales" />,
 				panel: (
 					<MayorDatosPresupuestalesTab
-	idRequisicion={Number(editingRow.id)}
-	idUsuario={Number(editingRow.idUsuario ?? 0)}
-	initialValues={{
-		presupuestoAutorizado: requisicionDetalle?.presupuestoAutorizado ?? '',
+						idRequisicion={Number(editingRow.id)}
+						idUsuario={Number(editingRow.idUsuario ?? 0)}
+						initialValues={{
+							presupuestoAutorizado: requisicionDetalle?.presupuestoAutorizado ?? '',
 
-		clavePresupuestalId: requisicionDetalle?.idClavePresupuestal
-			? String(requisicionDetalle.idClavePresupuestal)
-			: '',
+							clavePresupuestalId: requisicionDetalle?.idClavePresupuestal
+								? String(requisicionDetalle.idClavePresupuestal)
+								: '',
 
-		origenRecursoId: requisicionDetalle?.idOrigenRecurso
-			? String(requisicionDetalle.idOrigenRecurso)
-			: '',
+							origenRecursoId: requisicionDetalle?.idOrigenRecurso
+								? String(requisicionDetalle.idOrigenRecurso)
+								: '',
 
-		componenteId: requisicionDetalle?.idComponente
-			? String(requisicionDetalle.idComponente)
-			: '',
+							componenteId: requisicionDetalle?.idComponente
+								? String(requisicionDetalle.idComponente)
+								: '',
 
-		actividadId: requisicionDetalle?.idActividad
-			? String(requisicionDetalle.idActividad)
-			: '',
+							actividadId: requisicionDetalle?.idActividad
+								? String(requisicionDetalle.idActividad)
+								: '',
 
-		tipoProgramaId: requisicionDetalle?.idTipoPrograma
-			? String(requisicionDetalle.idTipoPrograma)
-			: '',
-	}}
-	onSave={(data) => {
-		setRequisicionDetalle((prev) =>
-			prev
-				? {
-						...prev,
-						presupuestoAutorizado: data.presupuestoAutorizado,
-						idClavePresupuestal: data.clavePresupuestalId
-							? Number(data.clavePresupuestalId)
-							: null,
-						idOrigenRecurso: data.origenRecursoId
-							? Number(data.origenRecursoId)
-							: null,
-						idComponente: data.componenteId
-							? Number(data.componenteId)
-							: null,
-						idActividad: data.actividadId
-							? Number(data.actividadId)
-							: null,
-						idTipoPrograma: data.tipoProgramaId
-							? Number(data.tipoProgramaId)
-							: null,
-				  }
-				: prev
-		);
+							tipoProgramaId: requisicionDetalle?.idTipoPrograma
+								? String(requisicionDetalle.idTipoPrograma)
+								: '',
+						}}
+						onSave={(data) => {
+							setRequisicionDetalle((prev) =>
+								prev
+									? {
+										...prev,
+										presupuestoAutorizado: data.presupuestoAutorizado,
+										idClavePresupuestal: data.clavePresupuestalId
+											? Number(data.clavePresupuestalId)
+											: null,
+										idOrigenRecurso: data.origenRecursoId
+											? Number(data.origenRecursoId)
+											: null,
+										idComponente: data.componenteId
+											? Number(data.componenteId)
+											: null,
+										idActividad: data.actividadId
+											? Number(data.actividadId)
+											: null,
+										idTipoPrograma: data.tipoProgramaId
+											? Number(data.tipoProgramaId)
+											: null,
+									}
+									: prev
+							);
 
-		onDraftChange({
-			...draft,
-			mayorDatosPresupuestales: {
-				...draft.mayorDatosPresupuestales,
-				...data,
-			},
-		});
+							onDraftChange({
+								...draft,
+								mayorDatosPresupuestales: {
+									...draft.mayorDatosPresupuestales,
+									...data,
+								},
+							});
 
-		goToNextTab('g2', orderedTabIds);
-	}}
-/>
+							goToNextTab('g2', orderedTabIds);
+						}}
+					/>
 				),
 			},
 			{
@@ -309,10 +313,10 @@ export function AdquisicionBienesFormShell({
 							setRequisicionDetalle((prev) =>
 								prev
 									? {
-											...prev,
-											descripcionGeneral: data.descripcionGeneral,
-											justificacionGasto: data.justificacionGasto,
-											periodoGarantia: data.periodoGarantia,
+										...prev,
+										descripcionGeneral: data.descripcionGeneral,
+										justificacionGasto: data.justificacionGasto,
+										periodoGarantia: data.periodoGarantia,
 									}
 									: prev
 							);
@@ -355,116 +359,116 @@ export function AdquisicionBienesFormShell({
 							});
 
 							setRequisicionDetalle((prev) => ({
-							...prev,
-							partidas: partidas.map((p) => ({
-								id: Number(p.id ?? 0),
-								numeroPartida: Number(p.numeroPartida ?? 0),
-								cantidad: Number(p.cantidad ?? 0),
-								idUnidadMedida: Number(p.unidadMedidaId ?? 0),
-								unidadMedidaLabel: p.unidadMedidaLabel ?? '',
-								descripcion: p.descripcion ?? '',
-								idRequisicion: Number(editingRow.id),
-							})),
-						}));
-					}}
+								...prev,
+								partidas: partidas.map((p) => ({
+									id: Number(p.id ?? 0),
+									numeroPartida: Number(p.numeroPartida ?? 0),
+									cantidad: Number(p.cantidad ?? 0),
+									idUnidadMedida: Number(p.unidadMedidaId ?? 0),
+									unidadMedidaLabel: p.unidadMedidaLabel ?? '',
+									descripcion: p.descripcion ?? '',
+									idRequisicion: Number(editingRow.id),
+								})),
+							}));
+						}}
 					/>
 				),
 			},
 		];
 
 		if (!hideRevisorFields) {
-	tabsList.push({
-		id: 'g5',
-		label: <StepperTabLabel step={++step} title="Datos administrativos" />,
-		panel: (
-			<MayorDatosAdministrativosTab
-				idRequisicion={Number(editingRow.id)}
-				idUsuario={Number(editingRow.idUsuario ?? 0)}
-				initialValues={{
-					aniosExperienciaLicitante:
-						requisicionDetalle?.bienDetalle?.aniosExperienciaLicitante ?? '',
+			tabsList.push({
+				id: 'g5',
+				label: <StepperTabLabel step={++step} title="Datos administrativos" />,
+				panel: (
+					<MayorDatosAdministrativosTab
+						idRequisicion={Number(editingRow.id)}
+						idUsuario={Number(editingRow.idUsuario ?? 0)}
+						initialValues={{
+							aniosExperienciaLicitante:
+								requisicionDetalle?.bienDetalle?.aniosExperienciaLicitante ?? '',
 
-					pagosSeRealizaran:
-						requisicionDetalle?.bienDetalle?.pagosSeRealizaran ?? '',
+							pagosSeRealizaran:
+								requisicionDetalle?.bienDetalle?.pagosSeRealizaran ?? '',
 
-					adquisicionMedianteContrato:
-						requisicionDetalle?.bienDetalle?.adquisicionMedianteContrato === 2
-							? 'ABIERTO'
-							: 'FIJO',
+							adquisicionMedianteContrato:
+								requisicionDetalle?.bienDetalle?.adquisicionMedianteContrato === 2
+									? 'ABIERTO'
+									: 'FIJO',
 
-					articuloConformidad:
-						requisicionDetalle?.bienDetalle?.conformidadArticulo === 1 ? '107' : '108',
+							articuloConformidad:
+								requisicionDetalle?.bienDetalle?.conformidadArticulo === 1 ? '107' : '108',
 
-					lugarEntregaCalle:
-						requisicionDetalle?.bienDetalle?.calle ?? '',
+							lugarEntregaCalle:
+								requisicionDetalle?.bienDetalle?.calle ?? '',
 
-					lugarEntregaColonia:
-						requisicionDetalle?.bienDetalle?.colonia ?? '',
+							lugarEntregaColonia:
+								requisicionDetalle?.bienDetalle?.colonia ?? '',
 
-					lugarEntregaCp:
-						requisicionDetalle?.bienDetalle?.codigoPostal ?? '',
+							lugarEntregaCp:
+								requisicionDetalle?.bienDetalle?.codigoPostal ?? '',
 
-					lugarEntregaCiudad:
-						requisicionDetalle?.bienDetalle?.ciudad ?? '',
-					
-					nombreDependenciaEntrega: requisicionDetalle?.bienDetalle?.nombreDependenciaEntrega ?? '',
-					telefonoEntrega: requisicionDetalle?.bienDetalle?.telefonoEntrega ?? '',
-					extencionTelefonoEntrega: requisicionDetalle?.bienDetalle?.extencionTelefonoEntrega ?? '',
+							lugarEntregaCiudad:
+								requisicionDetalle?.bienDetalle?.ciudad ?? '',
 
-					diasEntrega:
-						requisicionDetalle?.bienDetalle?.diasEntrega ?? '',
-				}}
-				onSave={(data) => {
-					setRequisicionDetalle((prev) =>
-						prev
-							? {
-									...prev,
-									bienDetalle: {
-										...prev.bienDetalle,
+							nombreDependenciaEntrega: requisicionDetalle?.bienDetalle?.nombreDependenciaEntrega ?? '',
+							telefonoEntrega: requisicionDetalle?.bienDetalle?.telefonoEntrega ?? '',
+							extencionTelefonoEntrega: requisicionDetalle?.bienDetalle?.extencionTelefonoEntrega ?? '',
 
-										aniosExperienciaLicitante: data.aniosExperienciaLicitante,
-										pagosSeRealizaran: data.pagosSeRealizaran,
+							diasEntrega:
+								requisicionDetalle?.bienDetalle?.diasEntrega ?? '',
+						}}
+						onSave={(data) => {
+							setRequisicionDetalle((prev) =>
+								prev
+									? {
+										...prev,
+										bienDetalle: {
+											...prev.bienDetalle,
 
-										adquisicionMedianteContrato:
-											data.adquisicionMedianteContrato === 'FIJO' ? 1 : 2,
+											aniosExperienciaLicitante: data.aniosExperienciaLicitante,
+											pagosSeRealizaran: data.pagosSeRealizaran,
 
-										conformidadArticulo: 
-											data.articuloConformidad === '107' ? 1 : 2,
+											adquisicionMedianteContrato:
+												data.adquisicionMedianteContrato === 'FIJO' ? 1 : 2,
 
-										lugarEntrega: [
-											data.lugarEntregaCalle,
-											data.lugarEntregaColonia,
-											data.lugarEntregaCiudad,
-											data.lugarEntregaCp,
-										]
-											.filter(Boolean)
-											.join(', '),
+											conformidadArticulo:
+												data.articuloConformidad === '107' ? 1 : 2,
 
-										calle: data.lugarEntregaCalle,
-										colonia: data.lugarEntregaColonia,
-										ciudad: data.lugarEntregaCiudad,
-										codigoPostal: data.lugarEntregaCp,
-										nombreDependenciaEntrega: data.nombreDependenciaEntrega,
-										telefonoEntrega: data.telefonoEntrega,
-										extencionTelefonoEntrega: data.extencionTelefonoEntrega,
-										diasEntrega: data.diasEntrega,
-									},
-								}
-							: prev
-					);
+											lugarEntrega: [
+												data.lugarEntregaCalle,
+												data.lugarEntregaColonia,
+												data.lugarEntregaCiudad,
+												data.lugarEntregaCp,
+											]
+												.filter(Boolean)
+												.join(', '),
 
-					onDraftChange({
-						...draft,
-						mayorDatosAdministrativos: {
-							...draft.mayorDatosAdministrativos,
-							...data,
-						},
-					});
-				}}
-			/>
-		),
-	});
-}
+											calle: data.lugarEntregaCalle,
+											colonia: data.lugarEntregaColonia,
+											ciudad: data.lugarEntregaCiudad,
+											codigoPostal: data.lugarEntregaCp,
+											nombreDependenciaEntrega: data.nombreDependenciaEntrega,
+											telefonoEntrega: data.telefonoEntrega,
+											extencionTelefonoEntrega: data.extencionTelefonoEntrega,
+											diasEntrega: data.diasEntrega,
+										},
+									}
+									: prev
+							);
+
+							onDraftChange({
+								...draft,
+								mayorDatosAdministrativos: {
+									...draft.mayorDatosAdministrativos,
+									...data,
+								},
+							});
+						}}
+					/>
+				),
+			});
+		}
 
 		tabsList.push(
 			{
@@ -476,27 +480,27 @@ export function AdquisicionBienesFormShell({
 						idUsuario={Number(editingRow.idUsuario ?? 0)}
 						initialValues={{
 							nombre: requisicionDetalle?.bienDetalle?.nombreRepresentante ?? '',
-						cargo: requisicionDetalle?.bienDetalle?.cargoRepresentante ?? '',
-						correo: requisicionDetalle?.bienDetalle?.correoRepresentante ?? '',
-						telefono: requisicionDetalle?.bienDetalle?.telefonoRepresentante ?? '',
-	}}
-	onSave={(data) => {
-		setRequisicionDetalle((prev) =>
-			prev
-				? {
-						...prev,
-						bienDetalle: {
-							...prev.bienDetalle,
-							nombreRepresentante: data.nombre,
-							cargoRepresentante: data.cargo,
-							correoRepresentante: data.correo,
-							telefonoRepresentante: data.telefono,
-						}
-				  }
-				: prev
-		);
-	}}
-/>
+							cargo: requisicionDetalle?.bienDetalle?.cargoRepresentante ?? '',
+							correo: requisicionDetalle?.bienDetalle?.correoRepresentante ?? '',
+							telefono: requisicionDetalle?.bienDetalle?.telefonoRepresentante ?? '',
+						}}
+						onSave={(data) => {
+							setRequisicionDetalle((prev) =>
+								prev
+									? {
+										...prev,
+										bienDetalle: {
+											...prev.bienDetalle,
+											nombreRepresentante: data.nombre,
+											cargoRepresentante: data.cargo,
+											correoRepresentante: data.correo,
+											telefonoRepresentante: data.telefono,
+										}
+									}
+									: prev
+							);
+						}}
+					/>
 				),
 			},
 			{
@@ -516,14 +520,14 @@ export function AdquisicionBienesFormShell({
 							setRequisicionDetalle((prev) =>
 								prev
 									? {
-											...prev,
-											bienDetalle: {
-												...(prev.bienDetalle),
-												nombreAdministradorContrato: data.nombre,
-												cargoAdministradorContrato: data.cargo,
-												correoAdministradorContrato: data.correo,
-												telefonoAdministradorContrato: data.telefono,
-											},
+										...prev,
+										bienDetalle: {
+											...(prev.bienDetalle),
+											nombreAdministradorContrato: data.nombre,
+											cargoAdministradorContrato: data.cargo,
+											correoAdministradorContrato: data.correo,
+											telefonoAdministradorContrato: data.telefono,
+										},
 									}
 									: prev
 							);
@@ -556,137 +560,137 @@ export function AdquisicionBienesFormShell({
 		const orderedTabIds = tabsList.map((t) => t.id);
 		tabsList[0].panel = (
 			<MayorDatosGeneralesTab
-						idRequisicion={Number(editingRow.id)}	
-						hideRevisorFields={hideRevisorFields}
-						initialValues={{
-							unidadSolicitanteId: requisicionDetalle?.idUnidadSolicitante
-								? String(requisicionDetalle.idUnidadSolicitante)
-								: '',
+				idRequisicion={Number(editingRow.id)}
+				hideRevisorFields={hideRevisorFields}
+				initialValues={{
+					unidadSolicitanteId: requisicionDetalle?.idUnidadSolicitante
+						? String(requisicionDetalle.idUnidadSolicitante)
+						: '',
 
-							nombreTitular: requisicionDetalle?.nombreSolicitante ?? '',
+					nombreTitular: requisicionDetalle?.nombreSolicitante ?? '',
 
-							cargoSolicitante: requisicionDetalle?.cargoSolicitante ?? '',
+					cargoSolicitante: requisicionDetalle?.cargoSolicitante ?? '',
 
-							fechaSolicitud: requisicionDetalle?.fechaSolicitud
-								? requisicionDetalle.fechaSolicitud.substring(0, 10)
-								: '',
+					fechaSolicitud: requisicionDetalle?.fechaSolicitud
+						? requisicionDetalle.fechaSolicitud.substring(0, 10)
+						: '',
 
-							caracterProcedimiento: requisicionDetalle?.caracterProcedimiento
-								? String(requisicionDetalle.caracterProcedimiento)
-								: '',
+					caracterProcedimiento: requisicionDetalle?.caracterProcedimiento
+						? String(requisicionDetalle.caracterProcedimiento)
+						: '',
 
-							modalidadContratacion: requisicionDetalle?.modalidadContratacion
-								? String(requisicionDetalle.modalidadContratacion)
-								: '',
+					modalidadContratacion: requisicionDetalle?.modalidadContratacion
+						? String(requisicionDetalle.modalidadContratacion)
+						: '',
 
-							/*articulo: requisicionDetalle?.articulo
-								? String(requisicionDetalle.articulo)
-								: '',*/
+					/*articulo: requisicionDetalle?.articulo
+						? String(requisicionDetalle.articulo)
+						: '',*/
 
-							tipoProcedimiento: requisicionDetalle?.tipoProcedimiento ?? '',
-						}}
-						onSave={(data) => {
-							setRequisicionDetalle((prev) =>
-								prev
-									? {
-											...prev,
-											idUnidadSolicitante: Number(data.unidadSolicitanteId),
-											nombreSolicitante: data.nombreTitular,
-											cargoSolicitante: data.cargoSolicitante,
-											fechaSolicitud: data.fechaSolicitud,
+					tipoProcedimiento: requisicionDetalle?.tipoProcedimiento ?? '',
+				}}
+				onSave={(data) => {
+					setRequisicionDetalle((prev) =>
+						prev
+							? {
+								...prev,
+								idUnidadSolicitante: Number(data.unidadSolicitanteId),
+								nombreSolicitante: data.nombreTitular,
+								cargoSolicitante: data.cargoSolicitante,
+								fechaSolicitud: data.fechaSolicitud,
 
-											caracterProcedimiento: data.caracterProcedimiento
-												? Number(data.caracterProcedimiento)
-												: null,
+								caracterProcedimiento: data.caracterProcedimiento
+									? Number(data.caracterProcedimiento)
+									: null,
 
-											modalidadContratacion: data.modalidadContratacion
-												? Number(data.modalidadContratacion)
-												: null,
+								modalidadContratacion: data.modalidadContratacion
+									? Number(data.modalidadContratacion)
+									: null,
 
-											/*articulo: data.articulo
-												? Number(data.articulo)
-												: null,*/
+								/*articulo: data.articulo
+									? Number(data.articulo)
+									: null,*/
 
-											tipoProcedimiento: data.tipoProcedimiento,
-									}
-									: prev
-							);
+								tipoProcedimiento: data.tipoProcedimiento,
+							}
+							: prev
+					);
 
-							onDraftChange({
-								...draft,
-								mayorDatosGenerales: {
-									...draft.mayorDatosGenerales,
-									...data,
-								},
-							});
+					onDraftChange({
+						...draft,
+						mayorDatosGenerales: {
+							...draft.mayorDatosGenerales,
+							...data,
+						},
+					});
 
-							onPatchRow({ solicitante: data.nombreTitular });
-						}}
-					/>
+					onPatchRow({ solicitante: data.nombreTitular });
+				}}
+			/>
 		);
 		tabsList[1].panel = (
 			<MayorDatosPresupuestalesTab
-	idRequisicion={Number(editingRow.id)}
-	idUsuario={Number(editingRow.idUsuario ?? 0)}
-	initialValues={{
-		presupuestoAutorizado: requisicionDetalle?.presupuestoAutorizado ?? '',
+				idRequisicion={Number(editingRow.id)}
+				idUsuario={Number(editingRow.idUsuario ?? 0)}
+				initialValues={{
+					presupuestoAutorizado: requisicionDetalle?.presupuestoAutorizado ?? '',
 
-		clavePresupuestalId: requisicionDetalle?.idClavePresupuestal
-			? String(requisicionDetalle.idClavePresupuestal)
-			: '',
+					clavePresupuestalId: requisicionDetalle?.idClavePresupuestal
+						? String(requisicionDetalle.idClavePresupuestal)
+						: '',
 
-		origenRecursoId: requisicionDetalle?.idOrigenRecurso
-			? String(requisicionDetalle.idOrigenRecurso)
-			: '',
+					origenRecursoId: requisicionDetalle?.idOrigenRecurso
+						? String(requisicionDetalle.idOrigenRecurso)
+						: '',
 
-		componenteId: requisicionDetalle?.idComponente
-			? String(requisicionDetalle.idComponente)
-			: '',
+					componenteId: requisicionDetalle?.idComponente
+						? String(requisicionDetalle.idComponente)
+						: '',
 
-		actividadId: requisicionDetalle?.idActividad
-			? String(requisicionDetalle.idActividad)
-			: '',
+					actividadId: requisicionDetalle?.idActividad
+						? String(requisicionDetalle.idActividad)
+						: '',
 
-		tipoProgramaId: requisicionDetalle?.idTipoPrograma
-			? String(requisicionDetalle.idTipoPrograma)
-			: '',
-	}}
-	onSave={(data) => {
-		setRequisicionDetalle((prev) =>
-			prev
-				? {
-						...prev,
-						presupuestoAutorizado: data.presupuestoAutorizado,
-						idClavePresupuestal: data.clavePresupuestalId
-							? Number(data.clavePresupuestalId)
-							: null,
-						idOrigenRecurso: data.origenRecursoId
-							? Number(data.origenRecursoId)
-							: null,
-						idComponente: data.componenteId
-							? Number(data.componenteId)
-							: null,
-						idActividad: data.actividadId
-							? Number(data.actividadId)
-							: null,
-						idTipoPrograma: data.tipoProgramaId
-							? Number(data.tipoProgramaId)
-							: null,
-				  }
-				: prev
-		);
+					tipoProgramaId: requisicionDetalle?.idTipoPrograma
+						? String(requisicionDetalle.idTipoPrograma)
+						: '',
+				}}
+				onSave={(data) => {
+					setRequisicionDetalle((prev) =>
+						prev
+							? {
+								...prev,
+								presupuestoAutorizado: data.presupuestoAutorizado,
+								idClavePresupuestal: data.clavePresupuestalId
+									? Number(data.clavePresupuestalId)
+									: null,
+								idOrigenRecurso: data.origenRecursoId
+									? Number(data.origenRecursoId)
+									: null,
+								idComponente: data.componenteId
+									? Number(data.componenteId)
+									: null,
+								idActividad: data.actividadId
+									? Number(data.actividadId)
+									: null,
+								idTipoPrograma: data.tipoProgramaId
+									? Number(data.tipoProgramaId)
+									: null,
+							}
+							: prev
+					);
 
-		onDraftChange({
-			...draft,
-			mayorDatosPresupuestales: {
-				...draft.mayorDatosPresupuestales,
-				...data,
-			},
-		});
+					onDraftChange({
+						...draft,
+						mayorDatosPresupuestales: {
+							...draft.mayorDatosPresupuestales,
+							...data,
+						},
+					});
 
-		goToNextTab('g2', orderedTabIds);
-	}}
-/>
+					goToNextTab('g2', orderedTabIds);
+				}}
+			/>
 		);
 		tabsList[2].panel = (
 			<MayorDatosRequisicionTab
@@ -701,10 +705,10 @@ export function AdquisicionBienesFormShell({
 					setRequisicionDetalle((prev) =>
 						prev
 							? {
-									...prev,
-									descripcionGeneral: data.descripcionGeneral,
-									justificacionGasto: data.justificacionGasto,
-									periodoGarantia: data.periodoGarantia,
+								...prev,
+								descripcionGeneral: data.descripcionGeneral,
+								justificacionGasto: data.justificacionGasto,
+								periodoGarantia: data.periodoGarantia,
 							}
 							: prev
 					);
@@ -726,87 +730,87 @@ export function AdquisicionBienesFormShell({
 			if (administrativosIdx >= 0) {
 				tabsList[administrativosIdx].panel = (
 					<MayorDatosAdministrativosTab
-				idRequisicion={Number(editingRow.id)}
-				idUsuario={Number(editingRow.idUsuario ?? 0)}
-				initialValues={{
-					aniosExperienciaLicitante:
-						requisicionDetalle?.bienDetalle?.aniosExperienciaLicitante ?? '',
+						idRequisicion={Number(editingRow.id)}
+						idUsuario={Number(editingRow.idUsuario ?? 0)}
+						initialValues={{
+							aniosExperienciaLicitante:
+								requisicionDetalle?.bienDetalle?.aniosExperienciaLicitante ?? '',
 
-					pagosSeRealizaran:
-						requisicionDetalle?.bienDetalle?.pagosSeRealizaran ?? '',
+							pagosSeRealizaran:
+								requisicionDetalle?.bienDetalle?.pagosSeRealizaran ?? '',
 
-					adquisicionMedianteContrato:
-						requisicionDetalle?.bienDetalle?.adquisicionMedianteContrato === 2
-							? 'ABIERTO'
-							: 'FIJO',
+							adquisicionMedianteContrato:
+								requisicionDetalle?.bienDetalle?.adquisicionMedianteContrato === 2
+									? 'ABIERTO'
+									: 'FIJO',
 
-					articuloConformidad:
-						requisicionDetalle?.bienDetalle?.conformidadArticulo === 1 ? '107' :
-						'108',
+							articuloConformidad:
+								requisicionDetalle?.bienDetalle?.conformidadArticulo === 1 ? '107' :
+									'108',
 
-					lugarEntregaCalle:
-						requisicionDetalle?.bienDetalle?.calle ?? '',
+							lugarEntregaCalle:
+								requisicionDetalle?.bienDetalle?.calle ?? '',
 
-					lugarEntregaColonia:
-						requisicionDetalle?.bienDetalle?.colonia ?? '',
+							lugarEntregaColonia:
+								requisicionDetalle?.bienDetalle?.colonia ?? '',
 
-					lugarEntregaCp:
-						requisicionDetalle?.bienDetalle?.codigoPostal ?? '',
+							lugarEntregaCp:
+								requisicionDetalle?.bienDetalle?.codigoPostal ?? '',
 
-					lugarEntregaCiudad:
-						requisicionDetalle?.bienDetalle?.ciudad ?? '',
+							lugarEntregaCiudad:
+								requisicionDetalle?.bienDetalle?.ciudad ?? '',
 
-					diasEntrega:
-						requisicionDetalle?.bienDetalle?.diasEntrega ?? '',
-					
-						nombreDependenciaEntrega: requisicionDetalle?.bienDetalle?.nombreDependenciaEntrega ?? '',
-						telefonoEntrega: requisicionDetalle?.bienDetalle?.telefonoEntrega ?? '',
-						extencionTelefonoEntrega: requisicionDetalle?.bienDetalle?.extencionTelefonoEntrega ?? '',
-				}}
-				onSave={(data) => {
-					setRequisicionDetalle((prev) =>
-						prev
-							? {
-									...prev,
-									bienDetalle: {
-										...prev.bienDetalle,
+							diasEntrega:
+								requisicionDetalle?.bienDetalle?.diasEntrega ?? '',
 
-										aniosExperienciaLicitante: data.aniosExperienciaLicitante,
-										pagosSeRealizaran: data.pagosSeRealizaran,
-										adquisicionMedianteContrato:
-											data.adquisicionMedianteContrato === 'FIJO' ? 1 : 2,
-										conformidadArticulo: data.articuloConformidad == '107' ? 1 : 2,
+							nombreDependenciaEntrega: requisicionDetalle?.bienDetalle?.nombreDependenciaEntrega ?? '',
+							telefonoEntrega: requisicionDetalle?.bienDetalle?.telefonoEntrega ?? '',
+							extencionTelefonoEntrega: requisicionDetalle?.bienDetalle?.extencionTelefonoEntrega ?? '',
+						}}
+						onSave={(data) => {
+							setRequisicionDetalle((prev) =>
+								prev
+									? {
+										...prev,
+										bienDetalle: {
+											...prev.bienDetalle,
 
-										lugarEntrega: [
-											data.lugarEntregaCalle,
-											data.lugarEntregaColonia,
-											data.lugarEntregaCiudad,
-											data.lugarEntregaCp,
-										]
-											.filter(Boolean)
-											.join(', '),
+											aniosExperienciaLicitante: data.aniosExperienciaLicitante,
+											pagosSeRealizaran: data.pagosSeRealizaran,
+											adquisicionMedianteContrato:
+												data.adquisicionMedianteContrato === 'FIJO' ? 1 : 2,
+											conformidadArticulo: data.articuloConformidad == '107' ? 1 : 2,
 
-										calle: data.lugarEntregaCalle,
-										colonia: data.lugarEntregaColonia,
-										ciudad: data.lugarEntregaCiudad,
-										codigoPostal: data.lugarEntregaCp,
-										diasEntrega: data.diasEntrega,
-									},
-								}
-							: prev
-		);
+											lugarEntrega: [
+												data.lugarEntregaCalle,
+												data.lugarEntregaColonia,
+												data.lugarEntregaCiudad,
+												data.lugarEntregaCp,
+											]
+												.filter(Boolean)
+												.join(', '),
 
-		onDraftChange({
-			...draft,
-			mayorDatosAdministrativos: {
-				...draft.mayorDatosAdministrativos,
-				...data,
-			},
-		});
+											calle: data.lugarEntregaCalle,
+											colonia: data.lugarEntregaColonia,
+											ciudad: data.lugarEntregaCiudad,
+											codigoPostal: data.lugarEntregaCp,
+											diasEntrega: data.diasEntrega,
+										},
+									}
+									: prev
+							);
 
-		goToNextTab('g5', orderedTabIds);
-	}}
-/>
+							onDraftChange({
+								...draft,
+								mayorDatosAdministrativos: {
+									...draft.mayorDatosAdministrativos,
+									...data,
+								},
+							});
+
+							goToNextTab('g5', orderedTabIds);
+						}}
+					/>
 				);
 			}
 		}
@@ -826,8 +830,8 @@ export function AdquisicionBienesFormShell({
 						setRequisicionDetalle((prev) =>
 							prev
 								? {
-										...prev,
-										bienDetalle: {
+									...prev,
+									bienDetalle: {
 										...prev.bienDetalle,
 										nombreRepresentante: data.nombre,
 										cargoRepresentante: data.cargo,
@@ -857,14 +861,14 @@ export function AdquisicionBienesFormShell({
 						setRequisicionDetalle((prev) =>
 							prev
 								? {
-										...prev,
-										bienDetalle: {
-											...(prev.bienDetalle),
-											nombreAdministradorContrato: data.nombre,
-											cargoAdministradorContrato: data.cargo,
-											correoAdministradorContrato: data.correo,
-											telefonoAdministradorContrato: data.telefono,
-										},
+									...prev,
+									bienDetalle: {
+										...(prev.bienDetalle),
+										nombreAdministradorContrato: data.nombre,
+										cargoAdministradorContrato: data.cargo,
+										correoAdministradorContrato: data.correo,
+										telefonoAdministradorContrato: data.telefono,
+									},
 								}
 								: prev
 						);
@@ -889,7 +893,7 @@ export function AdquisicionBienesFormShell({
 		);
 	}
 
-	/* MENOR */	
+	/* MENOR */
 	const menorTabs = [
 		{
 			id: 'm1',
@@ -913,11 +917,11 @@ export function AdquisicionBienesFormShell({
 						setRequisicionDetalle((prev) =>
 							prev
 								? {
-										...prev,
-										idUnidadSolicitante: Number(data.unidadSolicitanteId),
-										nombreSolicitante: data.nombreSolicitante,
-										cargoSolicitante: data.cargo,
-										fechaSolicitud: data.fechaSolicitud,
+									...prev,
+									idUnidadSolicitante: Number(data.unidadSolicitanteId),
+									nombreSolicitante: data.nombreSolicitante,
+									cargoSolicitante: data.cargo,
+									fechaSolicitud: data.fechaSolicitud,
 								}
 								: prev
 						);
@@ -978,17 +982,17 @@ export function AdquisicionBienesFormShell({
 						});
 
 						setRequisicionDetalle((prev) => ({
-						...prev,
-						partidas: partidas.map((p) => ({
-							id: Number(p.id ?? 0),
-							numeroPartida: Number(p.numeroPartida ?? 0),
-							cantidad: Number(p.cantidad ?? 0),
-							idUnidadMedida: Number(p.unidadMedidaId ?? 0),
-							unidadMedidaLabel: p.unidadMedidaLabel ?? '',
-							descripcion: p.descripcion ?? '',
-							idRequisicion: Number(editingRow.id),
-						})),
-					}));
+							...prev,
+							partidas: partidas.map((p) => ({
+								id: Number(p.id ?? 0),
+								numeroPartida: Number(p.numeroPartida ?? 0),
+								cantidad: Number(p.cantidad ?? 0),
+								idUnidadMedida: Number(p.unidadMedidaId ?? 0),
+								unidadMedidaLabel: p.unidadMedidaLabel ?? '',
+								descripcion: p.descripcion ?? '',
+								idRequisicion: Number(editingRow.id),
+							})),
+						}));
 					}}
 				/>
 			),
@@ -1016,57 +1020,57 @@ export function AdquisicionBienesFormShell({
 	const menorTabIds = menorTabs.map((t) => t.id);
 	menorTabs[0].panel = (
 		<MenorDatosGeneralesTab
-				idRequisicion={Number(editingRow.id)}
-				idUsuario={Number(editingRow.idUsuario ?? 0)}
-				initialValues={{
-					unidadSolicitanteId: requisicionDetalle?.idUnidadSolicitante
-						? String(requisicionDetalle.idUnidadSolicitante)
-						: '',
-					nombreSolicitante: requisicionDetalle?.nombreSolicitante ?? '',
-					cargo: requisicionDetalle?.cargoSolicitante ?? '',
-					fechaSolicitud: requisicionDetalle?.fechaSolicitud
-						? requisicionDetalle.fechaSolicitud.substring(0, 10)
-						: '',
-				}}
-				readOnly={readOnly}
-				onSave={(data) => {
-					setRequisicionDetalle((prev) =>
-						prev
-							? {
-									...prev,
-									idUnidadSolicitante: Number(data.unidadSolicitanteId),
-									nombreSolicitante: data.nombreSolicitante,
-									cargoSolicitante: data.cargo,
-									fechaSolicitud: data.fechaSolicitud,
-							}
-							: prev
-					);
-				}}
-			/>
+			idRequisicion={Number(editingRow.id)}
+			idUsuario={Number(editingRow.idUsuario ?? 0)}
+			initialValues={{
+				unidadSolicitanteId: requisicionDetalle?.idUnidadSolicitante
+					? String(requisicionDetalle.idUnidadSolicitante)
+					: '',
+				nombreSolicitante: requisicionDetalle?.nombreSolicitante ?? '',
+				cargo: requisicionDetalle?.cargoSolicitante ?? '',
+				fechaSolicitud: requisicionDetalle?.fechaSolicitud
+					? requisicionDetalle.fechaSolicitud.substring(0, 10)
+					: '',
+			}}
+			readOnly={readOnly}
+			onSave={(data) => {
+				setRequisicionDetalle((prev) =>
+					prev
+						? {
+							...prev,
+							idUnidadSolicitante: Number(data.unidadSolicitanteId),
+							nombreSolicitante: data.nombreSolicitante,
+							cargoSolicitante: data.cargo,
+							fechaSolicitud: data.fechaSolicitud,
+						}
+						: prev
+				);
+			}}
+		/>
 	);
 	menorTabs[1].panel = (
 		<MenorDatosRequisicionTab
-				idRequisicion={Number(editingRow.id)}
-				idUsuario={Number(editingRow.idUsuario ?? 0)}
-				initialValues={{
-					justificacionGasto: requisicionDetalle?.justificacionGasto ?? '',
-				}}
-				readOnly={readOnly}
-				onSave={(data) => {
-					setRequisicionDetalle((prev) =>
-						prev
-							? { ...prev, justificacionGasto: data.justificacionGasto }
-							: prev
-					);
-					onDraftChange({
-						...draft,
-						menorDatosRequisicion: {
-							...draft.menorDatosRequisicion,
-							...data,
-						},
-					});
-				}}
-			/>
+			idRequisicion={Number(editingRow.id)}
+			idUsuario={Number(editingRow.idUsuario ?? 0)}
+			initialValues={{
+				justificacionGasto: requisicionDetalle?.justificacionGasto ?? '',
+			}}
+			readOnly={readOnly}
+			onSave={(data) => {
+				setRequisicionDetalle((prev) =>
+					prev
+						? { ...prev, justificacionGasto: data.justificacionGasto }
+						: prev
+				);
+				onDraftChange({
+					...draft,
+					menorDatosRequisicion: {
+						...draft.menorDatosRequisicion,
+						...data,
+					},
+				});
+			}}
+		/>
 	);
 
 	return (
