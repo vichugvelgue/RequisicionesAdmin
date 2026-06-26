@@ -78,15 +78,28 @@ export function MayorDatosGeneralesTab({
 	idRequisicion,
 	idUsuario,
 	initialValues,
-	hideRevisorFields,
+	estatus,
+	hideRevisorFields,	
 	onSave,
 }: {
 	idRequisicion: number;
 	idUsuario: number;
 	initialValues: Partial<ServiciosMayorDatosGeneralesValues>;
-	hideRevisorFields: boolean;
+	estatus: string | number;
+	hideRevisorFields: boolean;	
 	onSave: (data: ServiciosMayorDatosGeneralesValues) => void;
 }) {
+	//Normalizar status si viene como número o string
+	const estatusNormalizado = String(estatus ?? '').trim().toLowerCase();
+	const esRevisor = !hideRevisorFields;
+	const esSolicitante = hideRevisorFields;
+	const puedeEditarFecha = esSolicitante || (esRevisor && (estatusNormalizado === 'pendiente' || estatusNormalizado === '2'));
+	const bloquearCamposGenerales = esRevisor;
+
+	console.log(estatusNormalizado, 'estatusNormalizado');
+	console.log(esRevisor, 'esRevisor');
+	console.log(puedeEditarFecha, 'puedeEditarFecha');
+
 	const [toast, setToast] = useState({
 		visible: false,
 		title: '',
@@ -147,9 +160,9 @@ export function MayorDatosGeneralesTab({
 		try {
 			setIsSaving(true);
 
-			const fechaSolicitud = hideRevisorFields
+			const fechaSolicitud = (data.fechaSolicitud ?? '').trim();/* hideRevisorFields
 				? (initialValues.fechaSolicitud ?? data.fechaSolicitud ?? '').trim()
-				: (data.fechaSolicitud ?? '').trim();
+				: (data.fechaSolicitud ?? '').trim();*/
 			
 			/*const modalidadContratacion = hideRevisorFields
 				? initialValues.modalidadContratacion ?? data.modalidadContratacion
@@ -246,6 +259,7 @@ export function MayorDatosGeneralesTab({
 											value={field.value}
 											onChange={field.onChange}
 											placeholder="Buscar unidad…"
+											  disabled={bloquearCamposGenerales}
 										/>
 									)}
 								/>
@@ -263,6 +277,7 @@ export function MayorDatosGeneralesTab({
 									id="cs-mayor-nombre-titular"
 									{...register('nombreTitular')}
 									className="uppercase"
+									  disabled={bloquearCamposGenerales}
 								/>
 								{errors.nombreTitular?.message ? (
 									<p className="text-[11px] mt-1 text-red-600">{errors.nombreTitular.message}</p>
@@ -270,27 +285,27 @@ export function MayorDatosGeneralesTab({
 							</div>
 							<div>
 								<FieldRoleLabel htmlFor="cs-mayor-cargo">Cargo del solicitante</FieldRoleLabel>
-								<Input id="cs-mayor-cargo" {...register('cargoSolicitante')} className="uppercase" />
+								<Input id="cs-mayor-cargo" {...register('cargoSolicitante')} className="uppercase" disabled={bloquearCamposGenerales}/>
 								{errors.cargoSolicitante?.message ? (
 									<p className="text-[11px] mt-1 text-red-600">{errors.cargoSolicitante.message}</p>
 								) : null}
 							</div>
 							<div>
 								<FieldRoleLabel htmlFor="cs-mayor-tipo-proc">Tipo de procedimiento</FieldRoleLabel>
-								<Input id="cs-mayor-tipo-proc" {...register('tipoProcedimiento')} className="uppercase" />
+								<Input id="cs-mayor-tipo-proc" {...register('tipoProcedimiento')} className="uppercase" disabled={bloquearCamposGenerales}/>
 								{errors.tipoProcedimiento?.message ? (
 									<p className="text-[11px] mt-1 text-red-600">{errors.tipoProcedimiento.message}</p>
 								) : null}
 							</div>
 						</div>
 						<div className="col-span-12 lg:col-span-6 space-y-4">
-							{!hideRevisorFields ? (
-								<>
+							
 									<div>
 										<FieldRoleLabel>Fecha de solicitud</FieldRoleLabel>
 										<Controller
 											name="fechaSolicitud"
 											control={control}
+											disabled={!puedeEditarFecha}
 											render={({ field }) => (
 												<DateInputWithClear value={field.value ?? ''} onChange={field.onChange} />
 											)}
@@ -298,7 +313,9 @@ export function MayorDatosGeneralesTab({
 										{errors.fechaSolicitud?.message ? (
 											<p className="text-[11px] mt-1 text-red-600">{errors.fechaSolicitud.message}</p>
 										) : null}
-									</div>									
+									</div>		
+									{!hideRevisorFields ? (
+								<>							
 									<Controller
 										name="articuloConformidad"
 										control={control}
@@ -307,7 +324,7 @@ export function MayorDatosGeneralesTab({
 												label="En conformidad a lo establecido en el artículo"
 												name="cs-mayor-art"
 												value={field.value}
-												onChange={(e) => field.onChange(e.target.value)}
+												onChange={(e) => field.onChange(e.target.value)}												
 												options={[
 													{ value: '107', label: '107' },
 													{ value: '108', label: '108' },
@@ -331,6 +348,7 @@ export function MayorDatosGeneralesTab({
 										name="cs-mayor-caracter"
 										value={field.value}
 										onChange={(e) => field.onChange(e.target.value)}
+										disabled={bloquearCamposGenerales}
 										options={[
 											{ value: 'NACIONAL', label: 'Nacional' },
 											{ value: 'INTERNACIONAL', label: 'Internacional' },
@@ -347,6 +365,7 @@ export function MayorDatosGeneralesTab({
 												name="cs-mayor-modalidad"
 												value={field.value}
 												onChange={(e) => field.onChange(e.target.value)}
+												disabled={bloquearCamposGenerales}
 												options={[
 													{ value: '1', label: 'Fija' },
 													{ value: '2', label: 'Abierta' },
@@ -366,7 +385,7 @@ export function MayorDatosGeneralesTab({
 							type="submit"
 							variant="success"
 							size="md"
-							disabled={isSaving}
+							disabled={isSaving || !puedeEditarFecha}
 							leftIcon={<Save className="w-4 h-4" />}
 						>
 							{isSaving ? 'Guardando...' : 'Guardar sección'}

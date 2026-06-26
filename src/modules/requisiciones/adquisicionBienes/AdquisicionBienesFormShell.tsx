@@ -65,6 +65,7 @@ export function AdquisicionBienesFormShell({
 }) {
 	const [tab, setTab] = useState(() => (tipoCompra === 'MAYOR' ? 'g1' : 'm1'));
 
+
 	useEffect(() => {
 		onActiveTabChange?.(tab);
 	}, [tab, onActiveTabChange]);
@@ -90,8 +91,10 @@ export function AdquisicionBienesFormShell({
 	};
 
 
+
+
 	const cargarDocumentoBienes = async () => {
-		
+
 		if (!requisicionDetalle?.id || loadingDocumento) return;
 		setLoadingDocumento(true);
 
@@ -162,6 +165,7 @@ export function AdquisicionBienesFormShell({
 					<MayorDatosGeneralesTab
 						idRequisicion={Number(editingRow.id)}
 						hideRevisorFields={hideRevisorFields}
+						estatus={requisicionDetalle?.estatusRequisicion}
 						initialValues={{
 							unidadSolicitanteId: requisicionDetalle?.idUnidadSolicitante
 								? String(requisicionDetalle.idUnidadSolicitante)
@@ -562,6 +566,7 @@ export function AdquisicionBienesFormShell({
 			<MayorDatosGeneralesTab
 				idRequisicion={Number(editingRow.id)}
 				hideRevisorFields={hideRevisorFields}
+				estatus={requisicionDetalle?.estatusRequisicion}
 				initialValues={{
 					unidadSolicitanteId: requisicionDetalle?.idUnidadSolicitante
 						? String(requisicionDetalle.idUnidadSolicitante)
@@ -877,6 +882,7 @@ export function AdquisicionBienesFormShell({
 			);
 		}
 
+
 		return (
 			<Tabs value={tab} onChange={setTab} className="flex flex-col flex-1 min-h-0">
 				<TabsList className="shrink-0 bg-white border-b border-slate-200">
@@ -884,14 +890,43 @@ export function AdquisicionBienesFormShell({
 						<TabsTab key={t.id} value={t.id} label={t.label} />
 					))}
 				</TabsList>
-				{tabsList.map((t) => (
-					<TabsPanel key={t.id} value={t.id} className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-						<RequisicionTabPanelFieldset readOnly={readOnly}>{t.panel}</RequisicionTabPanelFieldset>
-					</TabsPanel>
-				))}
+				{tabsList.map((t) => {
+					const esRevisorOAutorizador = !hideRevisorFields;
+					const esDatosGenerales = t.id === 'g1';
+					const esDatosAdministrativos = t.id === 'g5';
+
+					const readOnlyPanel =
+						readOnly || (esRevisorOAutorizador && !esDatosGenerales && !esDatosAdministrativos);
+
+					return (
+						<TabsPanel
+							key={t.id}
+							value={t.id}
+							className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50"
+						>
+							<RequisicionTabPanelFieldset readOnly={readOnlyPanel}>
+								{t.panel}
+							</RequisicionTabPanelFieldset>
+						</TabsPanel>
+					);
+				})}
 			</Tabs>
 		);
 	}
+
+	const estatusNormalizado = String(requisicionDetalle?.estatusRequisicion ?? '')
+		.trim()
+		.toUpperCase();
+
+	const esSolicitante = hideRevisorFields;
+	const esRevisor = !hideRevisorFields;
+	const solicitantePuedeEditar =
+		esSolicitante &&
+		(estatusNormalizado === '1' || estatusNormalizado === '3');
+
+	const revisorPuedeEditarFecha =
+		esRevisor &&
+		estatusNormalizado === '2';	
 
 	/* MENOR */
 	const menorTabs = [
@@ -899,6 +934,7 @@ export function AdquisicionBienesFormShell({
 			id: 'm1',
 			label: <StepperTabLabel step={1} title="Datos generales" />,
 			panel: (
+
 				<MenorDatosGeneralesTab
 					idRequisicion={Number(editingRow.id)}
 					idUsuario={Number(editingRow.idUsuario ?? 0)}
@@ -912,7 +948,9 @@ export function AdquisicionBienesFormShell({
 							? requisicionDetalle.fechaSolicitud.substring(0, 10)
 							: '',
 					}}
-					readOnly={readOnly}
+					readOnly={false}
+					 puedeEditarFecha={solicitantePuedeEditar || revisorPuedeEditarFecha}
+  					puedeEditarCamposGenerales={solicitantePuedeEditar}
 					onSave={(data) => {
 						setRequisicionDetalle((prev) =>
 							prev
@@ -1032,7 +1070,9 @@ export function AdquisicionBienesFormShell({
 					? requisicionDetalle.fechaSolicitud.substring(0, 10)
 					: '',
 			}}
-			readOnly={readOnly}
+			readOnly={false}
+			puedeEditarFecha={solicitantePuedeEditar || revisorPuedeEditarFecha}
+  			puedeEditarCamposGenerales={solicitantePuedeEditar}
 			onSave={(data) => {
 				setRequisicionDetalle((prev) =>
 					prev
@@ -1080,11 +1120,35 @@ export function AdquisicionBienesFormShell({
 					<TabsTab key={t.id} value={t.id} label={t.label} />
 				))}
 			</TabsList>
-			{menorTabs.map((t) => (
-				<TabsPanel key={t.id} value={t.id} className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-					<RequisicionTabPanelFieldset readOnly={readOnly}>{t.panel}</RequisicionTabPanelFieldset>
-				</TabsPanel>
-			))}
+			{menorTabs.map((t) => {
+				const esDatosGeneralesMenor = t.id === 'm1';
+
+				const bloquearPanel =
+  (readOnly && !(esDatosGeneralesMenor && revisorPuedeEditarFecha)) ||
+  (esSolicitante && !solicitantePuedeEditar) ||
+  (esRevisor && (!esDatosGeneralesMenor || !revisorPuedeEditarFecha));
+
+					console.log('TAB', t.id, {
+  readOnly,
+  esSolicitante,
+  solicitantePuedeEditar,
+  esRevisor,
+  revisorPuedeEditarFecha,
+  bloquearPanel,
+});
+
+				return (
+					<TabsPanel
+						key={t.id}
+						value={t.id}
+						className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50"
+					>
+						<RequisicionTabPanelFieldset readOnly={bloquearPanel}>
+							{t.panel}
+						</RequisicionTabPanelFieldset>
+					</TabsPanel>
+				);
+			})}
 		</Tabs>
 	);
 }

@@ -63,22 +63,7 @@ export function ContratacionServiciosFormShell({
 	isNewRecord: boolean;
 	onActiveTabChange?: (tabId: string) => void;
 }) {
-	useEffect(() => {
-		if (!editingRow?.id) return;
-
-		const loadDetalle = async () => {
-			setIsLoadingDetalle(true);
-
-			try {
-				const data = await requisicionApi.obtenerPorId(Number(editingRow.id));
-				setRequisicionDetalle(data);
-			} finally {
-				setIsLoadingDetalle(false);
-			}
-		};
-
-		loadDetalle();
-	}, [editingRow?.id]);
+	
 
 	const [tab, setTab] = useState(() => (tipoCompra === 'MAYOR' ? 'cs-g1' : 'cs-m1'));
 
@@ -109,6 +94,24 @@ export function ContratacionServiciosFormShell({
 			setLoadingDocumento(false);
 		}
 	};
+
+	useEffect(() => {
+		if (!editingRow?.id) return;
+
+		const loadDetalle = async () => {
+			setIsLoadingDetalle(true);
+
+			try {
+				const data = await requisicionApi.obtenerPorId(Number(editingRow.id));
+				setRequisicionDetalle(data);
+				
+			} finally {
+				setIsLoadingDetalle(false);
+			}
+		};
+
+		loadDetalle();
+	}, [editingRow?.id]);
 
 	useEffect(() => {
 		if (!requisicionDetalle) return;
@@ -259,6 +262,7 @@ export function ContratacionServiciosFormShell({
 			: (draft.mayorDatosGenerales.nombreTitular ?? editingRow.solicitante);
 
 	const canEditSolicitanteFields = hideRevisorFields;
+	
 
 	if (tipoCompra === 'MAYOR') {
 		let step = 0;
@@ -301,7 +305,8 @@ export function ContratacionServiciosFormShell({
 						<MayorDatosGeneralesTab
 							idRequisicion={Number(editingRow.id)}
 							idUsuario={Number(editingRow.idUsuario ?? 0)}
-							hideRevisorFields={hideRevisorFields}
+							estatus={requisicionDetalle?.estatusRequisicion ?? ''}
+							hideRevisorFields={hideRevisorFields}							
 							initialValues={{
 								unidadSolicitanteId: requisicionDetalle?.idUnidadSolicitante
 									? String(requisicionDetalle.idUnidadSolicitante)
@@ -617,7 +622,7 @@ export function ContratacionServiciosFormShell({
 					/>
 			</TabsList>
 			<TabsPanel value="cs-m1" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-				<RequisicionTabPanelFieldset readOnly={readOnly}>
+				
 					<MenorDatosGeneralesTab
 						idRequisicion={Number(editingRow.id)}
 						idUsuario={Number(editingRow.idUsuario ?? 0)}
@@ -631,6 +636,8 @@ export function ContratacionServiciosFormShell({
 								? requisicionDetalle.fechaSolicitud.substring(0, 10)
 								: '',
 						}}
+						hideRevisorFields={hideRevisorFields}
+						estatus={requisicionDetalle?.estatusRequisicion ?? ''}
 						onSave={(data) => {
 							setRequisicionDetalle((prev) =>
 								prev
@@ -645,7 +652,7 @@ export function ContratacionServiciosFormShell({
 							);
 						}}
 					/>
-				</RequisicionTabPanelFieldset>
+				
 			</TabsPanel>
 			<TabsPanel value="cs-m2" className="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
 				<RequisicionTabPanelFieldset readOnly={readOnly}>
