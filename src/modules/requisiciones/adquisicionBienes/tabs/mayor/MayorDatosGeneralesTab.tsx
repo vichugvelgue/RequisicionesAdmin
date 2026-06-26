@@ -58,13 +58,15 @@ export function MayorDatosGeneralesTab({
 	initialValues,
 	hideRevisorFields,
 	idRequisicion,
+	estatus,
 	onSave,
 }: {
 	initialValues: Partial<MayorDatosGeneralesValues>;
 	hideRevisorFields: boolean;
 	idRequisicion: number;
+	estatus: string | number;
 	onSave: (data: MayorDatosGeneralesValues) => void;
-}) {
+}) {	
 	const [toast, setToast] = useState<{
 		visible: boolean;
 		title: string;
@@ -75,6 +77,13 @@ export function MayorDatosGeneralesTab({
 	const { user } = useAuth();
 	const [saving, setSaving] = useState(false);
 	const [unidadesSolicitantes, setUnidadesSolicitantes] = useState<OptionItem[]>([]);
+
+	const estatusNormalizado = String(estatus ?? '').trim().toLowerCase();
+	const esRevisor = !hideRevisorFields;
+	const esSolicitante = hideRevisorFields;
+	const puedeEditarFecha = esSolicitante || (esRevisor && (estatusNormalizado === 'pendiente' || estatusNormalizado === '2'));
+	const bloquearCamposGenerales = esRevisor;
+
 
 	const {
 		register,
@@ -133,9 +142,9 @@ export function MayorDatosGeneralesTab({
 	}, []);
 
 	const onSubmit = async (data: MayorDatosGeneralesValues) => {
-		const fechaSolicitud = hideRevisorFields
+		const fechaSolicitud = (data.fechaSolicitud ?? '').trim(); /*hideRevisorFields
 			? (initialValues.fechaSolicitud ?? dateToInputValue(new Date())).trim()
-			: (data.fechaSolicitud ?? '').trim();
+			: (data.fechaSolicitud ?? '').trim();*/
 
 		const dataNormalizada: MayorDatosGeneralesValues = {
 			...data,
@@ -224,6 +233,7 @@ export function MayorDatosGeneralesTab({
 											value={field.value}
 											onChange={field.onChange}
 											placeholder="Buscar unidad…"
+											disabled={bloquearCamposGenerales}
 										/>
 									)}
 								/>
@@ -241,6 +251,7 @@ export function MayorDatosGeneralesTab({
 									id="mayor-nombre-titular"
 									{...register('nombreTitular')}
 									className="uppercase"
+									disabled={bloquearCamposGenerales}
 								/>
 								{errors.nombreTitular?.message ? (
 									<p className="text-[11px] mt-1 text-red-600">
@@ -252,7 +263,7 @@ export function MayorDatosGeneralesTab({
 								<FieldRoleLabel htmlFor="mayor-cargo">
 									Cargo del solicitante
 								</FieldRoleLabel>
-								<Input id="mayor-cargo" {...register('cargoSolicitante')} className="uppercase" />
+								<Input id="mayor-cargo" {...register('cargoSolicitante')} className="uppercase" disabled={bloquearCamposGenerales} />
 								{errors.cargoSolicitante?.message ? (
 									<p className="text-[11px] mt-1 text-red-600">
 										{errors.cargoSolicitante.message}
@@ -263,7 +274,7 @@ export function MayorDatosGeneralesTab({
 								<FieldRoleLabel htmlFor="mayor-tipo-proc">
 									Tipo de procedimiento
 								</FieldRoleLabel>
-								<Input id="mayor-tipo-proc" {...register('tipoProcedimiento')} className="uppercase" />
+								<Input id="mayor-tipo-proc" {...register('tipoProcedimiento')} className="uppercase" disabled={bloquearCamposGenerales}/>
 								{errors.tipoProcedimiento?.message ? (
 									<p className="text-[11px] mt-1 text-red-600">
 										{errors.tipoProcedimiento.message}
@@ -272,7 +283,7 @@ export function MayorDatosGeneralesTab({
 							</div>
 						</div>
 						<div className="col-span-12 lg:col-span-6 space-y-4">
-							{!hideRevisorFields ? (
+							
 								<div>
 									<FieldRoleLabel>Fecha de solicitud</FieldRoleLabel>
 									<Controller
@@ -281,7 +292,8 @@ export function MayorDatosGeneralesTab({
 										render={({ field }) => (
 											<DateInputWithClear
 												value={field.value ?? ''}
-												onChange={field.onChange}
+												onChange={field.onChange}		
+												  disabled={!puedeEditarFecha}					
 											/>
 										)}
 									/>
@@ -291,7 +303,7 @@ export function MayorDatosGeneralesTab({
 										</p>
 									) : null}
 								</div>
-							) : null}
+							
 						<Controller
 							name="caracterProcedimiento"
 							control={control}
@@ -301,6 +313,7 @@ export function MayorDatosGeneralesTab({
 									name={field.name}
 									value={field.value}
 									onChange={field.onChange}
+									disabled={bloquearCamposGenerales}
 									options={[
 										{ value: '1', label: 'Nacional' },
 										{ value: '2', label: 'Internacional' },
@@ -317,6 +330,7 @@ export function MayorDatosGeneralesTab({
 										name={field.name}
 										value={field.value}
 										onChange={field.onChange}
+										disabled={bloquearCamposGenerales}
 										options={[
 											{ value: '1', label: 'Fija' },
 											{ value: '2', label: 'Abierta' },
@@ -332,7 +346,7 @@ export function MayorDatosGeneralesTab({
 							variant="success"
 							size="md"
 							leftIcon={<Save className="w-4 h-4" />}
-							disabled={saving}
+							disabled={saving || (esRevisor && !puedeEditarFecha)}
 						>
 							{saving ? 'Guardando...' : 'Guardar sección'}
 						</Button>

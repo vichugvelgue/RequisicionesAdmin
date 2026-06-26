@@ -69,11 +69,15 @@ export function MenorDatosGeneralesTab({
 	idRequisicion,
 	idUsuario,
 	initialValues,
+	hideRevisorFields,
+	estatus,
 	onSave,
 }: {
 	idRequisicion: number;
 	idUsuario: number;
 	initialValues: Partial<MenorServiciosDatosGeneralesForm>;
+	hideRevisorFields: boolean;
+	estatus?: string | number | null;
 	onSave: (data: MenorServiciosDatosGeneralesForm) => void;
 }) {
 	const [toast, setToast] = useState({
@@ -88,16 +92,31 @@ export function MenorDatosGeneralesTab({
 	const { id } = useParams();
 	const requisicionIdFinal = Number(id ?? idRequisicion ?? 0);
 
-const {
-	register,
-	control,
-	handleSubmit,
-	reset,
-	formState: { errors },
-} = useForm<MenorServiciosDatosGeneralesForm>({
-	resolver: yupResolver(schema) as any,
-	defaultValues: withDefaultFecha(initialValues),
-});
+	// Normalizar estatus si viene como número o string
+	const estatusNormalizado = String(estatus ?? '').trim().toLowerCase();
+
+	const esRevisor = !hideRevisorFields;
+	const esSolicitante = hideRevisorFields;
+
+	const puedeEditarFecha =
+		esSolicitante ||
+		(esRevisor &&
+			(estatusNormalizado === 'pendiente' || estatusNormalizado === '2'));
+
+	const bloquearCamposGenerales = esRevisor;
+
+	console.log(esRevisor, esSolicitante, estatusNormalizado, puedeEditarFecha);
+
+	const {
+		register,
+		control,
+		handleSubmit,
+		reset,
+		formState: { errors },
+	} = useForm<MenorServiciosDatosGeneralesForm>({
+		resolver: yupResolver(schema) as any,
+		defaultValues: withDefaultFecha(initialValues),
+	});
 
 	useEffect(() => {
 		reset(withDefaultFecha(initialValues));
@@ -208,6 +227,7 @@ const {
 										value={field.value}
 										onChange={field.onChange}
 										placeholder="Buscar unidad…"
+										disabled={bloquearCamposGenerales}
 									/>
 								)}
 							/>
@@ -226,6 +246,7 @@ const {
 								id="cs-menor-nom"
 								{...register('nombreSolicitante')}
 								className="uppercase"
+								disabled={bloquearCamposGenerales}
 							/>
 							{errors.nombreSolicitante?.message ? (
 								<p className="text-[11px] mt-1 text-red-600">
@@ -240,6 +261,7 @@ const {
 								id="cs-menor-car"
 								{...register('cargo')}
 								className="uppercase"
+								disabled={bloquearCamposGenerales}
 							/>
 							{errors.cargo?.message ? (
 								<p className="text-[11px] mt-1 text-red-600">
@@ -257,6 +279,7 @@ const {
 									<DateInputWithClear
 										value={field.value ?? ''}
 										onChange={field.onChange}
+										disabled={!puedeEditarFecha}
 									/>
 								)}
 							/>
@@ -273,7 +296,7 @@ const {
 							type="submit"
 							variant="success"
 							size="md"
-							disabled={isSaving}
+								disabled={isSaving || !puedeEditarFecha}
 							leftIcon={<Save className="w-4 h-4" />}
 						>
 							{isSaving ? 'Guardando...' : 'Guardar sección'}

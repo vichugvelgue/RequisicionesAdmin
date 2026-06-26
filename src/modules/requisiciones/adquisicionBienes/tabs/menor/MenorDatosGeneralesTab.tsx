@@ -62,19 +62,21 @@ const getUsuarioId = (): number => {
 	}
 };
 
-export function MenorDatosGeneralesTab({idRequisicion,idUsuario,initialValues,onSave,readOnly}: {
+export function MenorDatosGeneralesTab({ idRequisicion, idUsuario, initialValues, onSave, readOnly, puedeEditarFecha, puedeEditarCamposGenerales, }: {
 	idRequisicion: number;
 	idUsuario: number;
 	initialValues: Partial<MenorDatosGeneralesForm>;
 	onSave: (data: MenorDatosGeneralesForm) => void;
 	readOnly: boolean;
-	}) {
-	
-	const [toast, setToast] = useState({visible: false,title: '',variant: 'success' as 'success' | 'error',});
+	puedeEditarFecha: boolean;
+	puedeEditarCamposGenerales: boolean;
+}) {
+	console.log(puedeEditarFecha, puedeEditarCamposGenerales, readOnly);
+	const [toast, setToast] = useState({ visible: false, title: '', variant: 'success' as 'success' | 'error', });
 	const [unidadesSolicitantes, setUnidadesSolicitantes] = useState<OptionItem[]>([]);
 	const [isSaving, setIsSaving] = useState(false);
 	const { id } = useParams();
-	 idRequisicion = Number(id ?? 0);
+	idRequisicion = Number(id ?? 0);
 
 	const {
 		control,
@@ -86,43 +88,45 @@ export function MenorDatosGeneralesTab({idRequisicion,idUsuario,initialValues,on
 		defaultValues: withDefaultFecha(initialValues),
 	});
 
-
-useEffect(() => {
-	reset({
-		unidadSolicitanteId: initialValues.unidadSolicitanteId ?? '',
-		nombreSolicitante: initialValues.nombreSolicitante ?? '',
-		cargo: initialValues.cargo ?? '',
-		fechaSolicitud: initialValues.fechaSolicitud ?? dateToInputValue(new Date()),
-	});
-}, [
-	initialValues.unidadSolicitanteId,
-	initialValues.nombreSolicitante,
-	initialValues.cargo,
-	initialValues.fechaSolicitud,
-	reset,
-]);
+	const bloquearCamposGenerales = readOnly;
 
 
-	useEffect(() => {	
+	useEffect(() => {
+		reset({
+			unidadSolicitanteId: initialValues.unidadSolicitanteId ?? '',
+			nombreSolicitante: initialValues.nombreSolicitante ?? '',
+			cargo: initialValues.cargo ?? '',
+			fechaSolicitud: initialValues.fechaSolicitud ?? dateToInputValue(new Date()),
+		});
+	}, [
+		initialValues.unidadSolicitanteId,
+		initialValues.nombreSolicitante,
+		initialValues.cargo,
+		initialValues.fechaSolicitud,
+		reset,
+	]);
+
+
+	useEffect(() => {
 		const loadUnidades = async () => {
-		try {
-			const data = await unidadSolicitanteApi.listar();
-			setUnidadesSolicitantes(
-				data.map((x) => ({
-					value: String(x.id),
-					label: x.nombre,
-				}))
-			);
-		} catch {
-			setToast({
-				visible: true,
-				title: 'No se pudo cargar unidad solicitante',
-				variant: 'error',
-			});
-		}
-	};
-	loadUnidades();
-}, []);
+			try {
+				const data = await unidadSolicitanteApi.listar();
+				setUnidadesSolicitantes(
+					data.map((x) => ({
+						value: String(x.id),
+						label: x.nombre,
+					}))
+				);
+			} catch {
+				setToast({
+					visible: true,
+					title: 'No se pudo cargar unidad solicitante',
+					variant: 'error',
+				});
+			}
+		};
+		loadUnidades();
+	}, []);
 
 
 	useEffect(() => {
@@ -137,52 +141,52 @@ useEffect(() => {
 				<form
 					className="space-y-4"
 					onSubmit={handleSubmit(
-					async (data) => {
-						try {
-							setIsSaving(true);
-							idUsuario = getUsuarioId();
-							await requisicionApi.guardarDatosGenerales({
-								idRequisicion,
-								idUsuario,
-								idUnidadSolicitante: Number(data.unidadSolicitanteId),
-								nombreSolicitante: data.nombreSolicitante.trim().toUpperCase(),
-								cargoSolicitante: data.cargo.trim().toUpperCase(),
-								fechaSolicitud: data.fechaSolicitud,
+						async (data) => {
+							try {
+								setIsSaving(true);
+								idUsuario = getUsuarioId();
+								await requisicionApi.guardarDatosGenerales({
+									idRequisicion,
+									idUsuario,
+									idUnidadSolicitante: Number(data.unidadSolicitanteId),
+									nombreSolicitante: data.nombreSolicitante.trim().toUpperCase(),
+									cargoSolicitante: data.cargo.trim().toUpperCase(),
+									fechaSolicitud: data.fechaSolicitud,
 
-								caracterProcedimiento: null,
-								modalidadContratacion: null,
-								articulo: null,
-								tipoProcedimiento: '',
-							});
+									caracterProcedimiento: null,
+									modalidadContratacion: null,
+									articulo: null,
+									tipoProcedimiento: '',
+								});
 
-							onSave({
-								...data,
-								nombreSolicitante: data.nombreSolicitante.trim().toUpperCase(),
-								cargo: data.cargo.trim().toUpperCase(),
-							});
+								onSave({
+									...data,
+									nombreSolicitante: data.nombreSolicitante.trim().toUpperCase(),
+									cargo: data.cargo.trim().toUpperCase(),
+								});
 
+								setToast({
+									visible: true,
+									title: 'Datos generales guardados',
+									variant: 'success',
+								});
+							} catch (err) {
+								setToast({
+									visible: true,
+									title: err instanceof Error ? err.message : 'No se pudieron guardar los datos generales',
+									variant: 'error',
+								});
+							} finally {
+								setIsSaving(false);
+							}
+						},
+						() =>
 							setToast({
 								visible: true,
-								title: 'Datos generales guardados',
-								variant: 'success',
-							});
-						} catch (err) {
-							setToast({
-								visible: true,
-								title: err instanceof Error ? err.message : 'No se pudieron guardar los datos generales',
+								title: 'Faltan campos por capturar',
 								variant: 'error',
-							});
-						} finally {
-							setIsSaving(false);
-						}
-					},
-					() =>
-						setToast({
-							visible: true,
-							title: 'Faltan campos por capturar',
-							variant: 'error',
-						})
-				)}
+							})
+					)}
 					noValidate
 				>
 					<div className="grid grid-cols-12 gap-4">
@@ -197,6 +201,7 @@ useEffect(() => {
 										value={field.value}
 										onChange={field.onChange}
 										placeholder="Buscar unidad…"
+										disabled={!puedeEditarCamposGenerales}
 									/>
 								)}
 							/>
@@ -210,7 +215,7 @@ useEffect(() => {
 							<FieldRoleLabel htmlFor="menor-nom">
 								Nombre del solicitante
 							</FieldRoleLabel>
-							<Input id="menor-nom" {...register('nombreSolicitante')} className="uppercase" />
+							<Input id="menor-nom" {...register('nombreSolicitante')} className="uppercase"  disabled={!puedeEditarCamposGenerales} />
 							{errors.nombreSolicitante?.message ? (
 								<p className="text-[11px] mt-1 text-red-600">{errors.nombreSolicitante.message}</p>
 							) : null}
@@ -219,7 +224,7 @@ useEffect(() => {
 							<FieldRoleLabel htmlFor="menor-car">
 								Cargo
 							</FieldRoleLabel>
-							<Input id="menor-car" {...register('cargo')} className="uppercase" />
+							<Input id="menor-car" {...register('cargo')} className="uppercase" disabled={!puedeEditarCamposGenerales} />
 							{errors.cargo?.message ? (
 								<p className="text-[11px] mt-1 text-red-600">{errors.cargo.message}</p>
 							) : null}
@@ -230,7 +235,7 @@ useEffect(() => {
 								name="fechaSolicitud"
 								control={control}
 								render={({ field }) => (
-									<DateInputWithClear value={field.value ?? ''} onChange={field.onChange} />
+									<DateInputWithClear value={field.value ?? ''} onChange={field.onChange} disabled={!puedeEditarFecha} />
 								)}
 							/>
 							{errors.fechaSolicitud?.message ? (
@@ -239,8 +244,8 @@ useEffect(() => {
 						</div>
 					</div>
 					<div className="flex justify-end pt-2">
-						<Button type="submit" variant="success" size="md" leftIcon={<Save className="w-4 h-4" />} disabled={readOnly}>
-							Guardar sección
+						<Button type="submit" variant="success" size="md" leftIcon={<Save className="w-4 h-4" />} disabled={isSaving || !puedeEditarFecha} >
+							{isSaving ? 'Guardando...' : 'Guardar sección'}
 						</Button>
 					</div>
 				</form>
